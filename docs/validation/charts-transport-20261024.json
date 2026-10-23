@@ -1,0 +1,32 @@
+{
+  "passed": true,
+  "date": "2026-10-23T20:38:08.764155+00:00",
+  "binary_sha256": "0ee761a33de015e9af7e2721f2dfc25fe6d8d636824adf10f35af07eb132f624",
+  "source_sha256": "15f3b33aa804484724881af39b9690d0dff38f5db2687fab997449629c73acfa",
+  "tests": [
+    "delayed fragmented headers",
+    "32 fragmented requests / four workers",
+    "fragmented malformed body; UTF-8 error",
+    "unauthenticated API rejected",
+    "incomplete request timeout; host remains usable",
+    "cooperative shutdown"
+  ],
+  "rust_regressions": {
+    "before_fix": "both failed",
+    "after_fix": "both passed",
+    "tests": 2
+  },
+  "live_update": {
+    "only_charts_restarted": true,
+    "raw_acquisition_continued": true,
+    "core_and_other_plugin_pids_unchanged": true
+  },
+  "browser": {
+    "passed": true,
+    "tracks": 6,
+    "observation_seconds": 12,
+    "graph_time_advanced": true,
+    "browser_errors": []
+  },
+  "limits": "Windows 11 local transport fix; not weak-hardware, GPU, endurance or full prototype reacceptance."
+}

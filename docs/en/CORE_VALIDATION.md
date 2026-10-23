@@ -1,5 +1,7 @@
 # Core 0.1.0 validation
 
+Charts transport fix on 2026-10-24: accepted HTTP streams explicitly enter blocking mode with timeouts; text errors declare UTF-8. [Separate report](../validation/charts-transport-20261024.json): two regressions failed before the fix and pass afterwards; six packaged-host checks include 32 fragmented requests on four workers and an incomplete-request timeout. Only charts was replaced in the running prototype while raw acquisition continued; the browser confirmed six advancing graphs over 12 seconds without errors. Previous reports retain their own hashes and do not constitute reacceptance of this revision.
+
 ## End-to-end redb / calibration / uPlot prototype
 
 New slice: [launch and contract](PROTOTYPE.md). **33 Rust tests**, 13 tool tests, fmt/clippy/release passed. The [end-to-end report](../validation/prototype-0.1.0.json) covers an independent 1000→0 / 4900→0.5 / 8800→1 oracle, historical maps during backlog, activation, retries/incorrect-result rejection, separate CSV/backup, forced core termination, restoration without the original database and exact event comparison. The live emulator supplied 5 modules, 10 batches, 60 raw samples, 30 channels and six parameters; emulator settings were unchanged. Browser checks cover vertical tracks, intervals, flags, right click, outline cursor and map editing.

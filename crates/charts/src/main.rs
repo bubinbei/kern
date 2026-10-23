@@ -18,6 +18,11 @@ const CSS: &[u8] = include_bytes!("../web/app.css");
 const UPLOT: &[u8] = include_bytes!("../../../third_party/uplot-1.6.32/uPlot.iife.min.js");
 const UPLOT_CSS: &[u8] = include_bytes!("../../../third_party/uplot-1.6.32/uPlot.min.css");
 fn respond(s: &mut TcpStream, status: &str, kind: &str, data: &[u8]) -> io::Result<()> {
+    let kind = if kind == "text/plain" {
+        "text/plain; charset=utf-8"
+    } else {
+        kind
+    };
     write!(
         s,
         "HTTP/1.1 {status}\r\nContent-Type: {kind}\r\nContent-Length: {}\r\nConnection: close\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nContent-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'\r\n\r\n",
@@ -26,6 +31,9 @@ fn respond(s: &mut TcpStream, status: &str, kind: &str, data: &[u8]) -> io::Resu
     s.write_all(data)
 }
 fn handle(s: &mut TcpStream, e: &Endpoint, key: &str, host: &str) -> io::Result<()> {
+    // Windows can inherit FIONBIO from the listener. Workers use blocking I/O
+    // with timeouts; a partially arrived request must not become WSAEWOULDBLOCK.
+    s.set_nonblocking(false)?;
     s.set_read_timeout(Some(Duration::from_secs(2)))?;
     s.set_write_timeout(Some(Duration::from_secs(3)))?;
     let mut bytes = vec![];
@@ -216,6 +224,9 @@ fn run() -> io::Result<()> {
                 }));
             }
             Ok((mut s, _)) => {
+                if s.set_nonblocking(false).is_err() {
+                    continue;
+                }
                 let _ = s.set_write_timeout(Some(Duration::from_millis(100)));
                 let _ = respond(
                     &mut s,
@@ -243,5 +254,81 @@ fn main() -> std::process::ExitCode {
             eprintln!("KERN charts: {e}");
             std::process::ExitCode::FAILURE
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::mpsc;
+
+    #[test]
+    fn fragmented_request_on_nonblocking_accepted_socket() {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+        let (ready_tx, ready_rx) = mpsc::channel();
+        let server = thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            // Reproduce inherited Windows mode deterministically on every platform.
+            stream.set_nonblocking(true).unwrap();
+            ready_tx.send(()).unwrap();
+            let endpoint = Endpoint {
+                version: VERSION,
+                address,
+                token: String::new(),
+                pid: 0,
+            };
+            handle(&mut stream, &endpoint, "test", &address.to_string())
+        });
+        let mut client = TcpStream::connect(address).unwrap();
+        client
+            .set_read_timeout(Some(Duration::from_secs(5)))
+            .unwrap();
+        ready_rx.recv_timeout(Duration::from_secs(2)).unwrap();
+        thread::sleep(Duration::from_millis(50));
+        let request = format!("GET / HTTP/1.1\r\nHost: {address}\r\n\r\n");
+        let mut send_error = None;
+        for fragment in request.as_bytes().chunks(7) {
+            if let Err(error) = client.write_all(fragment) {
+                send_error = Some(error);
+                break;
+            }
+            thread::sleep(Duration::from_millis(5));
+        }
+        let mut response = Vec::new();
+        let received = client.read_to_end(&mut response);
+        assert!(server.join().unwrap().is_ok(), "fragmented request failed");
+        assert!(send_error.is_none());
+        received.unwrap();
+        let split = response.windows(4).position(|b| b == b"\r\n\r\n").unwrap();
+        assert!(response.starts_with(b"HTTP/1.1 200 OK\r\n"));
+        assert_eq!(&response[split + 4..], HTML);
+    }
+
+    #[test]
+    fn plain_text_error_declares_utf8_and_preserves_bytes() {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+        let message = "Ошибка соединения: повторите запрос";
+        let server = thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            respond(
+                &mut stream,
+                "400 Bad Request",
+                "text/plain",
+                message.as_bytes(),
+            )
+            .unwrap();
+        });
+        let mut client = TcpStream::connect(address).unwrap();
+        client
+            .set_read_timeout(Some(Duration::from_secs(5)))
+            .unwrap();
+        let mut response = String::new();
+        client.read_to_string(&mut response).unwrap();
+        server.join().unwrap();
+        assert!(response.contains("Content-Type: text/plain; charset=utf-8\r\n"));
+        assert!(response.ends_with(message));
+        assert!(response.contains(&format!("Content-Length: {}\r\n", message.len())));
     }
 }
