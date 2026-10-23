@@ -1,6 +1,6 @@
 # Server, workstations and a shared web interface
 
-Status: future-development target approved on 2026-10-23. **Network workstations and remote control are not being implemented now.** R1 from [STORAGE_CHARTS_PLAN](STORAGE_CHARTS_PLAN.md) remains the next working slice. This document establishes boundaries early so the local interface need not be rebuilt for every workstation.
+Status: future-development target approved on 2026-10-23. **Network workstations and remote control are not being implemented now.** The local [prototype](PROTOTYPE.md) implements selected stages from [STORAGE_CHARTS_PLAN](STORAGE_CHARTS_PLAN.md). This document establishes boundaries early so the local interface need not be rebuilt for every workstation.
 
 ## One measurement server, multiple presentations
 
@@ -14,7 +14,7 @@ flowchart LR
     G <--> C["KERN in client mode"]
 ```
 
-This is a target diagram: redb/interpreter/gateway are not included in the current build. Calculation and recording run in separate plugins supervised by the core, rather than one shared process. The local interface path remains available if the gateway fails.
+This is a target diagram: redb/interpreter are included in the local prototype; the network gateway is not implemented yet. Calculation and recording run in separate plugins supervised by the core, rather than one shared process. The local interface path remains available if the gateway fails.
 
 **KERN server** is the rig node owning equipment, the three logical datasets, history, configuration versions and source/interpreter/writer processes. It works without open clients or internet access. redb remains a local server database; the network exposes an API, not the database file or COM access.
 
@@ -61,13 +61,13 @@ Server audit retains who sent a command, from where and in which session, its ID
 - On disconnection, the screen shows connection loss and sample age. A last-known value is neither presented as fresh nor replaced with zero. On reconnect, catch up over available history or obtain a new snapshot and an explicit unavailable-history message. Server-side recording continues.
 - Bound client count, update rates, request sizes, queues, cache and history cost. Coalesce intermediate display updates, not archived samples. A slow client is resynchronized or disconnected; viewing cannot retain server history indefinitely or delay ingestion. This differs from the required writer/backup contract.
 - History and screen-data preparation have lower priority than measurement ingestion/commit. Do not initiate another COM poll/full recalculation for every viewer. Split expensive reads into short transactions; measure load on the shared server with multiple clients, not only each screen separately.
-- Web components use locally supplied resources without a CDN. Add internet access through a controlled gateway with encryption and authentication/permissions, rather than publishing the database/COM/local administrative IPC. Select transport, TLS component and access method in a separate stage. This task opens no ports/routes/listeners.
+- Web components use locally supplied resources without a CDN. Add internet access through a controlled gateway with encryption and authentication/permissions, rather than publishing the database/COM/local administrative IPC. Select transport, TLS component and access method in a separate stage. No external ports/routes/listeners are opened; the local prototype bridge is not a LAN gateway.
 
 ## Gradual implementation
 
 | Stage | Deliverable | Acceptance |
 |---|---|---|
-| N0 — design now | Shared DTOs/IDs/revisions/quality, separation of client presentation from server rules; account for this in R1–R4 | Contract requires no shared memory/local files on clients; no network listeners |
+| N0 — design now | Shared DTOs/IDs/revisions/quality, separation of client presentation from server rules; account for this in R1–R4 | Contract requires no shared memory/local files on clients; no external listeners, only local IPC/bridge |
 | N1 — after the working local slice | Shared web screens and local adapter; reuse uPlot | Screen failure leaves acquisition/recording; native diagnostics remain; matching values/gaps/flags |
 | N2 — LAN viewing only | Gateway, authentication, scoped permissions, browser and desktop client | Read-only cannot mutate; hidden channels never leave the server; reconnect/epochs; multiple clients, weak server and slow client |
 | N3 — internet viewing | Restricted customer access through a protected entry point | Site/user boundaries, session revocation, quotas, external-network failure without recording disruption |

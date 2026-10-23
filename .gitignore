@@ -4,6 +4,9 @@ runtime/
 data/
 logs/
 backup/
+!plugins/backup/
+!plugins/backup/plugin.json
+*.redb
 .local/
 .env
 .env.*

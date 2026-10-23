@@ -1,6 +1,6 @@
 # Integrating redb and uPlot
 
-Status: development direction approved on 2026-10-23, **a plan, not an implemented integration**. The current build still uses KJNv1 and the native shell; redb/uPlot are not included yet. Critical plugins remain separate Rust processes. This plan refines [ARCHITECTURE](ARCHITECTURE.md) and the sequence in [ROADMAP](ROADMAP.md).
+Status: plan dated 2026-10-23, partly implemented by the first [end-to-end prototype](PROTOTYPE.md): a separate redb profile, calibration/interpreter, uPlot, CSV and backup. The previous KJN backend remains; R1–R6 and their acceptance are not all complete. Critical plugins remain separate Rust processes. This plan refines [ARCHITECTURE](ARCHITECTURE.md) and the sequence in [ROADMAP](ROADMAP.md).
 
 ## Three tables: a practical model
 
@@ -77,13 +77,13 @@ The first prototype must verify vertical time, multiple curves per track, grid/t
 | R5 | Working writer and independent uncompressed backup | Failure between file write/ack; duplicate-free catch-up; late backup; restore without original profile and compare with reference |
 | R6 | Measured graph-host distribution, shell integration and endurance acceptance | Windows10 and low-end Intel “4125” laptop: idle/live/scroll/hidden, per-process CPU/GPU/RAM/disk/latency; 24–72h; macOS2012 later |
 
-The next working slice is **R1**, not replacing every subsystem at once. Establish a measurable baseline with the same synthetic stream before implementation. A successful build, someone else's benchmark or a short run on a powerful PC does not validate low-end hardware requirements. Each subsequent slice retains previous fault checks.
+The vertical prototype covers selected R1/R3/R4/R5 parts; R2 and full fault/resource acceptance remain ahead. Establish a measurable baseline with the same synthetic stream before implementation. A successful build, someone else's benchmark or a short run on a powerful PC does not validate low-end hardware requirements. Each subsequent slice retains previous fault checks.
 
-Next-task context: implement R1 for a new synthetic profile while preserving the KJN reader and working bundle; do not open COM ports or migrate real profiles. Start with `crates/engine/src/journal.rs`, `crates/engine/src/state.rs`, `crates/core/src/server.rs`, the contract in `crates/protocol/src/lib.rs`, and existing `tools/validate_core.py`. Pin the new dependency in Cargo.lock and review licenses/packaging. Deliver a redb raw slice retaining acknowledgement/retry guarantees, with an independent failure/resource report, without implementing the interpreter or web shell at the same time.
+Further storage-task context: finish R1 acceptance and R2 import while preserving the KJN reader and working bundle; do not open COM ports or migrate real profiles. Start with `crates/engine/src/journal.rs`, `crates/engine/src/state.rs`, `crates/core/src/server.rs`, the contract in `crates/protocol/src/lib.rs`, and existing `tools/validate_core.py`. Pin the new dependency in Cargo.lock and review licenses/packaging. Deliver a redb raw slice retaining acknowledgement/retry guarantees, with an independent failure/resource report, without implementing the interpreter or web shell at the same time.
 
 ## Open dependencies and licenses
 
 - [redb](https://github.com/cberner/redb): MIT OR Apache-2.0; select MIT for distribution. Verify [transaction](https://docs.rs/redb/latest/redb/struct.WriteTransaction.html) and [durability](https://docs.rs/redb/latest/redb/enum.Durability.html) APIs against the pinned version.
 - [uPlot](https://github.com/leeoniya/uPlot): [MIT](https://github.com/leeoniya/uPlot/blob/master/LICENSE), Canvas2D and extensions. Pin the version and exact artifacts in R4.
 
-These permissive licenses allow commercial use with required notices retained. Upon actual inclusion, update the dependency registry, original license texts, hashes and packaging; installed dependencies/bundle licenses have not changed at this stage. Review the host and new transitive dependencies separately.
+These permissive licenses allow commercial use with required notices retained. Upon actual inclusion, update the dependency registry, original license texts, hashes and packaging; redb 4.1.0 and uPlot 1.6.32 are already pinned/included in the prototype with notices. Review the host and new transitive dependencies separately.

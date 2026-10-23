@@ -1,0 +1,131 @@
+{
+  "algorithm": "linear-v1",
+  "parameters": [
+    {
+      "id": "weight",
+      "name": "Тест · вес",
+      "unit": "т",
+      "source": "im2480",
+      "channel": 0,
+      "points": [
+        {
+          "raw": 0,
+          "value": 0
+        },
+        {
+          "raw": 65535,
+          "value": 40
+        }
+      ],
+      "min": 0,
+      "max": 40,
+      "color": "#d3869b",
+      "extrapolate": false
+    },
+    {
+      "id": "pressure",
+      "name": "Тест · давление",
+      "unit": "атм",
+      "source": "im2480",
+      "channel": 1,
+      "points": [
+        {
+          "raw": 0,
+          "value": 0
+        },
+        {
+          "raw": 65535,
+          "value": 250
+        }
+      ],
+      "min": 0,
+      "max": 250,
+      "color": "#fe8019",
+      "extrapolate": false
+    },
+    {
+      "id": "level",
+      "name": "Тест · уровень",
+      "unit": "м",
+      "source": "im2480",
+      "channel": 2,
+      "points": [
+        {
+          "raw": 0,
+          "value": 0
+        },
+        {
+          "raw": 65535,
+          "value": 10
+        }
+      ],
+      "min": 0,
+      "max": 10,
+      "color": "#b8bb26",
+      "extrapolate": false
+    },
+    {
+      "id": "position",
+      "name": "Тест · положение",
+      "unit": "м",
+      "source": "im2480",
+      "channel": 3,
+      "points": [
+        {
+          "raw": 0,
+          "value": 0
+        },
+        {
+          "raw": 1000000,
+          "value": 1000
+        }
+      ],
+      "min": 0,
+      "max": 1000,
+      "color": "#83a598",
+      "extrapolate": false
+    },
+    {
+      "id": "rotation",
+      "name": "Тест · обороты",
+      "unit": "об/мин",
+      "source": "im2480",
+      "channel": 4,
+      "points": [
+        {
+          "raw": 0,
+          "value": 0
+        },
+        {
+          "raw": 5,
+          "value": 250
+        }
+      ],
+      "min": 0,
+      "max": 250,
+      "color": "#fabd2f",
+      "extrapolate": false
+    },
+    {
+      "id": "flow",
+      "name": "Тест · расход",
+      "unit": "л/с",
+      "source": "im2480",
+      "channel": 5,
+      "points": [
+        {
+          "raw": 0,
+          "value": 0
+        },
+        {
+          "raw": 10,
+          "value": 60
+        }
+      ],
+      "min": 0,
+      "max": 60,
+      "color": "#8ec07c",
+      "extrapolate": false
+    }
+  ]
+}

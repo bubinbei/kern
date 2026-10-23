@@ -14,3 +14,7 @@ MIT is selected where explicitly offered as a permissive alternative. This inclu
 New KERN code is MIT. The Rust standard library/toolchain have separate terms; the compiler is not bundled. External binary distribution needs a separate composition review, including standard-library notices. This is a local test bundle; no public binary release is published.
 
 Official `windows-sys`/`windows-link` bindings (MIT alternative) are used by the separate native shell and im2480 COM boundary; they are not linked into the headless core. No web runtime/async framework was added. The absence of a browser engine does not replace CPU/RAM/GPU/disk measurements or Windows 10 validation.
+
+The prototype adds **redb 4.1.0** (MIT alternative) for local journaling and **uPlot 1.6.32** (MIT) for charts. JS/CSS/LICENSE come from the official npm archive with SHA-512 verification; artifacts and SHA-256: `third_party/uplot-1.6.32/source.json`. Notices are included in the new bundle. Installed Edge/Chrome is an external runtime and is not redistributed. Playwright is development/test-only, not part of the runtime.
+
+`serde_json/float_roundtrip` is enabled for exact calibrated f64 transport; a regression verifies bitwise equality over 65,536 codes. Without it, strict result validation could reject a correct value after JSON transport.

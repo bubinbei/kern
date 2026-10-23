@@ -22,6 +22,20 @@ pub struct TailBoundary {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "event", rename_all = "snake_case", deny_unknown_fields)]
 pub enum Event {
+    CalibrationSaved {
+        revision: u64,
+        map: CalibrationMap,
+    },
+    CalibrationActivated {
+        revision: u64,
+        session: u64,
+    },
+    InterpreterOpened {
+        generation: u64,
+    },
+    ParametersStored {
+        batch: ParameterBatch,
+    },
     SettingsBaseline {
         settings: Settings,
     },
@@ -39,6 +53,8 @@ pub enum Event {
     },
     BatchStored {
         batch: Batch,
+        #[serde(default)]
+        calibration_revision: u64,
         received_unix_ms: i64,
         #[serde(default)]
         received_monotonic_ms: Option<u64>,
@@ -83,6 +99,16 @@ struct Reading {
 
 #[derive(Debug, Default)]
 pub struct State {
+    pub maps: BTreeMap<u64, CalibrationMap>,
+    pub calibration_revision: u64,
+    pub active_revision: u64,
+    pub interpreter_generation: u64,
+    pub interpreter_online: bool,
+    interpreter_pulse: Option<Instant>,
+    pub processor_position: u64,
+    pub last_raw_event: u64,
+    last_result: Option<ParameterBatch>,
+    parameters: BTreeMap<String, (ParameterSample, ParameterBatch)>,
     sources: BTreeMap<String, Source>,
     boot_started_at: Option<Instant>,
     pub settings: Settings,
@@ -142,6 +168,68 @@ impl State {
     /// Validate before any state mutation. Effects become visible only after journal sync.
     pub fn prepare(&self, request: Request) -> Prepared {
         let event = match request {
+            Request::SaveCalibration {
+                expected_revision,
+                map,
+            } => {
+                if expected_revision != self.calibration_revision {
+                    return Prepared::Immediate(Reply::error(
+                        "revision_conflict",
+                        "Calibration changed; reload before saving",
+                    ));
+                }
+                if self.maps.len() >= 256 {
+                    return Prepared::Immediate(invalid(
+                        "Prototype calibration history limit reached (256 revisions)",
+                    ));
+                }
+                if let Err(e) = crate::calibration::validate(&map) {
+                    return Prepared::Immediate(invalid(&e));
+                }
+                if !self.stable_units(&map) {
+                    return Prepared::Immediate(invalid(
+                        "A parameter ID keeps its historical unit; create a new ID for another unit",
+                    ));
+                }
+                Event::CalibrationSaved {
+                    revision: self.calibration_revision + 1,
+                    map,
+                }
+            }
+            Request::OpenInterpreter {
+                expected_generation,
+            } => {
+                if expected_generation != self.interpreter_generation {
+                    return Prepared::Immediate(Reply::error(
+                        "revision_conflict",
+                        "Interpreter generation changed",
+                    ));
+                }
+                if self.interpreter_live() {
+                    return Prepared::Immediate(Reply::error(
+                        "resource_busy",
+                        "Interpreter lease is active; stop it or wait 15s",
+                    ));
+                }
+                Event::InterpreterOpened {
+                    generation: self.interpreter_generation + 1,
+                }
+            }
+            Request::ActivateCalibration { session, revision } => {
+                if !self.interpreter_online || session != self.interpreter_generation {
+                    return Prepared::Immediate(invalid("Stale interpreter session"));
+                }
+                if revision != self.calibration_revision || !self.maps.contains_key(&revision) {
+                    return Prepared::Immediate(invalid("Unknown or superseded map"));
+                }
+                if revision == self.active_revision {
+                    return Prepared::Immediate(Reply::Durable {
+                        event_sequence: self.event_sequence,
+                        duplicate: true,
+                    });
+                }
+                Event::CalibrationActivated { revision, session }
+            }
             Request::OpenSource {
                 id,
                 resource,
@@ -244,6 +332,7 @@ impl State {
                 }
                 Event::BatchStored {
                     batch,
+                    calibration_revision: self.active_revision,
                     received_unix_ms: unix_ms(),
                     received_monotonic_ms: self
                         .boot_started_at
@@ -298,6 +387,51 @@ impl State {
             return Err("Non-contiguous event sequence".into());
         }
         match event {
+            Event::CalibrationSaved { revision, map } => {
+                if *revision != self.calibration_revision + 1 {
+                    return Err("Invalid map revision".into());
+                }
+                crate::calibration::validate(map)?;
+                if !self.stable_units(map) {
+                    return Err("Parameter unit changed under an existing ID".into());
+                }
+                self.maps.insert(*revision, map.clone());
+                self.calibration_revision = *revision;
+            }
+            Event::CalibrationActivated { revision, session } => {
+                if !self.maps.contains_key(revision) || *session != self.interpreter_generation {
+                    return Err("Invalid map activation".into());
+                }
+                self.active_revision = *revision;
+                let ids: BTreeSet<_> = self.maps[revision]
+                    .parameters
+                    .iter()
+                    .map(|p| p.id.as_str())
+                    .collect();
+                self.parameters.retain(|id, _| ids.contains(id.as_str()));
+            }
+            Event::InterpreterOpened { generation } => {
+                if *generation != self.interpreter_generation + 1 {
+                    return Err("Invalid interpreter generation".into());
+                }
+                self.interpreter_generation = *generation;
+                self.interpreter_online = live;
+                self.interpreter_pulse = live.then(Instant::now);
+            }
+            Event::ParametersStored { batch } => {
+                if batch.raw_event <= self.processor_position
+                    || batch.raw_event >= seq
+                    || (batch.revision != 0 && !self.maps.contains_key(&batch.revision))
+                {
+                    return Err("Invalid parameter position/map".into());
+                }
+                self.processor_position = batch.raw_event;
+                self.last_result = Some(batch.clone());
+                for value in &batch.values {
+                    self.parameters
+                        .insert(value.id.clone(), (value.clone(), batch.clone()));
+                }
+            }
             Event::SettingsBaseline { settings } => {
                 if self.settings_initialized
                     || !(100..=3_600_000).contains(&settings.stale_after_ms)
@@ -312,6 +446,7 @@ impl State {
                     return Err("Invalid boot generation".into());
                 }
                 self.boot = *boot;
+                self.interpreter_online = false;
                 self.mark_recovered();
                 self.boot_started_at = live.then(Instant::now);
             }
@@ -358,19 +493,22 @@ impl State {
             }
             Event::BatchStored {
                 batch,
+                calibration_revision,
                 received_unix_ms,
                 received_monotonic_ms,
             } => {
                 let Some(s) = self.sources.get_mut(&batch.source) else {
                     return Err("Journal batch references an unknown source".into());
                 };
-                if s.session != batch.session
+                if (*calibration_revision != 0 && !self.maps.contains_key(calibration_revision))
+                    || s.session != batch.session
                     || batch.sequence != s.last.as_ref().map_or(1, |b| b.sequence + 1)
                     || !valid_samples(&s.channels, &batch.samples)
                 {
                     return Err("Invalid journal batch session/sequence/samples".into());
                 }
                 self.raw_batches += 1;
+                self.last_raw_event = seq;
                 self.raw_samples += batch.samples.len() as u64;
                 for sample in &batch.samples {
                     s.values.insert(
@@ -435,8 +573,115 @@ impl State {
             }
         }
     }
+    pub fn calibration(&self) -> Reply {
+        Reply::Calibration {
+            revision: self.calibration_revision,
+            active_revision: self.active_revision,
+            map: self
+                .maps
+                .get(&self.calibration_revision)
+                .cloned()
+                .unwrap_or_default(),
+            generation: self.interpreter_generation,
+            position: self.processor_position,
+        }
+    }
+    fn stable_units(&self, map: &CalibrationMap) -> bool {
+        map.parameters.iter().all(|p| {
+            self.maps.values().all(|m| {
+                m.parameters
+                    .iter()
+                    .all(|old| old.id != p.id || old.unit == p.unit)
+            })
+        })
+    }
+    pub fn interpreter_live(&self) -> bool {
+        self.interpreter_online
+            && self
+                .interpreter_pulse
+                .is_some_and(|t| t.elapsed() < Duration::from_secs(15))
+    }
+    pub fn interpreter_pulse(&mut self, session: u64, closing: bool) -> Reply {
+        if session != self.interpreter_generation || !self.interpreter_live() {
+            return invalid("Expired interpreter lease");
+        }
+        self.interpreter_online = !closing;
+        self.interpreter_pulse = (!closing).then(Instant::now);
+        Reply::Accepted
+    }
+    pub fn prepare_result(
+        &self,
+        session: u64,
+        raw_event: u64,
+        revision: u64,
+        values: Vec<ParameterSample>,
+        raw: &Event,
+        next: Option<u64>,
+    ) -> Prepared {
+        if !self.interpreter_live() || session != self.interpreter_generation {
+            return Prepared::Immediate(invalid("Stale interpreter session"));
+        }
+        let Event::BatchStored {
+            batch,
+            calibration_revision,
+            received_unix_ms,
+            ..
+        } = raw
+        else {
+            return Prepared::Immediate(invalid("Result must reference a raw event"));
+        };
+        if revision != *calibration_revision {
+            return Prepared::Immediate(invalid("Result revision does not match input activation"));
+        }
+        let map = self.maps.get(&revision).cloned().unwrap_or_default();
+        if values != crate::calibration::convert(&map, batch) {
+            return Prepared::Immediate(invalid(
+                "Result does not match the declared linear algorithm and input",
+            ));
+        }
+        let result = ParameterBatch {
+            raw_event,
+            revision,
+            source: batch.source.clone(),
+            source_session: batch.session,
+            source_sequence: batch.sequence,
+            measured_unix_ms: batch.measured_unix_ms,
+            received_unix_ms: *received_unix_ms,
+            values,
+        };
+        if self.last_result.as_ref() == Some(&result) {
+            return Prepared::Immediate(Reply::Durable {
+                event_sequence: self.event_sequence,
+                duplicate: true,
+            });
+        }
+        if raw_event <= self.processor_position
+            || next != Some(raw_event)
+            || raw_event > self.event_sequence
+        {
+            return Prepared::Immediate(invalid("Out-of-order processing position"));
+        }
+        Prepared::Write(Event::ParametersStored { batch: result })
+    }
+    pub fn parameter_snapshot(&self) -> Vec<serde_json::Value> {
+        let sources = self.snapshot();
+        self.parameters.iter().filter(|(id,_)|self.maps.get(&self.active_revision).is_some_and(|m|m.parameters.iter().any(|p|p.id==**id))).map(|(id,(value,batch))|{
+            let quality=sources.iter().find(|s|s.id==batch.source).and_then(|s|{
+                let def=self.maps.get(&batch.revision)?.parameters.iter().find(|p|p.id==*id)?;
+                s.channels.iter().find(|c|c.id==def.channel).map(|c|c.quality.as_str())
+            }).unwrap_or("recovered");
+            let def=self.maps.get(&batch.revision).and_then(|m|m.parameters.iter().find(|p|p.id==*id));
+            let current_source=sources.iter().find(|s|s.id==batch.source);
+            let current=current_source.and_then(|s|s.channels.iter().find(|c|def.is_some_and(|d|d.channel==c.id)));
+            let quality=if quality=="good" && (batch.revision!=self.active_revision||current_source.is_some_and(|s|s.session!=batch.source_session)||current.is_some_and(|c|c.sequence.is_some_and(|n|n>batch.source_sequence))){"processing_lag"}else if quality=="good" {match value.quality{Quality::Good=>"good",Quality::Bad=>"bad",Quality::Missing=>"missing"}}else{quality};
+            serde_json::json!({"id":id,"value":value.value,"quality":quality,"revision":batch.revision,"raw_event":batch.raw_event.to_string(),"received_unix_ms":batch.received_unix_ms})
+        }).collect()
+    }
     pub fn success(&self, event: &Event) -> Reply {
         match event {
+            Event::InterpreterOpened { generation } => Reply::InterpreterOpened {
+                session: *generation,
+            },
             Event::SourceOpened {
                 slot,
                 session,
@@ -460,6 +705,8 @@ impl State {
     }
     pub fn status(&self, pending: bool, disk_error: Option<String>) -> Status {
         Status {
+            processor_position: self.processor_position,
+            last_raw_event: self.last_raw_event,
             protocol: VERSION,
             version: env!("CARGO_PKG_VERSION").into(),
             boot: self.boot,
@@ -476,7 +723,7 @@ impl State {
             max_sources: MAX_SOURCES,
             reserve_per_source: CHANNEL_RESERVE,
             journal_segment_bytes: crate::journal::SEGMENT_LIMIT,
-            interpreter_connected: false,
+            interpreter_connected: self.interpreter_live(),
             shell_connected: false,
         }
     }
@@ -534,6 +781,52 @@ impl State {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn a_unit_change_cannot_relabel_historical_values_under_the_same_id() {
+        let mut state = State::default();
+        let mut map = CalibrationMap {
+            parameters: vec![ParameterDef {
+                id: "weight".into(),
+                name: "Weight".into(),
+                unit: "t".into(),
+                source: "test".into(),
+                channel: 0,
+                points: vec![
+                    CalibrationPoint { raw: 0., value: 0. },
+                    CalibrationPoint { raw: 1., value: 1. },
+                ],
+                min: 0.,
+                max: 1.,
+                color: "#fabd2f".into(),
+                extrapolate: false,
+            }],
+            ..Default::default()
+        };
+        state
+            .apply(
+                1,
+                &Event::CalibrationSaved {
+                    revision: 1,
+                    map: map.clone(),
+                },
+                false,
+            )
+            .unwrap();
+        map.parameters[0].unit = "kg".into();
+        assert!(matches!(
+            state.prepare(Request::SaveCalibration {
+                expected_revision: 1,
+                map: map.clone()
+            }),
+            Prepared::Immediate(Reply::Error { .. })
+        ));
+        assert!(
+            state
+                .apply(2, &Event::CalibrationSaved { revision: 2, map }, false)
+                .is_err()
+        );
+        assert_eq!(state.calibration_revision, 1);
+    }
     #[test]
     fn initial_settings_are_historical_data_not_future_program_defaults() {
         let mut s = State::default();

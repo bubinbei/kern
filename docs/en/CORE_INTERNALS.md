@@ -1,5 +1,7 @@
 # Current core 0.1 technical contract
 
+This document retains the basic raw/KJN contract. See [PROTOTYPE](PROTOTYPE.md) for redb, maps, results, the local host and independent consumers; the older contract does not describe every new capability.
+
 This describes the implemented slice, not the complete target [architecture](ARCHITECTURE.md). Start with the [guide](CORE_GUIDE.md).
 
 ## Components

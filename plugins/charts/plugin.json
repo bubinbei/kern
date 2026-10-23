@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "id": "charts",
+  "name": "Графики",
+  "version": "0.1.0",
+  "protocol": 1,
+  "executable": "kern-charts.exe",
+  "args": []
+}

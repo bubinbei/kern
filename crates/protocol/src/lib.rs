@@ -115,6 +115,37 @@ impl Default for Settings {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "command", rename_all = "snake_case", deny_unknown_fields)]
 pub enum Request {
+    History {
+        after: u64,
+    },
+    Plot {
+        from_ms: i64,
+        to_ms: i64,
+        pixels: u16,
+        parameters: Vec<String>,
+    },
+    Calibration,
+    SaveCalibration {
+        expected_revision: u64,
+        map: CalibrationMap,
+    },
+    OpenInterpreter {
+        expected_generation: u64,
+    },
+    InterpreterPulse {
+        session: u64,
+        closing: bool,
+    },
+    ActivateCalibration {
+        session: u64,
+        revision: u64,
+    },
+    PublishParameters {
+        session: u64,
+        raw_event: u64,
+        revision: u64,
+        values: Vec<ParameterSample>,
+    },
     Status,
     Snapshot,
     Plugins,
@@ -158,6 +189,25 @@ pub struct Envelope {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "result", rename_all = "snake_case")]
 pub enum Reply {
+    History {
+        events: Vec<HistoryEvent>,
+        next: u64,
+        through: u64,
+    },
+    Plot {
+        series: Vec<PlotSeries>,
+        truncated: bool,
+    },
+    Calibration {
+        revision: u64,
+        active_revision: u64,
+        map: CalibrationMap,
+        generation: u64,
+        position: u64,
+    },
+    InterpreterOpened {
+        session: u64,
+    },
     Plugins {
         plugins: Vec<PluginView>,
         diagnostic: String,
@@ -191,6 +241,76 @@ pub enum Reply {
     },
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct CalibrationMap {
+    #[serde(default = "linear_algorithm")]
+    pub algorithm: String,
+    pub parameters: Vec<ParameterDef>,
+}
+fn linear_algorithm() -> String {
+    "linear-v1".into()
+}
+impl Default for CalibrationMap {
+    fn default() -> Self {
+        Self {
+            algorithm: linear_algorithm(),
+            parameters: Vec::new(),
+        }
+    }
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct CalibrationPoint {
+    pub raw: f64,
+    pub value: f64,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ParameterDef {
+    pub id: String,
+    pub name: String,
+    pub unit: String,
+    pub source: String,
+    pub channel: u16,
+    pub points: Vec<CalibrationPoint>,
+    pub min: f64,
+    pub max: f64,
+    pub color: String,
+    #[serde(default)]
+    pub extrapolate: bool,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ParameterSample {
+    pub id: String,
+    pub value: Option<f64>,
+    pub quality: Quality,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ParameterBatch {
+    pub raw_event: u64,
+    pub revision: u64,
+    pub source: String,
+    pub source_session: u64,
+    #[serde(default)]
+    pub source_sequence: u64,
+    pub measured_unix_ms: i64,
+    pub received_unix_ms: i64,
+    pub values: Vec<ParameterSample>,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HistoryEvent {
+    pub sequence: u64,
+    pub data: serde_json::Value,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlotSeries {
+    pub id: String,
+    pub points: Vec<(i64, Option<f64>, String)>,
+}
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum PluginAction {
@@ -220,6 +340,8 @@ impl Reply {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Status {
+    pub processor_position: u64,
+    pub last_raw_event: u64,
     pub protocol: u32,
     pub version: String,
     pub boot: u64,
@@ -389,6 +511,20 @@ mod tests {
             let v = Value::Unsigned(n);
             let bytes = serde_json::to_vec(&v).unwrap();
             assert_eq!(serde_json::from_slice::<Value>(&bytes).unwrap(), v);
+        }
+    }
+    #[test]
+    fn calibrated_float_values_roundtrip_without_a_bit_change() {
+        for raw in 0..65536 {
+            let value = (f64::from(raw) - 100.0) / 300.0 * 40.0;
+            let sample = ParameterSample {
+                id: "weight".into(),
+                value: Some(value),
+                quality: Quality::Good,
+            };
+            let bytes = serde_json::to_vec(&sample).unwrap();
+            let read: ParameterSample = serde_json::from_slice(&bytes).unwrap();
+            assert_eq!(read.value.unwrap().to_bits(), value.to_bits(), "raw={raw}");
         }
     }
 }

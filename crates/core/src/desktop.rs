@@ -21,11 +21,15 @@ pub type Management = SyncSender<(Request, SyncSender<Reply>)>;
 struct Running {
     child: Child,
     stop_at: Option<Instant>,
+    started: Instant,
 }
 struct Entry {
     package: Package,
     process: Option<Running>,
     detail: String,
+    wanted: bool,
+    retry_at: Instant,
+    attempts: VecDeque<Instant>,
 }
 
 fn spawn(
@@ -34,6 +38,23 @@ fn spawn(
     profile: &std::path::Path,
     directory: &std::path::Path,
 ) -> io::Result<Child> {
+    let log_dir = profile.join("logs");
+    fs::create_dir_all(&log_dir)?;
+    let label: String = directory
+        .file_name()
+        .unwrap_or_default()
+        .to_string_lossy()
+        .chars()
+        .filter(|c| c.is_ascii_alphanumeric() || matches!(c, '-' | '_'))
+        .take(80)
+        .collect();
+    let log = fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(log_dir.join(format!(
+            "{}-console.log",
+            if label.is_empty() { "plugin" } else { &label }
+        )))?;
     let mut command = Command::new(program);
     command
         .args(args)
@@ -41,8 +62,8 @@ fn spawn(
         .arg(profile)
         .current_dir(directory)
         .stdin(Stdio::piped())
-        .stdout(Stdio::null())
-        .stderr(Stdio::null());
+        .stdout(log.try_clone()?)
+        .stderr(log);
     #[cfg(windows)]
     {
         use std::os::windows::process::CommandExt;
@@ -88,6 +109,9 @@ impl Desktop {
             let mut hidden = false;
             let mut retry_at = Instant::now();
             let mut scan_catalog = true;
+            let mut check_processor = Instant::now();
+            let mut progress_at = Instant::now();
+            let mut last_position = 0;
             while !stop_thread.load(Ordering::Acquire) {
                 let now = Instant::now();
                 if scan_catalog {
@@ -100,6 +124,9 @@ impl Desktop {
                                     package,
                                     process: None,
                                     detail: String::new(),
+                                    wanted: false,
+                                    retry_at: now,
+                                    attempts: VecDeque::new(),
                                 });
                             }
                             diagnostic = errors.join("\n");
@@ -114,6 +141,14 @@ impl Desktop {
                             Ok(Some(code)) => {
                                 entry.detail = format!("Exited: {code}");
                                 entry.process = None;
+                                entry.retry_at = now
+                                    + Duration::from_secs(
+                                        if entry.package.manifest.id == "processor" {
+                                            16
+                                        } else {
+                                            1
+                                        },
+                                    );
                             }
                             Ok(None) if running.stop_at.is_some_and(|t| now >= t) => {
                                 kill_owned(&mut running.child);
@@ -126,6 +161,72 @@ impl Desktop {
                                 entry.detail = e.to_string();
                                 entry.process = None;
                             }
+                        }
+                    }
+                    while entry
+                        .attempts
+                        .front()
+                        .is_some_and(|t| now.duration_since(*t) > Duration::from_secs(60))
+                    {
+                        entry.attempts.pop_front();
+                    }
+                    if entry.process.is_none() && entry.wanted && now >= entry.retry_at {
+                        if entry.attempts.len() >= 3 {
+                            entry.wanted = false;
+                            entry.detail="Safe mode: 3 launches in 60s; inspect logs and restart deliberately".into();
+                        } else {
+                            entry.attempts.push_back(now);
+                            match load(&entry.package.directory).and_then(|p| {
+                                if serde_json::to_vec(&p.manifest)?
+                                    != serde_json::to_vec(&entry.package.manifest)?
+                                {
+                                    return Err(io::Error::other("Package changed; rescan first"));
+                                }
+                                spawn(&p.executable, &p.manifest.args, &profile, &p.directory)
+                            }) {
+                                Ok(child) => {
+                                    entry.process = Some(Running {
+                                        child,
+                                        stop_at: None,
+                                        started: now,
+                                    });
+                                    entry.detail =
+                                        "Restarted owned consumer; recovering durable position"
+                                            .into();
+                                }
+                                Err(e) => {
+                                    entry.detail = e.to_string();
+                                    entry.retry_at = now + Duration::from_secs(16);
+                                }
+                            }
+                        }
+                    }
+                }
+                if now >= check_processor {
+                    check_processor = now + Duration::from_secs(1);
+                    if let Some(entry) = entries.get_mut("processor")
+                        && entry.wanted
+                        && let Some(running) = entry.process.as_mut()
+                        && running.started.elapsed() > Duration::from_secs(20)
+                        && let Ok(endpoint) = load_endpoint(&profile)
+                        && let Ok(Reply::Status { status }) = call(&endpoint, Request::Status)
+                    {
+                        if status.processor_position != last_position
+                            || status.last_raw_event <= status.processor_position
+                        {
+                            last_position = status.processor_position;
+                            progress_at = now;
+                        }
+                        if !status.interpreter_connected
+                            || (status.last_raw_event > status.processor_position
+                                && now.duration_since(progress_at) > Duration::from_secs(20))
+                        {
+                            kill_owned(&mut running.child);
+                            entry.process = None;
+                            entry.retry_at = now + Duration::from_secs(1);
+                            entry.detail =
+                                "Interpreter worker stalled; raw acquisition continues".into();
+                            progress_at = now;
                         }
                     }
                 }
@@ -246,6 +347,10 @@ impl Desktop {
                         } else if let Some(entry) = entries.get_mut(&id) {
                             match action {
                                 PluginAction::Start if entry.process.is_none() => {
+                                    entry.wanted =
+                                        matches!(id.as_str(), "processor" | "csv" | "backup");
+                                    entry.attempts.clear();
+                                    entry.attempts.push_back(now);
                                     // Reload and compare the installed manifest immediately before execution.
                                     match load(&entry.package.directory).and_then(|p| {
                                         if serde_json::to_vec(&p.manifest)?
@@ -266,6 +371,7 @@ impl Desktop {
                                             entry.process = Some(Running {
                                                 child,
                                                 stop_at: None,
+                                                started: now,
                                             });
                                             entry.detail.clear();
                                             Reply::Accepted
@@ -277,6 +383,7 @@ impl Desktop {
                                     }
                                 }
                                 PluginAction::Stop => {
+                                    entry.wanted = false;
                                     if let Some(p) = &mut entry.process
                                         && p.stop_at.is_none()
                                     {

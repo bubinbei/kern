@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/protocol", "crates/engine", "crates/core", "crates/demo", "crates/plugins", "crates/shell", "crates/im2480"]
+members = ["crates/protocol", "crates/engine", "crates/core", "crates/demo", "crates/plugins", "crates/shell", "crates/im2480", "crates/processor", "crates/charts", "crates/recorder", "crates/launch"]
 resolver = "3"
 
 [workspace.package]
@@ -10,7 +10,7 @@ license = "MIT"
 
 [workspace.dependencies]
 serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+serde_json = { version = "1.0", features = ["float_roundtrip"] }
 crc32fast = "1.5"
 getrandom = "0.4"
 kern-protocol = { path = "crates/protocol" }

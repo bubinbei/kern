@@ -1,0 +1,84 @@
+{
+  "scenario": "Live core and owned plugins only; browser runtime is not included",
+  "viewer_declared_absent": true,
+  "seconds": 5.0,
+  "processes": {
+    "core": {
+      "one_cpu_percent": 0.3125,
+      "working_set_bytes": 14049280,
+      "private_bytes": 9359360
+    },
+    "kern.shell": {
+      "one_cpu_percent": 0.0,
+      "working_set_bytes": 11370496,
+      "private_bytes": 2166784
+    },
+    "backup": {
+      "one_cpu_percent": 0.0,
+      "working_set_bytes": 4243456,
+      "private_bytes": 942080
+    },
+    "charts": {
+      "one_cpu_percent": 0.0,
+      "working_set_bytes": 4157440,
+      "private_bytes": 843776
+    },
+    "csv": {
+      "one_cpu_percent": 0.0,
+      "working_set_bytes": 4206592,
+      "private_bytes": 892928
+    },
+    "im2480": {
+      "one_cpu_percent": 0.0,
+      "working_set_bytes": 4268032,
+      "private_bytes": 897024
+    },
+    "processor": {
+      "one_cpu_percent": 0.0,
+      "working_set_bytes": 4534272,
+      "private_bytes": 1101824
+    }
+  },
+  "not_measured": [
+    "Browser runtime memory/CPU",
+    "GPU",
+    "Low-end hardware",
+    "24-72h endurance"
+  ],
+  "runtime_source_sha256": "932751e87f363e5dca67211b9d01c4ad82a75bd390ac48b4d4d7da4971c39deb",
+  "binaries": {
+    "im2480.exe": {
+      "bytes": 815104,
+      "sha256": "675a729baecdb8e0ef4a60ca320b9867921ab32f359b080b527ac4c7ecbbb5b0"
+    },
+    "kern-charts.exe": {
+      "bytes": 871936,
+      "sha256": "726a70f3a95dd2fcf1b90674d16286ecfe7e35c365f704d6ce233cd06eb9c53b"
+    },
+    "kern-core.exe": {
+      "bytes": 3028480,
+      "sha256": "4eb0ec00480f780a61a16f835097127805cfa1bb9a45d980ae93ad1214b1de08"
+    },
+    "kern-demo.exe": {
+      "bytes": 700416,
+      "sha256": "348e58fc585c0b0f49e159d4eea2d1ee45bd93f5936502c15316e6b5f3f93468"
+    },
+    "kern-launch.exe": {
+      "bytes": 797184,
+      "sha256": "87ee485ab2a798cda215a3ef1bffef07b5147964cd5dfba98a863f7a00653725"
+    },
+    "kern-processor.exe": {
+      "bytes": 906752,
+      "sha256": "013e3bfb98fabd89ce296e2a670b40d7721494b2adf7a94a69c2c17de85078a2"
+    },
+    "kern-recorder.exe": {
+      "bytes": 745984,
+      "sha256": "263122b2275de66c56995b0778636af375fd980fba778540edf3d0e284232437"
+    },
+    "kern-shell.exe": {
+      "bytes": 686080,
+      "sha256": "41ae658fc67e655d76a455a465d5aa93f94a79812921dbcd159a1eadb1833506"
+    }
+  },
+  "platform": "Windows11 22631; Rust/Cargo 1.96.0"
+}

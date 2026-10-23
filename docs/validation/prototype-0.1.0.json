@@ -1,0 +1,83 @@
+{
+  "schema": 1,
+  "passed": true,
+  "tests": [
+    "raw -> historical map -> independently verified 0/0.5/1; duplicate input",
+    "backlog uses historical revision; activation boundary; stale map/tampered result rejected",
+    "uPlot bridge history; no key/cross-origin rejection; screen stop leaves ingestion",
+    "independent CSV/backup CRC readers; consumer restart without duplicate rows",
+    "forced core termination preserves confirmed prefix; recovered values are not fresh",
+    "existing emulator COM acquisition, 30 channels and independent calibration oracle; browser interactions",
+    "restore into empty profile solely from backup; exact independent event comparison"
+  ],
+  "live": {
+    "modules": 5,
+    "batches": 10,
+    "samples": 60,
+    "parameters": 6
+  },
+  "events": 50,
+  "csv_rows": 18,
+  "backup_events": 49,
+  "database_bytes": 151552,
+  "not_checked": [
+    "Physical modules",
+    "Windows10",
+    "Low-end hardware",
+    "GPU",
+    "Power loss",
+    "24-72h endurance"
+  ],
+  "runtime_source_sha256": "932751e87f363e5dca67211b9d01c4ad82a75bd390ac48b4d4d7da4971c39deb",
+  "binaries": {
+    "im2480.exe": {
+      "bytes": 815104,
+      "sha256": "675a729baecdb8e0ef4a60ca320b9867921ab32f359b080b527ac4c7ecbbb5b0"
+    },
+    "kern-charts.exe": {
+      "bytes": 871936,
+      "sha256": "726a70f3a95dd2fcf1b90674d16286ecfe7e35c365f704d6ce233cd06eb9c53b"
+    },
+    "kern-core.exe": {
+      "bytes": 3028480,
+      "sha256": "4eb0ec00480f780a61a16f835097127805cfa1bb9a45d980ae93ad1214b1de08"
+    },
+    "kern-demo.exe": {
+      "bytes": 700416,
+      "sha256": "348e58fc585c0b0f49e159d4eea2d1ee45bd93f5936502c15316e6b5f3f93468"
+    },
+    "kern-launch.exe": {
+      "bytes": 797184,
+      "sha256": "87ee485ab2a798cda215a3ef1bffef07b5147964cd5dfba98a863f7a00653725"
+    },
+    "kern-processor.exe": {
+      "bytes": 906752,
+      "sha256": "013e3bfb98fabd89ce296e2a670b40d7721494b2adf7a94a69c2c17de85078a2"
+    },
+    "kern-recorder.exe": {
+      "bytes": 745984,
+      "sha256": "263122b2275de66c56995b0778636af375fd980fba778540edf3d0e284232437"
+    },
+    "kern-shell.exe": {
+      "bytes": 686080,
+      "sha256": "41ae658fc67e655d76a455a465d5aa93f94a79812921dbcd159a1eadb1833506"
+    }
+  },
+  "platform": "Windows11 22631; Rust/Cargo 1.96.0",
+  "browser": {
+    "passed": true,
+    "columns": 6,
+    "initialPoints": 4,
+    "tests": [
+      "uPlot vertical tracks",
+      "single click inert",
+      "double click flag add/remove",
+      "outline cursor markers",
+      "right click add curve",
+      "30s/5min history",
+      "three parameter-panel modes",
+      "edit/save/activate calibration",
+      "no browser page errors"
+    ]
+  }
+}

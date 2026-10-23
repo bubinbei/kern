@@ -10,6 +10,7 @@ kern-protocol.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 crc32fast.workspace = true
+redb = "=4.1.0"
 
 [lints]
 workspace = true

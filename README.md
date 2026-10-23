@@ -8,6 +8,8 @@
 
 The first core slice 0.1.0 and a separate native Windows shell with menus, settings and package management are implemented: a separate process, raw-batch validation, CRC journal with disk acknowledgements, recovery, status and freshness settings. Hardware sources, the interpreter and working formats connect as separate components; the mandatory recovery journal keeps recording inputs when calculations or the interface fail.
 
+**First end-to-end prototype:** IM2480 → redb → calibration → uPlot charts, CSV and backup. [Launch and limits](docs/en/PROTOTYPE.md). Locally: `Start-Prototype.cmd`; initial maps are test-only.
+
 [Plain-language core guide](docs/en/CORE_GUIDE.md) · [Validation](docs/en/CORE_VALIDATION.md) · [Architecture](docs/en/ARCHITECTURE.md) · [Stages and acceptance](docs/en/ROADMAP.md) · [Style](docs/en/BRANDING.md) · [Material provenance](docs/en/MATERIALS.md)
 
 | Component | Responsibility |
@@ -19,7 +21,7 @@ The first core slice 0.1.0 and a separate native Windows shell with menus, setti
 | System shell | Mandatory separate process: menus, settings and status |
 | Charts | Replaceable presentation; rendering load does not set acquisition frequency |
 
-**Status: first pre-alpha desktop slice.** 26 Rust tests, 17 im2480 checks and earlier 18 raw scenarios / 14 shell checks on Windows11: UI crash/hang does not interrupt recording; normal closure does not respawn. Interpreter/maps/physical-device acceptance, a general SDK, endurance and weak-hardware acceptance remain ahead. [Packages and supervision](docs/en/PLUGINS.md).
+**Status: first end-to-end pre-alpha prototype.** 33 Rust tests, independent calibration/CSV/backup checks, browser interactions and managed restart of a stalled interpreter; emulator acquisition covers 30 channels and six parameters. Physical devices, low-end PCs, endurance and a general SDK are not accepted yet. [Packages and supervision](docs/en/PLUGINS.md).
 
 Build: `cargo build --workspace --release --locked`. Run `target/release/kern-core.exe serve --profile runtime/first-test`, then `target/release/kern-demo.exe --profile runtime/first-test` in another window. `python tools/package_core.py` creates a local bundle with CMD launchers in `dist/Kern-Core-0.1.0/`.
 

@@ -1,0 +1,12 @@
+[package]
+name = "kern-processor"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+[dependencies]
+kern-engine.workspace = true
+kern-protocol.workspace = true
+serde_json.workspace = true
+[lints]
+workspace = true

@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "id": "backup",
+  "name": "Восстановительный резерв",
+  "version": "0.1.0",
+  "protocol": 1,
+  "executable": "kern-recorder.exe",
+  "args": [
+    "--mode",
+    "backup"
+  ]
+}

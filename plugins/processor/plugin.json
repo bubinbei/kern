@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "id": "processor",
+  "name": "Интерпретатор",
+  "version": "0.1.0",
+  "protocol": 1,
+  "executable": "kern-processor.exe",
+  "args": []
+}

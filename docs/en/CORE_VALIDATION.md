@@ -1,5 +1,15 @@
 # Core 0.1.0 validation
 
+## End-to-end redb / calibration / uPlot prototype
+
+New slice: [launch and contract](PROTOTYPE.md). **33 Rust tests**, 13 tool tests, fmt/clippy/release passed. The [end-to-end report](../validation/prototype-0.1.0.json) covers an independent 1000→0 / 4900→0.5 / 8800→1 oracle, historical maps during backlog, activation, retries/incorrect-result rejection, separate CSV/backup, forced core termination, restoration without the original database and exact event comparison. The live emulator supplied 5 modules, 10 batches, 60 raw samples, 30 channels and six parameters; emulator settings were unchanged. Browser checks cover vertical tracks, intervals, flags, right click, outline cursor and map editing.
+
+[Managed launch](../validation/prototype-managed-0.1.0.json): OS thread suspension stalled a real worker, intake continued, the core restarted its owned interpreter and caught up. A CSV crash produced no duplicate rows; explicit stop disabled restart. Testing exposed JSON f64 parsing drift: float_roundtrip is enabled, with a bitwise regression over 65,536 codes. [18 prior raw checks on the current core](../validation/raw-with-prototype-0.1.0.json) confirm the KJN slice; older reports below apply to their own revisions.
+
+[A short resource observation](../validation/prototype-resources-0.1.0.json): 5 seconds of live intake and six parameters, core working set ≈13.4 MiB. No browser chart viewer was attached for this measurement; browser/GPU were not measured. This is not low-end/endurance acceptance. Reports contain binary hashes and a normalized runtime-tree hash (Rust/Cargo/web/manifests/test map); private profiles/keys are not published.
+
+Not accepted: Windows10/low-end PC/macOS, physical RS-485/sensors, 24–72h/power loss, full C2–C6, R2 import, ordinary/fast writer periods and a final secondary-writer drain protocol. CSV/backup confirm their own prefix; the primary redb history may be newer. The historical first-KJN-slice report follows below.
+
 Historical report of the initial headless slice, before the shell. Date: 2026-10-23. Platform: **Windows 11, 10.0.22631**, Rust/Cargo 1.96.0. Windows 10, low-end machines and 24–72-hour runs are not accepted. This is the first end-to-end C0–C1 slice and selected C2 fault checks, not completion of the whole architecture.
 
 ## Reproduction

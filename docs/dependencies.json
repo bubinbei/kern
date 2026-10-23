@@ -98,6 +98,17 @@
     ]
   },
   {
+    "name": "redb",
+    "version": "4.1.0",
+    "license": "MIT OR Apache-2.0",
+    "selected": "MIT",
+    "source": "https://crates.io/crates/redb/4.1.0",
+    "notices": [
+      "third_party/licenses/redb-4.1.0/LICENSE-APACHE",
+      "third_party/licenses/redb-4.1.0/LICENSE-MIT"
+    ]
+  },
+  {
     "name": "serde",
     "version": "1.0.229",
     "license": "MIT OR Apache-2.0",
