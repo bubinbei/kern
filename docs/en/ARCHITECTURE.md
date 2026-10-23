@@ -39,3 +39,7 @@ The core restarts only its own processes with retry limits/backoff, a new sessio
 The mandatory system shell is a separate client for menus, settings, plugins and minimal status. Measurement traffic goes through the core, not the UI. Intentional window closure does not respawn it; a confirmed hang permits limited restart and safe mode without deleting the profile. Closing the UI leaves recording alive; full shutdown is a separate command.
 
 Charts start as a separate shell library with a data contract. Acquisition frequency is independent of FPS. Repaint on events/deadlines and only visible content; screen aggregation preserves extrema/gaps without changing the archive. Cache grids/labels; hidden screens do no background work. A dynamic SDK for arbitrary renderers follows validated basic boundaries.
+
+## Current shell and future web direction
+
+The first native shell/package slice is implemented outside the core. A web environment for operator screens without programming is a separate future direction; critical components remain Rust processes. Package directories, actual supervision limits and development sequence: [PLUGINS](PLUGINS.md).

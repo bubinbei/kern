@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "checks": [
+    "native_shell_connected",
+    "discovery_does_not_execute",
+    "gui_settings_durable",
+    "stale_settings_revision_rejected",
+    "required_shell_cannot_be_disabled",
+    "gui_starts_synthetic_package",
+    "cooperative_stop_closes_source",
+    "package_restarts_with_new_source_session",
+    "shell_crash_restarts_without_stopping_raw",
+    "hung_ui_thread_restarts_while_recording_continues",
+    "normal_window_close_does_not_respawn_or_stop_core",
+    "explicit_shell_reopen",
+    "restart_budget_enters_safe_mode_without_losing_acquisition",
+    "independent_journal_count_matches_live_after_ui_failures"
+  ],
+  "raw_batches": 178,
+  "raw_samples": 1068,
+  "binaries": {
+    "kern-core.exe": {
+      "bytes": 1300992,
+      "sha256": "821e00991156838b9623fd391507f7cf2752476c5dd4f30c222518c91777e7fd"
+    },
+    "kern-shell.exe": {
+      "bytes": 550912,
+      "sha256": "5ba52042baf913d057e1235151cdb8b55df574bb9754dd824d340a863c263c4c"
+    }
+  },
+  "platform": "Windows 11; automated native UI, synthetic profile only",
+  "limits": [
+    "No Windows 10/weak-hardware/long-duration acceptance",
+    "Native plugins are trusted local processes, not a sandbox",
+    "No interpreter or device driver is implemented"
+  ],
+  "rust_source_sha256": "c129a83e23ee495c236e0a965eb64b9fcf9e19d3673460011ed353da34232675",
+  "ui_confirmation_over_hang_timeout": true
+}

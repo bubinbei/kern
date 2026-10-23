@@ -117,6 +117,17 @@ impl Default for Settings {
 pub enum Request {
     Status,
     Snapshot,
+    Plugins,
+    PluginControl {
+        id: String,
+        action: PluginAction,
+    },
+    ShellPulse {
+        session: String,
+    },
+    ShellClosed {
+        session: String,
+    },
     OpenSource {
         id: String,
         resource: String,
@@ -147,6 +158,11 @@ pub struct Envelope {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "result", rename_all = "snake_case")]
 pub enum Reply {
+    Plugins {
+        plugins: Vec<PluginView>,
+        diagnostic: String,
+    },
+    Accepted,
     Status {
         status: Status,
     },
@@ -173,6 +189,25 @@ pub enum Reply {
         code: String,
         message: String,
     },
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PluginAction {
+    Start,
+    Stop,
+    Rescan,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PluginView {
+    pub id: String,
+    pub name: String,
+    pub version: String,
+    pub state: String,
+    pub pid: Option<u32>,
+    pub required: bool,
+    pub detail: String,
 }
 impl Reply {
     pub fn error(code: &str, message: impl Into<String>) -> Self {

@@ -1,0 +1,46 @@
+{
+  "platform": "Windows-11-10.0.22631-SP0",
+  "core_version": "0.1.0",
+  "rust_source_sha256": "60a0932ef400b8a28eef17255b04f66d4a0946db795cab360597aaaa82847729",
+  "checks": [
+    "two_source_processes",
+    "stable_slots",
+    "typed_uint64",
+    "deduplication",
+    "sequence_conflict",
+    "invalid_batch",
+    "staleness_without_inputs",
+    "settings_revision",
+    "frame_bound",
+    "exclusive_profile",
+    "independent_crc_reader",
+    "restart_recovered_quality",
+    "forced_core_death",
+    "crc_corruption_refusal",
+    "recovery_copy_preserves_original",
+    "truncated_tail_preserves_original",
+    "recovery_boundary_restart",
+    "disk_failure_status_responsive"
+  ],
+  "deterministic_batches": 27,
+  "deterministic_samples": 459,
+  "idle": {
+    "seconds": 5.0,
+    "one_cpu_percent": 0.0,
+    "working_set_bytes": 4653056,
+    "private_bytes": 1069056
+  },
+  "release_bytes": {
+    "kern-core": 1300992,
+    "kern-demo": 555008
+  },
+  "not_checked": [
+    "Windows10_hardware",
+    "24_to_72_hours",
+    "GPU_counters",
+    "sync_failure_after_partial_write",
+    "power_loss_storage_firmware",
+    "interpreter",
+    "shell"
+  ]
+}

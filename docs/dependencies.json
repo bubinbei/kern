@@ -165,6 +165,28 @@
     ]
   },
   {
+    "name": "windows-link",
+    "version": "0.2.1",
+    "license": "MIT OR Apache-2.0",
+    "selected": "MIT",
+    "source": "https://crates.io/crates/windows-link/0.2.1",
+    "notices": [
+      "third_party/licenses/windows-link-0.2.1/license-apache-2.0",
+      "third_party/licenses/windows-link-0.2.1/license-mit"
+    ]
+  },
+  {
+    "name": "windows-sys",
+    "version": "0.61.2",
+    "license": "MIT OR Apache-2.0",
+    "selected": "MIT",
+    "source": "https://crates.io/crates/windows-sys/0.61.2",
+    "notices": [
+      "third_party/licenses/windows-sys-0.61.2/license-apache-2.0",
+      "third_party/licenses/windows-sys-0.61.2/license-mit"
+    ]
+  },
+  {
     "name": "zmij",
     "version": "1.0.23",
     "license": "MIT",

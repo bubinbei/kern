@@ -1,3 +1,4 @@
+mod desktop;
 mod server;
 use kern_engine::{
     journal::{Journal, ProfileLock, scan},
@@ -29,7 +30,10 @@ fn execute() -> io::Result<()> {
     }
     let allowed = match command {
         "serve" => vec!["--profile", "--listen"],
-        "status" | "snapshot" | "stop" | "check" | "dump" => vec!["--profile"],
+        "run" => vec!["--profile", "--listen", "--plugins"],
+        "status" | "snapshot" | "stop" | "check" | "dump" | "plugins" | "shell" => {
+            vec!["--profile"]
+        }
         "settings" => vec!["--profile", "--expect-revision", "--stale-ms"],
         "close" => vec!["--profile", "--source", "--session"],
         "recover" => vec!["--profile", "--output"],
@@ -38,7 +42,7 @@ fn execute() -> io::Result<()> {
     validate_options(&args[1..], &allowed)?;
     let profile = PathBuf::from(argument(&args, "--profile")?);
     match command {
-        "serve" => {
+        "serve" | "run" => {
             let address: SocketAddr = args
                 .windows(2)
                 .find(|v| v[0] == "--listen")
@@ -46,7 +50,17 @@ fn execute() -> io::Result<()> {
                 .unwrap_or("127.0.0.1:0")
                 .parse()
                 .map_err(io::Error::other)?;
-            server::serve(&profile, address)
+            let plugins = if command == "run" {
+                Some(
+                    args.windows(2)
+                        .find(|v| v[0] == "--plugins")
+                        .map(|v| PathBuf::from(&v[1]))
+                        .unwrap_or(env::current_exe()?.parent().unwrap().join("plugins")),
+                )
+            } else {
+                None
+            };
+            server::serve(&profile, address, plugins)
         }
         "check" | "dump" => {
             let _lock = existing_profile(&profile)?;
@@ -69,12 +83,17 @@ fn execute() -> io::Result<()> {
             Ok(())
         }
         "recover" => recover(&profile, Path::new(&argument(&args, "--output")?)),
-        "status" | "snapshot" | "stop" | "settings" | "close" => {
+        "status" | "snapshot" | "stop" | "settings" | "close" | "plugins" | "shell" => {
             let endpoint = load_endpoint(&profile)?;
             let request = match command {
                 "status" => Request::Status,
                 "snapshot" => Request::Snapshot,
                 "stop" => Request::Stop,
+                "plugins" => Request::Plugins,
+                "shell" => Request::PluginControl {
+                    id: "kern.shell".into(),
+                    action: PluginAction::Start,
+                },
                 "settings" => Request::SetSettings {
                     expected_revision: argument(&args, "--expect-revision")?
                         .parse()
@@ -138,6 +157,7 @@ fn help() {
     println!(
         "KERN core 0.1.0 — synthetic/headless foundation\n\
       serve --profile PATH [--listen 127.0.0.1:PORT]\n\
+      run --profile PATH [--plugins PATH] (required native desktop shell)\n\
       status|snapshot|stop --profile PATH\n\
       settings --profile PATH --expect-revision N --stale-ms 2000\n\
       close --profile PATH --source ID --session N\n\

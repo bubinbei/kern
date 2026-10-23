@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "id": "kern.synthetic",
+  "name": "Синтетический источник · 6 каналов",
+  "version": "0.1.0",
+  "protocol": 1,
+  "executable": "kern-demo.exe",
+  "args": ["--id", "desktop-demo", "--channels", "6", "--count", "0", "--period-ms", "100"]
+}

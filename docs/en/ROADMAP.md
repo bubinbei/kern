@@ -18,4 +18,4 @@ Measure core, plugins and shell separately: CPU, GPU, RAM, disk, queues and late
 
 User's manual test machines: a low-end Windows Intel “4125” laptop (verify exact model during testing); a 2012 Mac running macOS at a later stage. Windows 10 x64 is the first required platform; macOS is not supported yet. Plan 24–72-hour recording after short fault tests. These machines have not been tested.
 
-Next: complete core fault acceptance, then the mandatory menu/settings shell. The owner requested a detailed core guide, which is maintained now; changing-UI help and cosmetic work remain deferred.
+A selected C6 slice is implemented ahead of the interpreter: the required native shell, menus/settings and manual package management; shell crash/hang leaves raw journaling active. Next complete C2 and develop C3 contracts. A separate future W1 direction is an operator web environment/widget builder without programming; critical plugins remain Rust. See [PLUGINS](PLUGINS.md) for sequence and engine-selection criteria. The owner requested a detailed core guide, which is maintained now; changing-UI help and cosmetic work remain deferred.

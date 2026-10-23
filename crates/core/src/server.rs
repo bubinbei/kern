@@ -7,7 +7,7 @@ use std::{
     fs::{self, OpenOptions},
     io::{self, Write},
     net::{SocketAddr, TcpListener, TcpStream},
-    path::Path,
+    path::{Path, PathBuf},
     sync::{
         Arc,
         atomic::{AtomicBool, Ordering},
@@ -22,12 +22,41 @@ enum Message {
     Written(Result<u64, String>),
 }
 
-fn client(mut stream: TcpStream, key: &str, sender: &SyncSender<Message>) {
+fn client(
+    mut stream: TcpStream,
+    key: &str,
+    sender: &SyncSender<Message>,
+    management: Option<&crate::desktop::Management>,
+) {
     let _ = stream.set_read_timeout(Some(Duration::from_secs(1)));
     let _ = stream.set_write_timeout(Some(Duration::from_secs(1)));
     let response = match read_frame::<Envelope>(&mut stream) {
         Ok(envelope) if envelope.version == VERSION && envelope.token == key => {
             let (tx, rx) = mpsc::sync_channel(1);
+            if matches!(
+                envelope.request,
+                Request::Plugins
+                    | Request::PluginControl { .. }
+                    | Request::ShellPulse { .. }
+                    | Request::ShellClosed { .. }
+            ) {
+                let response = if let Some(manager) = management {
+                    if manager.try_send((envelope.request, tx)).is_err() {
+                        Reply::error("busy", "Management queue full")
+                    } else {
+                        rx.recv_timeout(Duration::from_secs(2)).unwrap_or_else(|_| {
+                            Reply::error(
+                                "timeout",
+                                "Management result uncertain; inspect plugin list",
+                            )
+                        })
+                    }
+                } else {
+                    Reply::error("headless", "Start kern-core run to manage desktop plugins")
+                };
+                let _ = write_frame(&mut stream, &response);
+                return;
+            }
             if sender
                 .try_send(Message::Request(envelope.request, tx))
                 .is_err()
@@ -55,7 +84,7 @@ fn client(mut stream: TcpStream, key: &str, sender: &SyncSender<Message>) {
 }
 
 /// One state owner, one disk worker, bounded network workers. Idle threads block on events.
-pub fn serve(profile: &Path, address: SocketAddr) -> io::Result<()> {
+pub fn serve(profile: &Path, address: SocketAddr, plugins: Option<PathBuf>) -> io::Result<()> {
     if !address.ip().is_loopback() {
         return Err(io::Error::other("Only loopback IPC is supported"));
     }
@@ -109,6 +138,18 @@ pub fn serve(profile: &Path, address: SocketAddr) -> io::Result<()> {
     endpoint_file.sync_all()?;
     drop(endpoint_file);
 
+    let desktop = match plugins
+        .map(|root| crate::desktop::Desktop::start(profile.to_path_buf(), root))
+        .transpose()
+    {
+        Ok(desktop) => desktop,
+        Err(error) => {
+            fs::remove_file(&endpoint_path)?;
+            return Err(error);
+        }
+    };
+    let management = desktop.as_ref().map(|d| d.sender.clone());
+
     let (sender, receiver) = mpsc::sync_channel::<Message>(64);
     let (writer_tx, writer_rx) = mpsc::sync_channel::<Event>(1);
     let writer_sender = sender.clone();
@@ -150,7 +191,10 @@ pub fn serve(profile: &Path, address: SocketAddr) -> io::Result<()> {
             }
             let key = key.clone();
             let sender = sender.clone();
-            workers.push(thread::spawn(move || client(stream, &key, &sender)));
+            let management = management.clone();
+            workers.push(thread::spawn(move || {
+                client(stream, &key, &sender, management.as_ref())
+            }));
         }
         for worker in workers {
             let _ = worker.join();
@@ -171,9 +215,11 @@ pub fn serve(profile: &Path, address: SocketAddr) -> io::Result<()> {
         match message {
             Message::Request(request, reply) => match request {
                 Request::Status => {
-                    let _ = reply.send(Reply::Status {
-                        status: state.status(pending.is_some(), disk_error.clone()),
-                    });
+                    let mut status = state.status(pending.is_some(), disk_error.clone());
+                    status.shell_connected = desktop
+                        .as_ref()
+                        .is_some_and(|d| d.connected.load(Ordering::Acquire));
+                    let _ = reply.send(Reply::Status { status });
                 }
                 Request::Snapshot => {
                     let _ = reply.send(Reply::Snapshot {

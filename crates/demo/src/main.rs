@@ -1,9 +1,11 @@
 //! A separate, explicit synthetic source. It has no access to the engine or journal.
 use kern_protocol::*;
 use std::{
-    env, io,
+    env,
+    io::{self, BufRead},
     path::PathBuf,
     process::ExitCode,
+    sync::mpsc,
     thread,
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
@@ -114,6 +116,20 @@ fn execute() -> io::Result<()> {
         }
     }
     let mut sequence = 1u64;
+    let (stop_tx, stop_rx) = mpsc::sync_channel(1);
+    // Optional cooperative supervisor input. EOF does not stop ordinary CLI runs.
+    thread::spawn(move || {
+        for line in io::stdin().lock().lines() {
+            match line {
+                Ok(line) if line.trim() == "stop" => {
+                    let _ = stop_tx.try_send(());
+                    break;
+                }
+                Ok(_) => {}
+                Err(_) => break,
+            }
+        }
+    });
     loop {
         let base = sequence
             .checked_mul(100)
@@ -148,7 +164,13 @@ fn execute() -> io::Result<()> {
         sequence = sequence
             .checked_add(1)
             .ok_or_else(|| io::Error::other("Sequence exhausted"))?;
-        thread::sleep(Duration::from_millis(period));
+        match stop_rx.recv_timeout(Duration::from_millis(period)) {
+            Ok(()) => break,
+            Err(mpsc::RecvTimeoutError::Disconnected) => {
+                thread::sleep(Duration::from_millis(period))
+            }
+            Err(mpsc::RecvTimeoutError::Timeout) => {}
+        }
     }
     accepted(&endpoint, Request::CloseSource { id, session })?;
     println!(

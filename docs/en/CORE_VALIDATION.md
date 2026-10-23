@@ -1,6 +1,6 @@
 # Core 0.1.0 validation
 
-Date: 2026-10-23. Platform: **Windows 11, 10.0.22631**, Rust/Cargo 1.96.0. Windows 10, low-end machines and 24–72-hour runs are not accepted. This is the first end-to-end C0–C1 slice and selected C2 fault checks, not completion of the whole architecture.
+Historical report of the initial headless slice, before the shell. Date: 2026-10-23. Platform: **Windows 11, 10.0.22631**, Rust/Cargo 1.96.0. Windows 10, low-end machines and 24–72-hour runs are not accepted. This is the first end-to-end C0–C1 slice and selected C2 fault checks, not completion of the whole architecture.
 
 ## Reproduction
 
@@ -43,3 +43,11 @@ A build, passing tests and production readiness are different results. The next 
 [Machine-readable report and source fingerprint](../validation/core-0.1.0.json).
 
 A separate short run used two six-channel sources with a 100 ms sleep after each acknowledged batch: 200 batches/1200 values. During five observed live seconds the core working set was 4,444,160 bytes (about 4.2 MiB), with zero CPU increment at counter resolution; this is not peak load. [Report](../validation/core-resources-0.1.0.json).
+
+## Native shell addendum
+
+After shell integration, 20 Rust tests, the existing 18 raw scenarios and 14 desktop scenarios passed. `python tools/validate_desktop.py` exercises real Windows controls, settings, package start/stop, UI-process crash/thread hang, bounded restart/safe mode, normal closure and explicit reopening; an independent reader checks recorded batch counts. [Shell report](../validation/desktop-0.1.0.json), [raw rerun](../validation/raw-with-desktop-0.1.0.json), [contract/plan](PLUGINS.md).
+
+The resource numbers above belong to the previous source fingerprint, not to core plus shell. The desktop report includes new executable sizes; GPU, weak hardware and endurance remain unaccepted. Initial shell supervision is implemented; general processing-plugin supervision remains ahead.
+
+An additional short observation showed about 10.8 MiB shell working set and 4.7 MiB for the core in desktop mode; shell CPU increased by zero at counter resolution over five seconds. This is idle on this Windows11 host, not a budget/GPU/weak-machine guarantee. [Raw metrics](../validation/desktop-idle-0.1.0.json).

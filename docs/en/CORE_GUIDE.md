@@ -1,6 +1,6 @@
 # KERN core: a guide without specialist prerequisites
 
-Version 0.1.0 provides a command-line core and a separate synthetic source. Menus, charts, real hardware and a calibration interpreter are not implemented. [Verified results and limits](CORE_VALIDATION.md).
+Version 0.1.0 provides a command-line core, a separate synthetic source and a native Windows shell with menus/settings/package management. Charts, real hardware and a calibration interpreter are not implemented. [Verified results and limits](CORE_VALIDATION.md).
 
 ## What the core is
 
@@ -149,8 +149,8 @@ Limits: 64 queued commands, one pending write, 16 network workers, 64 KiB reques
 
 Segments are at most 4 MiB, with 4096 segments allowed. Each boot starts another segment. Automatic deletion/compression is not implemented; reaching the limit stops recording explicitly. `sync_all` asks the OS to persist data; it is not proof against every power/controller failure. Storage-hardware acceptance is outstanding.
 
-## The first menu
+## The first menu is connected
 
-The mandatory shell will be a separate process for core status, menus, common settings, extensions and diagnostics. It cannot be removed like an optional screen. It will not sit between acquisition and journal; closing or hanging its window must not stop recording.
+`Start-Kern.cmd` in the local bundle starts the core and a separate native window with menus, status, freshness setting and package list. Select the synthetic source and start it; stop ends that source. Closing the window keeps the core running; reopen using `kern-core shell --profile PATH`. Full KERN shutdown is separate. The CLI/headless commands above remain valid.
 
-Status, snapshot and revision-checked settings requests are available as a foundation. This is not a universal SDK: event subscriptions, UI supervision/restart and the menu itself remain unimplemented. [Current technical contract](CORE_INTERNALS.md).
+A package is a directory containing `plugin.json` and an `.exe`; copying never launches code. See [PLUGINS](PLUGINS.md) for the contract/supervision/limits and separate operator web-environment plan. Subscriptions, interpreter and general SDK remain ahead.

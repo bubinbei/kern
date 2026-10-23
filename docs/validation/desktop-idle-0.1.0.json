@@ -1,0 +1,26 @@
+{
+  "seconds": 5.0,
+  "shell": {
+    "cpu_seconds": 0.0,
+    "working_set_bytes": 11317248,
+    "private_bytes": 2146304
+  },
+  "shell_cpu_seconds_delta": 0.0,
+  "core": {
+    "cpu_seconds": 0.0,
+    "working_set_bytes": 4890624,
+    "private_bytes": 1044480
+  },
+  "gpu_measured": false,
+  "limits": "Short idle observation on development Windows11 only",
+  "binaries": {
+    "kern-core.exe": {
+      "bytes": 1300992,
+      "sha256": "821e00991156838b9623fd391507f7cf2752476c5dd4f30c222518c91777e7fd"
+    },
+    "kern-shell.exe": {
+      "bytes": 549888,
+      "sha256": "21644fdc2e04db87638dac44d938eda11448dd5e8159c4c969b4e3798180d1a8"
+    }
+  }
+}

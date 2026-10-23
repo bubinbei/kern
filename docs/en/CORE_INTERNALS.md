@@ -11,7 +11,7 @@ This describes the implemented slice, not the complete target [architecture](ARC
 | `kern-core` | Server process and status/stop/check/recovery commands |
 | `kern-demo` | Separate synthetic source, depending only on protocol and JSON |
 
-The core has no GUI/device libraries. Rust forbids unsafe code. No Tokio, webview, rendering loop or permanent timer is used. Dispatcher/disk threads block on messages, TCP accept is blocking. Shutdown wakes accept explicitly and does not scan user processes.
+The core has no GUI/device libraries and forbids unsafe code. Separate `kern-shell` (Win32) and `kern-plugins` are described in the [plugin contract](PLUGINS.md). No Tokio/webview/rendering loop is used; desktop mode checks its owned processes every 250 ms in a separate supervisor. Dispatcher/disk threads block on messages, TCP accept is blocking. Shutdown wakes accept explicitly and does not scan user processes.
 
 ## IPC v1
 
@@ -56,8 +56,8 @@ An incomplete final record permits continuation in another segment. tail_recover
 
 recover copies logical intact-prefix events with their positions into a new profile, not a byte-identical segment image. It includes everything required for this raw slice; maps/calculation state do not exist yet. A structural failure can leave a partial destination and a nonzero exit code; this is not reported as successful recovery.
 
-## Next mandatory component
+## Required shell
 
-The shell will be a separate process/client. Only individual reads/settings mutations exist now, without subscriptions/supervision. Autostart requires desired-state rules, a main-UI-handler liveness check, bounded restart/safe mode and reconnection recovery. TCP alone does not prove these mechanisms exist.
+A separate Rust `kern-shell` process implements menus, freshness settings, status, catalog and manual package start/stop. See [PLUGINS](PLUGINS.md) for supervision/IPC/bounds/limits. Subscriptions, capabilities and general processing-plugin supervision are not implemented yet.
 
 Receipt retains calendar time and a monotonic offset within the boot. After slow sync, freshness starts at receipt rather than disk completion; a missing historical monotonic field never makes replayed readings fresh.

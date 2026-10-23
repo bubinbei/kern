@@ -1,0 +1,17 @@
+[package]
+name = "kern-shell"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+kern-protocol.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61.2", features = ["Win32_Foundation", "Win32_System_LibraryLoader", "Win32_UI_WindowsAndMessaging", "Win32_UI_Controls", "Win32_Graphics_Gdi", "Win32_UI_HiDpi"] }
+
+# The only unsafe code in KERN is the OS UI boundary in native.rs.
+# Core, protocol, package loader and demo retain unsafe_code=forbid.
+[lints.rust]
+unsafe_op_in_unsafe_fn = "deny"

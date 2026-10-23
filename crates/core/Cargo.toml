@@ -9,6 +9,7 @@ license.workspace = true
 kern-protocol.workspace = true
 kern-engine.workspace = true
 serde_json.workspace = true
+kern-plugins = { path = "../plugins" }
 
 [lints]
 workspace = true

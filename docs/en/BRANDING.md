@@ -1,6 +1,6 @@
 # KERN style
 
-Approved on 2026-10-23: **Керн / KERN**, the three-layer mark and amber **Ember / Gruvbox** palette. Vector: [kern.svg](../../assets/kern.svg); tokens: [kern-theme.json](../../assets/kern-theme.json). Application integration is not implemented yet.
+Approved on 2026-10-23: **Керн / KERN**, the three-layer mark and amber **Ember / Gruvbox** palette. Vector: [kern.svg](../../assets/kern.svg); tokens: [kern-theme.json](../../assets/kern-theme.json). The first native screen uses the background/surface/text/amber accent; full mark and styling integration remains ahead.
 
 | Role | Color |
 |---|---|
