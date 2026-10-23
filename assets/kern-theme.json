@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "product": "KERN",
+  "technical_project": "KERN",
+  "status": "approved design; application integration pending",
+  "approved_date": "2026-10-23",
+  "name": "Ember",
+  "inspiration": "https://github.com/morhetz/gruvbox/blob/master/colors/gruvbox.vim",
+  "tokens": {
+    "background": "#1d2021",
+    "surface": "#282828",
+    "raised": "#32302f",
+    "text": "#ebdbb2",
+    "muted": "#bdae93",
+    "accent": "#fabd2f",
+    "secondary": "#d3869b",
+    "tertiary": "#83a598",
+    "border": "#665c54",
+    "success": "#b8bb26",
+    "warning": "#fabd2f",
+    "error": "#fb4934",
+    "curves": [
+      "#d3869b",
+      "#fe8019",
+      "#83a598",
+      "#b8bb26",
+      "#fabd2f",
+      "#8ec07c"
+    ],
+    "tiles": [
+      "#1d2021",
+      "#1f2223",
+      "#212425",
+      "#232627"
+    ]
+  }
+}

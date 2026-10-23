@@ -1,0 +1,21 @@
+# Stages and acceptance
+
+A plan, not an implementation report. Each extension repeats the shared fault regression. Start with an isolated synthetic profile; do not touch real instruments or working data without a separate task.
+
+| Stage | Deliverable | Acceptance |
+|---|---|---|
+| C0 | Minimal Rust workspace, message contract, deterministic test source | Windows 10 x64 build/run; reference IDs/values/quality |
+| C1 | Headless core, registry, bounded intake, raw journal and status CLI | Inputs are recorded/read after restart without UI/interpreter |
+| C2 | Disk/process/IPC failures, damaged tails and overflow | Acknowledged prefix matches an independent reference; gaps/loss are explicit and memory bounded |
+| C3 | Standard interpreter, maps/activation boundaries and replay | Crash/live heartbeat with stalled worker; historical maps during backlog; no duplicate or reordered effects |
+| C4 | Own working format and CSV, ordinary/fast streams | Independent reading of schemas/periods/subsets/values; restart and catch-up |
+| C5 | First hardware source, then another type and multiple instances | One COM per instance, reserved addresses; one source failure leaves others running |
+| C6 | Minimal shell, then charts/widgets | UI failure/closure leaves acquisition alive; hidden/idle avoids extra work |
+
+Required checks: gap-free snapshot/subscribe; stale revisions/repeated request IDs; crashes between save/load/activate; late replies from old sessions; truncation/CRC/sync failure; live intake during replay; three equal values with different freshness; 18+20→24+20 channels without renumbering.
+
+Measure core, plugins and shell separately: CPU, GPU, RAM, disk, queues and latency. Scenarios include idle, live, 24-hour history, scrolling, hidden/minimized UI, failure and catch-up. A successful build proves neither speed nor resilience. Set numerical budgets after C0–C2.
+
+User's manual test machines: a low-end Windows Intel “4125” laptop (verify exact model during testing); a 2012 Mac running macOS at a later stage. Windows 10 x64 is the first required platform; macOS is not supported yet. Plan 24–72-hour recording after short fault tests. These machines have not been tested.
+
+Next: C0 followed by one end-to-end C1 increment. Do not expand detailed help or cosmetic work beforehand.

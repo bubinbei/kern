@@ -1,0 +1,27 @@
+{
+  "README.ru.md": {
+    "source_sha256": "74f7097bb3c1f66f0016289c48edafc653fe0dcf862e279d617a19a24bc11d94",
+    "translation": "README.md",
+    "translation_sha256": "29bbd5a6ef2fc55f70509158074540d73f65709297477bd1e8e61812e3424124"
+  },
+  "docs/ARCHITECTURE.md": {
+    "source_sha256": "fd23ade62d5d24a5638266f2e25474acc2c00ba7d9940f32fff101d6baf63dd2",
+    "translation": "docs/en/ARCHITECTURE.md",
+    "translation_sha256": "11ff416454080168c2904f62afd3b3e52a8c77d31242053cc37fd56bb68e5fc7"
+  },
+  "docs/BRANDING.md": {
+    "source_sha256": "b041f337750b29d2398b8925c1f63596f48c4eacb6e5bd5da8304c734ad8864d",
+    "translation": "docs/en/BRANDING.md",
+    "translation_sha256": "887f461bfcdd2c984c19eb23b224a6bb5f2b8d516e0744d82480f762b8c3c047"
+  },
+  "docs/MATERIALS.md": {
+    "source_sha256": "06a97af6af89ee8c1a37878c6f0d3378c401c4535f6b9616ddea80bbb70f18b5",
+    "translation": "docs/en/MATERIALS.md",
+    "translation_sha256": "797157f9d5a7b85a358dcbf4e6c9b8ebb173e7a8b1792e6661f1b71df7a2f5ac"
+  },
+  "docs/ROADMAP.md": {
+    "source_sha256": "fb2721013509654f8bf63089fedd5aca3599700d163b0a79ffc89bec1d6072c0",
+    "translation": "docs/en/ROADMAP.md",
+    "translation_sha256": "817f3e75675fd904583a104bd986a80a1775e331674c6ad72d7d6fdc24c52f97"
+  }
+}

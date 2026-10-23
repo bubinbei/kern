@@ -1,0 +1,12 @@
+{
+  "core": {
+    "title": "KERN — ядро и расширения",
+    "skill": ".agents/skills/kern-work/SKILL.md",
+    "sources": [
+      "docs/ARCHITECTURE.md",
+      "docs/ROADMAP.md",
+      "docs/BRANDING.md",
+      "docs/MATERIALS.md"
+    ]
+  }
+}
