@@ -1,5 +1,7 @@
 # Core 0.1.0 validation
 
+Parameter editor and scrolling on 2026-10-24: the [report](../validation/parameter-settings-20261024.json) binds the binary and runtime sources to 15 new browser-scenario checks, 9 previous chart interactions, an independent calibration calculation and 6 transport groups. Coverage includes V↔code, draft/save/activate, cancel, import/export, duplicate signals, external map revisions and a 1280×720 dialog. Only charts was replaced in the working profile: acquisition continued and maps were unchanged; a read-only browser confirmed six advancing graphs over 12s. This is not resource or physical input-scale reacceptance.
+
 Charts transport fix on 2026-10-24: accepted HTTP streams explicitly enter blocking mode with timeouts; text errors declare UTF-8. [Separate report](../validation/charts-transport-20261024.json): two regressions failed before the fix and pass afterwards; six packaged-host checks include 32 fragmented requests on four workers and an incomplete-request timeout. Only charts was replaced in the running prototype while raw acquisition continued; the browser confirmed six advancing graphs over 12 seconds without errors. Previous reports retain their own hashes and do not constitute reacceptance of this revision.
 
 ## End-to-end redb / calibration / uPlot prototype

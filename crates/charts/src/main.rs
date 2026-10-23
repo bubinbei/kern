@@ -14,6 +14,7 @@ use std::{
 };
 const HTML: &[u8] = include_bytes!("../web/index.html");
 const JS: &[u8] = include_bytes!("../web/app.js");
+const PARAMETER_SETTINGS: &[u8] = include_bytes!("../web/parameter-settings.js");
 const CSS: &[u8] = include_bytes!("../web/app.css");
 const UPLOT: &[u8] = include_bytes!("../../../third_party/uplot-1.6.32/uPlot.iife.min.js");
 const UPLOT_CSS: &[u8] = include_bytes!("../../../third_party/uplot-1.6.32/uPlot.min.css");
@@ -80,6 +81,9 @@ fn handle(s: &mut TcpStream, e: &Endpoint, key: &str, host: &str) -> io::Result<
         let asset = match path {
             "/" => Some(("text/html; charset=utf-8", HTML)),
             "/app.js" => Some(("text/javascript; charset=utf-8", JS)),
+            "/parameter-settings.js" => {
+                Some(("text/javascript; charset=utf-8", PARAMETER_SETTINGS))
+            }
             "/app.css" => Some(("text/css", CSS)),
             "/uplot.js" => Some(("text/javascript", UPLOT)),
             "/uplot.css" => Some(("text/css", UPLOT_CSS)),

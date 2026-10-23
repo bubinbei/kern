@@ -1,0 +1,76 @@
+{
+  "passed": true,
+  "date": "2026-10-23T21:27:34.202724+00:00",
+  "binary_sha256": "d8264ff08205ee981a62beb55de8483875dfe54df61b57d9cb647a381739618a",
+  "browser": {
+    "passed": true,
+    "tests": [
+      "reversed wheel direction",
+      "switching tabs during return to live clears history anchor",
+      "multiple intermediate scroll positions; settled target; bounded plot requests",
+      "parameter selection and separate calibration window",
+      "voltage/raw view roundtrip without changing points",
+      "duplicate signal rejected",
+      "draft then save/activate",
+      "voltage points reopen correctly",
+      "1280x720 modal controls fit",
+      "point export/import with unit validation",
+      "coefficient edits isolated by cancel",
+      "external map revision preserves open editor; cancel reloads it",
+      "counter/frequency units preserved",
+      "parameter metadata edit and undo",
+      "no browser errors"
+    ],
+    "scroll_positions": 8
+  },
+  "previous_chart_interactions": {
+    "passed": true,
+    "columns": 6,
+    "initialPoints": 12,
+    "tests": [
+      "uPlot vertical tracks",
+      "single click inert",
+      "double click flag add/remove",
+      "outline cursor markers",
+      "right click add curve",
+      "30s/5min history",
+      "three parameter-panel modes",
+      "edit/save/activate calibration",
+      "no browser page errors"
+    ]
+  },
+  "independent_checks": [
+    "voltage points persisted as exact raw codes",
+    "interpreter result checked against independent formula",
+    "continuous synthetic ingestion; no COM access"
+  ],
+  "transport": {
+    "passed": true,
+    "date": "2026-10-23T21:27:25.654481+00:00",
+    "binary_sha256": "d8264ff08205ee981a62beb55de8483875dfe54df61b57d9cb647a381739618a",
+    "source_sha256": "40a9b8796218f11ec5ae5299b4df5d0526dd67012ab1bdc815f9f739488aec5e",
+    "tests": [
+      "delayed fragmented headers",
+      "32 fragmented requests / four workers",
+      "fragmented malformed body; UTF-8 error",
+      "unauthenticated API rejected",
+      "incomplete request timeout; host remains usable",
+      "cooperative shutdown"
+    ]
+  },
+  "live_update": {
+    "passed": true,
+    "core_and_other_plugins_unchanged": true,
+    "raw_acquisition_continued": true,
+    "calibration_maps_unchanged": true
+  },
+  "live_browser": {
+    "passed": true,
+    "tracks": 6,
+    "observation_seconds": 12,
+    "graph_time_advanced": true,
+    "browser_errors": []
+  },
+  "runtime_source_sha256": "51e6afaed75751adfe8dd3a60f37e9179ec0c7b9c7a97d5be89d41382d4f6a50",
+  "limits": "Windows 11 synthetic acceptance and read-only live smoke. Fixed 12 V display convention; physical scale, GPU, low-end and endurance not accepted."
+}

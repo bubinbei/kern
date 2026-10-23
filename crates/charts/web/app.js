@@ -4,7 +4,7 @@ const access=new URLSearchParams(location.hash.slice(1)).get('access');
 if(access){sessionStorage.setItem('kern-key',access);history.replaceState(null,'',location.pathname);}
 const key=sessionStorage.getItem('kern-key')||'';
 let map={parameters:[]}, revision=0, activeRevision=0, snapshot={sources:[],parameters:[]}, tab='charts', plots=[], tracks=[], dirty=false, busy=false, offset=0, mode=0, firstTime=Date.now(), lastDraw=0, sizeDirty=true;
-let autoScale=true;
+let autoScale=true, offsetTarget=0, historyAnchor=0, scrollAnimation=0, historyFetchTimer=0, plotCache=null;
 let flags=JSON.parse(localStorage.getItem('kern-flags')||'[]').slice(-80), editing=-1, pickerTrack=0;
 const fmt=v=>v==null?'—':Number(v).toLocaleString('ru-RU',{maximumFractionDigits:2});
 const time=t=>new Date(t).toLocaleTimeString('ru-RU',{hour12:false});
@@ -24,13 +24,13 @@ function layout(){
  const headerHeight=62*Math.max(1,...tracks.map(t=>t.length));$('#history').style.top=headerHeight+'px';$('#history').style.height=`calc(100% - ${headerHeight+18}px)`;
  tracks.forEach((ids,index)=>{
   const track=element('div','track');const header=element('div','trackHeader');header.style.height=headerHeight+'px';
-  for(const id of ids){const p=definition(id),row=element('div');row.style.color=p.color;row.style.height='62px';const title=element('div','title');title.append(element('span','',p.name+' · '+p.unit),element('b','',fmt(current(id)?.value)));row.append(title);const scale=element('div','scale');for(let n=0;n<=4;n++)scale.append(element('span','',fmt(p.min+(p.max-p.min)*n/4)));row.append(scale);header.append(row);row.addEventListener('click',()=>edit(map.parameters.findIndex(p=>p.id===id)));}
+  for(const id of ids){const p=definition(id),row=element('div');row.style.color=p.color;row.style.height='62px';const title=element('div','title');title.append(element('span','',p.name+' · '+p.unit),element('b','',fmt(current(id)?.value)));row.append(title);const scale=element('div','scale');for(let n=0;n<=4;n++)scale.append(element('span','',fmt(p.min+(p.max-p.min)*n/4)));row.append(scale);header.append(row);row.addEventListener('click',()=>{const index=parameterDraft.parameters.findIndex(p=>p.id===id);if(index>=0)edit(index);});}
   const area=element('div','plot'),pen=element('div','pen'),split=element('div','splitter');track.append(header,area,pen,split);$('#tracks').append(track);
   const p0=definition(ids[0]);const scales={x:{time:false,ori:1,dir:-1,auto:false}};for(const id of ids){const p=definition(id);scales[id]={ori:0,dir:1,auto:false,range:[p.min,p.max]};}
   const item={track,header,area,pen,ids,from:0,to:1,points:{},flags:[],tooltip:null,cursor:[]};
   const u=new uPlot({width:Math.max(100,area.clientWidth),height:Math.max(100,area.clientHeight),padding:[0,0,0,0],scales,series:[{},...ids.map(id=>({label:id,scale:id,stroke:definition(id).color,width:1.5,spanGaps:false,points:{show:false}}))],axes:[{show:false},...ids.map(id=>({scale:id,show:false}))],legend:{show:false},cursor:{show:false},select:{show:false},hooks:{drawClear:[u=>tileGrid(item,u)],draw:[u=>{item.u=u;placeFlags(item);placePens(item);}] }},[[],...ids.map(()=>[])],area);item.u=u;plots.push(item);
   area.addEventListener('dblclick',e=>flagAt(item,e));area.addEventListener('contextmenu',e=>{e.preventDefault();pickerTrack=index;const select=$('#curveChoice');select.replaceChildren();for(const p of map.parameters.filter(p=>!ids.includes(p.id)))select.append(new Option(p.name+' · '+p.unit,p.id));$('#curvePicker').showModal();});
-  area.addEventListener('mousemove',e=>cursorAt(item,e));area.addEventListener('mouseleave',()=>clearCursor(item));area.addEventListener('wheel',e=>{e.preventDefault();offset=Math.max(0,Math.min(86400-Number($('#interval').value),offset+Math.sign(e.deltaY)*Number($('#interval').value)/8));sizeDirty=true;}, {passive:false});
+  area.addEventListener('mousemove',e=>cursorAt(item,e));area.addEventListener('mouseleave',()=>clearCursor(item));area.addEventListener('wheel',e=>{e.preventDefault();const pixels=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?area.clientHeight:1);moveHistory(offsetTarget-pixels/Math.max(100,area.clientHeight)*Number($('#interval').value)*.65);}, {passive:false});
   split.addEventListener('pointerdown',e=>{const next=track.nextElementSibling;if(!next)return;split.setPointerCapture(e.pointerId);const x=e.clientX,w=track.getBoundingClientRect().width,total=w+next.getBoundingClientRect().width;track.style.flex='none';next.style.flex='none';split.classList.add('drag');split.onpointermove=ev=>{const width=Math.max(100,Math.min(total-100,w+ev.clientX-x));track.style.width=width+'px';next.style.width=(total-width)+'px';sizeDirty=true;};split.onpointerup=()=>{split.onpointermove=null;split.classList.remove('drag');};});
  });
  sizeDirty=true;
@@ -75,22 +75,41 @@ function placeFlags(item){
  }
 }
 function axis(from,to){const root=$('#timeaxis');root.replaceChildren();if(!plots.length)return;const top=plots[0].header.clientHeight,height=plots[0].area.clientHeight,step=gridStep(to-from,height);for(let t=Math.ceil(from/step)*step;t<=to;t+=step){const label=element('span','',time(t));label.style.top=top+(t-from)/(to-from)*height+'px';root.append(label);}}
-async function draw(){
- if(!plots.length||tab!=='charts'||document.hidden)return;
- const interval=Number($('#interval').value)*1000;const latest=snapshot.parameters.length?Math.max(...snapshot.parameters.map(p=>p.received_unix_ms||0)):Date.now();const to=latest-offset*1000,from=to-interval;
- $('#live').classList.toggle('active',offset===0);$('#history').value=86400-offset;
- const ids=[...new Set(tracks.flat())].slice(0,8),r=await api('plot',{from_ms:Math.round(from),to_ms:Math.round(to),pixels:Math.max(32,Math.min(1024,plots[0].area.clientHeight)),parameters:ids});
- if(r.truncated)note('Показана доступная часть истории — уменьшите интервал');
+function latestTime(){return snapshot.parameters.length?Math.max(...snapshot.parameters.map(p=>p.received_unix_ms||0)):Date.now();}
+function viewWindow(age=offset){const interval=Number($('#interval').value)*1000,to=(historyAnchor||latestTime())-age*1000;return {from:to-interval,to,interval};}
+function requestHistoryData(){if(historyFetchTimer)return;historyFetchTimer=setTimeout(async()=>{historyFetchTimer=0;if(tab!=='charts'||document.hidden)return;if(busy){requestHistoryData();return;}busy=true;try{await draw();}catch(e){note(e.message);}finally{busy=false;}},250);}
+function moveHistory(target,animate=true){
+ const next=Math.max(0,Math.min(86400-Number($('#interval').value),target));if(!historyAnchor&&(next>0||offset>0))historyAnchor=latestTime();offsetTarget=next;
+ if(!animate){offset=next;if(!offset)historyAnchor=0;paintPlot();requestHistoryData();return;}
+ if(scrollAnimation)return;let previous=performance.now();
+ const step=stamp=>{if(document.hidden||tab!=='charts'){offset=offsetTarget;if(offset===0)historyAnchor=0;scrollAnimation=0;return;}const elapsed=stamp-previous;if(elapsed<32){scrollAnimation=requestAnimationFrame(step);return;}previous=stamp;
+  const difference=offsetTarget-offset;offset+=difference*(1-Math.exp(-Math.min(elapsed,80)/85));if(Math.abs(offsetTarget-offset)<.005)offset=offsetTarget;
+  if(offset===0&&offsetTarget===0)historyAnchor=0;for(const item of plots)clearCursor(item);paintPlot();requestHistoryData();
+  if(offset===offsetTarget)scrollAnimation=0;else scrollAnimation=requestAnimationFrame(step);
+ };scrollAnimation=requestAnimationFrame(step);
+}
+function paintPlot(dataChanged=false){
+ if(!plotCache||!plots.length||tab!=='charts'||document.hidden)return;
+ const {from,to}=viewWindow();$('#live').classList.toggle('active',offsetTarget===0);$('#history').value=86400-offset;
  for(const item of plots){
   item.from=from;item.to=to;const width=Math.max(100,item.area.clientWidth),height=Math.max(100,item.area.clientHeight);if(item.u.width!==width||item.u.height!==height)item.u.setSize({width,height});
-  const times=new Set();for(const id of item.ids){const rows=r.series.find(s=>s.id===id)?.points||[];item.points[id]=rows;for(const row of rows)times.add(row[0]);}
-  const ts=[...times].sort((a,b)=>a-b);const vals=item.ids.map(id=>{const points=new Map((item.points[id]||[]).map(p=>[p[0],p[1]]));return ts.map(t=>points.has(t)?points.get(t):undefined);});
-  const ranges={};for(const id of item.ids){const p=definition(id),samples=(item.points[id]||[]).map(v=>v[1]).filter(v=>v!=null);if(offset===0&&current(id)?.value!=null)samples.push(current(id).value);let min=p.min,max=p.max;if(autoScale&&samples.length){const low=Math.min(...samples),high=Math.max(...samples),margin=Math.max((high-low)*.15,Math.abs(high)*.01,(p.max-p.min)*.001,.01);min=low-margin;max=high+margin;}ranges[id]={min,max};}
-  item.u.batch(()=>{item.u.setData([ts,...vals],false);item.u.setScale('x',{min:from,max:to});for(const id of item.ids)item.u.setScale(id,ranges[id]);});
-  item.header.querySelectorAll('.scale').forEach((scale,i)=>{const range=ranges[item.ids[i]];[...scale.children].forEach((label,n)=>label.textContent=fmt(range.min+(range.max-range.min)*n/4));});
-  item.header.querySelectorAll('.title b').forEach((e,i)=>{const p=current(item.ids[i]);e.textContent=fmt(p?.value);e.style.opacity=p?.quality==='good'?'1':'.5';});placePens(item);placeFlags(item);
+  if(dataChanged){
+   const times=new Set();for(const id of item.ids){const rows=plotCache.series.find(s=>s.id===id)?.points||[];item.points[id]=rows;for(const row of rows)times.add(row[0]);}
+   const ts=[...times].sort((a,b)=>a-b),vals=item.ids.map(id=>{const points=new Map((item.points[id]||[]).map(p=>[p[0],p[1]]));return ts.map(t=>points.has(t)?points.get(t):undefined);});
+   const ranges={};for(const id of item.ids){const p=definition(id),samples=(item.points[id]||[]).filter(v=>v[0]>=from&&v[0]<=to&&v[1]!=null).map(v=>v[1]);if(offset===0&&current(id)?.value!=null)samples.push(current(id).value);let min=p.min,max=p.max;if(autoScale&&samples.length){const low=Math.min(...samples),high=Math.max(...samples),margin=Math.max((high-low)*.15,Math.abs(high)*.01,(p.max-p.min)*.001,.01);min=low-margin;max=high+margin;}ranges[id]={min,max};}
+   item.u.batch(()=>{item.u.setData([ts,...vals],false);item.u.setScale('x',{min:from,max:to});for(const id of item.ids)item.u.setScale(id,ranges[id]);});
+   item.header.querySelectorAll('.scale').forEach((scale,i)=>{const range=ranges[item.ids[i]];[...scale.children].forEach((label,n)=>label.textContent=fmt(range.min+(range.max-range.min)*n/4));});
+  }else item.u.setScale('x',{min:from,max:to});
+  item.header.querySelectorAll('.title b').forEach((e,i)=>{const p=current(item.ids[i]);e.textContent=fmt(p?.value);e.style.opacity=p?.quality==='good'?'1':'.5';});
  }
- axis(from,to);lastDraw=performance.now();sizeDirty=false;
+ axis(from,to);lastDraw=performance.now();
+}
+async function draw(){
+ if(!plots.length||tab!=='charts'||document.hidden)return;
+ const {from,to,interval}=viewWindow(offsetTarget),latest=latestTime(),ids=[...new Set(tracks.flat())].slice(0,8);
+ const r=await api('plot',{from_ms:Math.round(from-interval*.5),to_ms:Math.round(Math.min(latest,to+interval*.5)),pixels:Math.max(32,Math.min(1024,plots[0].area.clientHeight*2)),parameters:ids});
+ if(r.truncated)note('Показана доступная часть истории — уменьшите интервал');
+ plotCache=r;paintPlot(true);sizeDirty=false;
 }
 function values(){
  const root=$('#values');root.replaceChildren();for(const p of map.parameters.slice(0,8)){const v=current(p.id),a=element('article');a.append(element('small','',p.name+' · '+p.unit));const b=element('b','',fmt(v?.value));b.style.color=p.color;b.style.opacity=v?.quality==='good'?'1':'.45';b.title=v?.quality||'missing';a.append(b);root.append(a);}
@@ -98,27 +117,19 @@ function values(){
 async function refresh(){if(busy)return;busy=true;try{
  const s=await api('status');snapshot=await api('snapshot');const cal=await api('calibration');
  $('#connection').textContent='● Ядро на связи';$('#connection').className='good';$('#counts').textContent=`Входы: ${s.status.raw_batches} · Параметры: ${snapshot.parameters.length} · Расчёт: ${s.status.interpreter_connected?'подключён':'нет связи'}`;
- if(cal.revision!==revision&&!dirty){map=cal.map;revision=cal.revision;activeRevision=cal.active_revision;layout();renderMaps();}else activeRevision=cal.active_revision;
+ if(cal.revision!==revision&&!dirty&&!$('#editor').open&&!calibrationDraft){map=cal.map;revision=cal.revision;activeRevision=cal.active_revision;layout();resetParameterDraft();}else activeRevision=cal.active_revision;
  if(activeRevision===revision&&$('#message').textContent.startsWith('Карты сохранены'))note('Калибровка '+revision+' активна');
- $('#mapState').textContent=`Версия ${revision} · активна ${activeRevision}${dirty?' · есть изменения':''}`;values();
+ updateMapState();updateParameterLive();values();
  if(tab==='charts')await draw();
  }catch(e){$('#connection').textContent='● Нет связи';$('#connection').className='error';note(e.message);}finally{busy=false;}}
-function renderMaps(){const root=$('#mapRows');root.replaceChildren();map.parameters.forEach((p,i)=>{const tr=element('tr');for(const text of [p.name,p.source,String(p.channel),p.unit,`${p.min} … ${p.max}`,p.points.map(v=>`${v.raw} → ${v.value}`).join('; ')])tr.append(element('td','',text));tr.children[0].style.color=p.color;tr.children[5].className='points';const td=element('td'),editButton=element('button','','Изменить'),remove=element('button','','Убрать');editButton.onclick=()=>edit(i);remove.onclick=()=>{map.parameters.splice(i,1);dirty=true;renderMaps();};td.append(editButton,remove);tr.append(td);root.append(tr);});}
-function edit(index){editing=index;const p=index>=0?map.parameters[index]:{id:'parameter-'+(map.parameters.length+1),name:'Новый параметр',source:snapshot.sources[0]?.id||'im2480',channel:0,unit:'ед.',min:0,max:100,color:'#fabd2f',points:[{raw:0,value:0},{raw:65535,value:100}],extrapolate:false};
- const root=$('#editFields');root.replaceChildren();for(const [id,label,type,value] of [['id','ID','text',p.id],['name','Название','text',p.name],['source','Источник','text',p.source],['channel','Канал','number',p.channel],['unit','Единица','text',p.unit],['color','Цвет','color',p.color],['min','Минимум шкалы','number',p.min],['max','Максимум шкалы','number',p.max]]){const l=element('label','',label),input=element('input');input.id='edit-'+id;input.type=type;input.value=value;if(type==='number')input.step='any';if((id==='id'||id==='unit')&&index>=0)input.disabled=true;l.append(input);root.append(l);}
- const l=element('label','full','Точки: сырой код = значение, по одной на строку'),points=element('textarea');points.id='edit-points';points.value=p.points.map(v=>`${v.raw} = ${v.value}`).join('\n');l.append(points);root.append(l);
- const ext=element('label','full'),check=element('input');check.id='edit-extrapolate';check.type='checkbox';check.checked=p.extrapolate;ext.append(check,document.createTextNode('Линейно продолжать за крайними точками'));root.append(ext);$('#editError').textContent='';$('#editor').showModal();
-}
-$('#acceptEdit').onclick=e=>{e.preventDefault();try{const get=id=>$('#edit-'+id).value;const p={id:get('id'),name:get('name'),source:get('source'),channel:Number(get('channel')),unit:get('unit'),color:get('color'),min:Number(get('min')),max:Number(get('max')),extrapolate:$('#edit-extrapolate').checked,points:get('points').trim().split('\n').map(line=>{const v=line.split('=').map(v=>Number(v.trim().replace(',','.')));if(v.length!==2||v.some(n=>!Number.isFinite(n)))throw Error('Точки задаются как 1000 = 0');return {raw:v[0],value:v[1]};})};if(p.points.length<2||p.points.some((v,i)=>i&&v.raw<=p.points[i-1].raw)||p.min>=p.max)throw Error('Нужны две возрастающие точки raw и корректная шкала');if(editing<0&&map.parameters.some(v=>v.id===p.id))throw Error('Этот ID уже занят');if(editing<0)map.parameters.push(p);else map.parameters[editing]=p;dirty=true;renderMaps();$('#editor').close();}catch(error){$('#editError').textContent=error.message;}};
-$('#newParam').onclick=()=>edit(-1);$('#reloadMap').onclick=async()=>{try{const c=await api('calibration');map=c.map;revision=c.revision;dirty=false;renderMaps();layout();}catch(e){note(e.message);}};
-$('#saveMap').onclick=async()=>{try{await api('calibration',{expected_revision:revision,map});dirty=false;revision=-1;note('Карты сохранены; ожидается применение интерпретатором');await refresh();}catch(e){note(e.message);}};
 async function plugins(){try{const r=await api('plugins');const root=$('#pluginRows');root.replaceChildren();for(const p of r.plugins){const a=element('article'),name=element('div');name.append(element('strong','',p.name),element('small','',p.id+' · '+p.version));a.append(name,element('span','',p.state),element('span','spacer'));if(['im2480','processor','csv','backup'].includes(p.id)){const b=element('button','',p.state==='running'?'Остановить':'Запустить');b.onclick=async()=>{try{await api('control',{id:p.id,action:p.state==='running'?'stop':'start'});setTimeout(plugins,300);}catch(e){note(e.message);}};a.append(b);}a.append(element('small','',p.detail));root.append(a);}}catch(e){note(e.message);}}
-$$('nav [data-tab]').forEach(button=>button.onclick=()=>{tab=button.dataset.tab;$$('main>.screen').forEach(s=>s.classList.toggle('hidden',s.id!==tab));$$('nav [data-tab]').forEach(b=>b.classList.toggle('active',b===button));if(tab==='plugins')plugins();if(tab==='charts'){sizeDirty=true;refresh();}});
+$$('nav [data-tab]').forEach(button=>button.onclick=()=>{tab=button.dataset.tab;$$('main>.screen').forEach(s=>s.classList.toggle('hidden',s.id!==tab));$$('nav [data-tab]').forEach(b=>b.classList.toggle('active',b===button));if(tab==='plugins')plugins();if(tab==='calibration')updateParameterLive();if(tab==='charts'){sizeDirty=true;refresh();}});
 $('#autoScale').onclick=()=>{autoScale=!autoScale;$('#autoScale').classList.toggle('active',autoScale);refresh();};
-$('#refreshPlugins').onclick=plugins;$('#interval').onchange=()=>{sizeDirty=true;refresh();};$('#live').onclick=()=>{offset=0;refresh();};$('#earlier').onclick=()=>{offset=Math.min(86400-Number($('#interval').value),offset+Number($('#interval').value)/2);refresh();};$('#later').onclick=()=>{offset=Math.max(0,offset-Number($('#interval').value)/2);refresh();};$('#history').oninput=e=>{offset=Math.max(0,86400-Number(e.target.value));sizeDirty=true;};$('#history').onchange=refresh;
+$('#refreshPlugins').onclick=plugins;$('#interval').onchange=()=>{offsetTarget=Math.min(offsetTarget,86400-Number($('#interval').value));offset=offsetTarget;sizeDirty=true;refresh();};$('#live').onclick=()=>moveHistory(0);$('#earlier').onclick=()=>moveHistory(offsetTarget+Number($('#interval').value)/2);$('#later').onclick=()=>moveHistory(offsetTarget-Number($('#interval').value)/2);$('#history').oninput=e=>moveHistory(86400-Number(e.target.value));$('#history').onchange=requestHistoryData;
 $('#paramsMode').onclick=()=>{mode=(mode+1)%3;$('#values').classList.toggle('compact',mode===1);$('#values').classList.toggle('hidden',mode===2);sizeDirty=true;};
 $('#cancelCurve').onclick=()=>$('#curvePicker').close();$('#addCurve').onclick=()=>{const id=$('#curveChoice').value;if(id&&tracks.flat().length<8){tracks[pickerTrack].push(id);layout();refresh();}$('#curvePicker').close();};
 new ResizeObserver(()=>{sizeDirty=true;}).observe($('#tracks'));document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
 setInterval(()=>{$('#clock').textContent=time(Date.now());if(!document.hidden)refresh();},1000);
 setInterval(()=>{if(sizeDirty&&!busy&&tab==='charts'&&!document.hidden)refresh();},200);
+setupParameterSettings();
 refresh();

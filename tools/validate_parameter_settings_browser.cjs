@@ -1,0 +1,62 @@
+// Dev-only real browser; the fixture is synthetic and owned by the Python runner.
+const {chromium}=require('../target/browser-tools/node_modules/playwright');
+const fs=require('fs'),path=require('path'),assert=require('assert/strict');
+(async()=>{
+ const [profile,qa]=process.argv.slice(2),ui=JSON.parse(fs.readFileSync(path.join(profile,'charts-endpoint.json'),'utf8'));
+ const browser=await chromium.launch({headless:true,executablePath:'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'});
+ try{
+  const page=await browser.newPage({viewport:{width:1440,height:960}}),errors=[],plotRequests=[];
+  page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(r.url().endsWith('/api/plot'))plotRequests.push(Date.now())});
+  await page.goto(ui.url);await page.waitForFunction(()=>typeof plots!=='undefined'&&plots.length===6&&plots[0].u.data[0].length>0);
+  const area=page.locator('.plot').first();await area.hover();
+  await page.mouse.wheel(0,-120);
+  const motion=[];for(let i=0;i<8;i++){await page.waitForTimeout(45);motion.push(await page.evaluate(()=>offset));}
+  assert(motion[0]>0&&motion.at(-1)>motion[0]);assert(new Set(motion.map(v=>v.toFixed(2))).size>=4);
+  await page.waitForTimeout(700);assert(await page.evaluate(()=>Math.abs(offset-offsetTarget)<.01));
+  const age=await page.evaluate(()=>offset);await page.mouse.wheel(0,120);await page.waitForTimeout(850);assert((await page.evaluate(()=>offset))<age);
+  await page.locator('#live').click();await page.waitForTimeout(700);assert.equal(await page.evaluate(()=>offset),0);
+  assert(plotRequests.length<15,'Plot requests followed animation frames');
+  await page.evaluate(()=>{plots[0].area.dispatchEvent(new WheelEvent('wheel',{deltaY:-120,bubbles:true,cancelable:true}));document.querySelector('#live').click();document.querySelector('[data-tab=calibration]').click();});
+  await page.waitForTimeout(100);assert.equal(await page.evaluate(()=>historyAnchor),0);assert.equal(await page.evaluate(()=>offset),0);
+  await page.locator('[data-tab="calibration"]').click();await page.waitForSelector('#mapRows tr');
+  assert(await page.locator('#calibrateParam').isDisabled());await page.locator('#mapRows tr').first().click();
+  await page.locator('#calibrateParam').click();await page.waitForSelector('#calibrationDialog[open]');
+  assert.equal(await page.locator('#signalView').inputValue(),'volts');
+  const original=await page.evaluate(()=>JSON.stringify(map.parameters[0].points));
+  await page.selectOption('#signalView','raw');await page.selectOption('#signalView','volts');
+  await page.locator('#cancelCalibration').click();assert.equal(await page.evaluate(()=>JSON.stringify(map.parameters[0].points)),original);
+  await page.locator('#calibrateParam').click();
+  const field=(row,column)=>page.locator('#pointRows tr').nth(row).locator('input').nth(column);
+  await field(0,0).fill('1');await field(0,1).fill('0');await field(1,0).fill('5');await field(1,1).fill('100');
+  await page.locator('#addPoint').click();await field(2,0).fill('5');await field(2,1).fill('150');
+  await page.locator('#acceptCalibration').click();assert(await page.locator('#calibrationError').textContent());
+  await field(2,0).fill('7');await page.screenshot({path:path.join(qa,'calibration-points.png')});
+  await page.locator('#acceptCalibration').click();assert.equal(await page.evaluate(()=>revision),1);
+  await page.locator('#saveMap').click();await page.waitForFunction(()=>revision===2&&activeRevision===2);
+  await page.locator('#calibrateParam').click();assert.equal(Number(await field(0,0).inputValue()),1);assert.equal(Number(await field(1,0).inputValue()),5);assert.equal(Number(await field(2,0).inputValue()),7);
+  await page.setViewportSize({width:1280,height:720});await page.waitForTimeout(150);
+  assert(await page.locator('#acceptCalibration').evaluate(e=>{const b=e.getBoundingClientRect();return b.bottom<=innerHeight&&b.right<=innerWidth}));
+  await page.screenshot({path:path.join(qa,'calibration-1280x720.png')});await page.setViewportSize({width:1440,height:960});
+  const downloadPromise=page.waitForEvent('download');await page.locator('#exportPoints').click();const download=await downloadPromise;
+  const exported=JSON.parse(fs.readFileSync(await download.path(),'utf8'));assert.equal(exported.format,'kern-calibration-points-v1');assert.equal(exported.points.length,3);
+  await page.locator('#pointsFile').setInputFiles({name:'invalid.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify({...exported,unit:'wrong'}))});
+  await page.waitForFunction(()=>document.querySelector('#calibrationError').textContent.length>0);
+  await page.locator('#pointsFile').setInputFiles({name:'points.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(exported))});
+  await page.waitForFunction(()=>document.querySelector('#calibrationError').textContent==='');
+  await page.locator('#pointFactor').fill('2');await page.locator('#multiplyPoints').click();assert.equal(Number(await field(1,1).inputValue()),200);
+  await page.locator('#cancelCalibration').click();assert.equal(await page.evaluate(()=>map.parameters[0].points[1].value),100);
+  await page.locator('#calibrateParam').click();await field(0,0).fill('2');
+  await page.evaluate(async()=>{const external=cloneMap(map);external.parameters[1].name='External edit';await api('calibration',{expected_revision:revision,map:external});});
+  await page.waitForFunction(()=>activeRevision>revision);
+  assert.equal(Number(await field(0,0).inputValue()),2);assert.equal(await page.evaluate(()=>revision),2);
+  await page.locator('#cancelCalibration').click();await page.waitForFunction(()=>revision===3);
+  await page.locator('#mapRows tr').nth(3).click();await page.locator('#calibrateParam').click();assert.equal(await page.locator('#signalView').inputValue(),'raw');await page.locator('#cancelCalibration').click();
+  await page.locator('#mapRows tr').nth(4).click();await page.locator('#calibrateParam').click();assert.equal(await page.locator('#signalView').inputValue(),'hz');await page.locator('#cancelCalibration').click();
+  await page.locator('#mapRows tr').first().dblclick();await page.locator('#edit-name').fill('Reference sensor');await page.locator('#acceptEdit').click();
+  assert(await page.evaluate(()=>dirty));await page.locator('#undoParam').click();assert.equal(await page.evaluate(()=>parameterDraft.parameters[0].name),await page.evaluate(()=>map.parameters[0].name));
+  await page.locator('#reloadMap').click();await page.waitForFunction(()=>!dirty);await page.screenshot({path:path.join(qa,'parameter-settings.png')});
+  assert.deepEqual(errors,[]);
+  const report={passed:true,tests:['reversed wheel direction','switching tabs during return to live clears history anchor','multiple intermediate scroll positions; settled target; bounded plot requests','parameter selection and separate calibration window','voltage/raw view roundtrip without changing points','duplicate signal rejected','draft then save/activate','voltage points reopen correctly','1280x720 modal controls fit','point export/import with unit validation','coefficient edits isolated by cancel','external map revision preserves open editor; cancel reloads it','counter/frequency units preserved','parameter metadata edit and undo','no browser errors'],scroll_positions:motion.length};
+  fs.writeFileSync(path.join(qa,'browser-report.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report));
+ }finally{await browser.close()}
+})().catch(error=>{console.error(error);process.exit(1)});
