@@ -6,4 +6,6 @@ Architecture and roadmap are written for KERN from owner requirements. The three
 
 New code is MIT; third-party dependencies need separate license/provenance review. Do not add external code, resources, specifications or compatible formats without recorded sources/grounds. Renaming or packaging cannot bypass the publication boundary. Synthetic tests need their own generator.
 
+Conversational comparisons with third-party interfaces become independent KERN requirements: readability, information density, behavior and resource budgets. Product names, links and nickname mappings are not published, even when mentioned in conversation. If context is necessary, a neutral description such as “a program with a white interface” is acceptable.
+
 Before publication, review the diff, index and entire new history; exclude local paths, credentials and real data. The logo/palette define style; the README illustration is not a running product screenshot.
