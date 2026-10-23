@@ -5,9 +5,9 @@
     "translation_sha256": "4ad12cd7cf5037a5d74727c2641034b76b2094552ebbe75309dac01151bb84d7"
   },
   "docs/ARCHITECTURE.md": {
-    "source_sha256": "0388b6ef662e896230f7fed77b76bb1d9303af4911e6be5226d8b404520db151",
+    "source_sha256": "9e70be2280b6d71e2fbd1ea240a1e80a47874a91cd690f2a74d65bb29506d90b",
     "translation": "docs/en/ARCHITECTURE.md",
-    "translation_sha256": "d4d77f0fe3b8c2dfb8fded40e9afd7f5499352c2c5a364294ca4ccd9a6aa589d"
+    "translation_sha256": "2bc8eb11c4d925b67a54268a1223334db86270a9ed90269122969aa4f3b8cc48"
   },
   "docs/BRANDING.md": {
     "source_sha256": "e615cf60939c23b7f4b8d34d8fac982c4dc1b65fdc7155fbc68930f65246b89c",
@@ -44,19 +44,24 @@
     "translation": "docs/en/MATERIALS.md",
     "translation_sha256": "d322ea41996677634ae896e8e6551452348ab18b6bf230b2847cb310182dbc5e"
   },
+  "docs/NETWORK_PLAN.md": {
+    "source_sha256": "cc4c78459879eab857a60bb0c2359fbdc06860f40c459c6eeb7918308b709edc",
+    "translation": "docs/en/NETWORK_PLAN.md",
+    "translation_sha256": "5066b54f758fb9f3e3d34875be720c3a9ea5519efd566ba8ddc662ef43697731"
+  },
   "docs/PLUGINS.md": {
-    "source_sha256": "ebadebae0c06dfe62c28df60da8bd236072b9b5d47d5383ad734d3f2fb3f697c",
+    "source_sha256": "5546c530f3a1931b9143263661b91e56613e8706964628763d455094a25dfe0d",
     "translation": "docs/en/PLUGINS.md",
-    "translation_sha256": "c9e0e6bbbf15491c53e770363d1f1d7ccc03d431e7fe6301760065a4c1cfdbbd"
+    "translation_sha256": "ba9b5e851cbe71eaa2181cfe2c7fc0da70fc9372afee967e1bfcc6722e41b9f7"
   },
   "docs/ROADMAP.md": {
-    "source_sha256": "1abbe4ad8f2ba5479610bf444a197d60470542ec723aad3aa91c09d30926a268",
+    "source_sha256": "019e983bebf7c47539dad931b737efcc9615430119f6fa5053777e7770d66d14",
     "translation": "docs/en/ROADMAP.md",
-    "translation_sha256": "752f3a3e86918d42dee4d8019e368ffcc5492acd190440762e29c615bfefb265"
+    "translation_sha256": "48bf2672bca0b8c853016f48efbe791d7d5b69886525889a012d4f2846b25430"
   },
   "docs/STORAGE_CHARTS_PLAN.md": {
-    "source_sha256": "b1edabb8532987699335f57d9e37cedad31bb7fd827f325de4c89335bb7d79f2",
+    "source_sha256": "32532863a03691d85da88178e259bdad09e6ef79994ccbbeb7d8483b2c9ac9b1",
     "translation": "docs/en/STORAGE_CHARTS_PLAN.md",
-    "translation_sha256": "1e252c8bb69dac563899d44329600c39b091d26076286e5b560402cc8bb52ecc"
+    "translation_sha256": "1339669dd302d31a03d00de82796f7b0f5ebdd7626d466000fb4e84f16e9313c"
   }
 }

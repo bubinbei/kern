@@ -4,6 +4,8 @@ Target plan; current completion and limits are in [CORE_VALIDATION](CORE_VALIDAT
 
 The approved redb/uPlot implementation order is **R1 storage/raw → R2 offline import → R3 maps/interpreter/replay → R4 API/uPlot prototype → R5 writers/backup → R6 low-end hardware and integration**. This refines C2–C6 rather than replacing completed checks. R1 is the next working slice; the current build still uses KJNv1 without uPlot/redb. Three-dataset contracts and per-step acceptance: [STORAGE_CHARTS_PLAN](STORAGE_CHARTS_PLAN.md).
 
+Future network direction: N0 account for the shared client contract now → N1 reusable local web screens → N2 LAN viewing from browsers/desktop clients → N3 restricted internet viewing → N4 office service with permissions/audit/control handover. Workstations include operator, supervisor, rig master, drilling-fluid service, directional drilling and customer. Networking is not being implemented now and does not change R1–R6 order; details and acceptance: [NETWORK_PLAN](NETWORK_PLAN.md).
+
 | Stage | Deliverable | Acceptance |
 |---|---|---|
 | C0 | Minimal Rust workspace, message contract, deterministic test source | Windows 10 x64 build/run; reference IDs/values/quality |

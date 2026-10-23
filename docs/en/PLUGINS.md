@@ -4,6 +4,8 @@ The first native Windows desktop slice is implemented: a separate `kern-shell` p
 
 Approved: redb is an internal core dependency; uPlot is a library in a separate charts package with a Rust host. uPlot alone is not a native executable plugin; its host/bridge format remains to be implemented, and the current loader does not support web packages. Interpreter, working writers and independent backup are separate processes; the database is accessible only through the core. Three-dataset/history/recovery plan: [STORAGE_CHARTS_PLAN](STORAGE_CHARTS_PLAN.md).
 
+Future network workstations reuse web screens: a browser or KERN client without sources/local authoritative calculation. A separate web gateway exposes a restricted API; it neither replaces the required system shell nor bypasses the core. Viewing and office service have different permissions; plugin installation is a separate permission. The current loader/IPC do not support these modes yet. Stages and boundaries: [NETWORK_PLAN](NETWORK_PLAN.md).
+
 ## Package installation
 
 A plugin is a **directory**, not a DLL loaded into the core. For example:

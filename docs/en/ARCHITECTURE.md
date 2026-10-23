@@ -45,3 +45,7 @@ Charts are a separate replaceable package using uPlot and a restricted bridge th
 ## Current shell and future web direction
 
 The first native shell/package slice is implemented outside the core. A web environment for operator screens without programming is a separate future direction; critical components remain Rust processes. Package directories, actual supervision limits and development sequence: [PLUGINS](PLUGINS.md).
+
+## Future server and workstations
+
+One KERN server owns equipment, data and calculation; the local operator, browsers and KERN in client mode use a shared versioned contract. Reuse web screens across workstations. A separate optional web gateway isolates networking from the recording cycle; existing local IPC is not published externally. Permissions separate viewing from service control, the core validates commands, and changes are versioned/audited. A remote operator receives revocable control; connection loss does not stop recording. This is a future plan, not current network capability: [NETWORK_PLAN](NETWORK_PLAN.md).
