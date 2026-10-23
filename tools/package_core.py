@@ -45,10 +45,18 @@ def main():
     plugin.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(ROOT/'plugins/synthetic/plugin.json',plugin/'plugin.json')
     shutil.copyfile(ROOT/'target/release/kern-demo.exe',plugin/'kern-demo.exe')
+    acquisition = bundle/'plugins/im2480'
+    acquisition.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(ROOT/'plugins/im2480/plugin.json',acquisition/'plugin.json')
+    shutil.copyfile(ROOT/'plugins/im2480/config.example.json',acquisition/'config.example.json')
+    shutil.copyfile(ROOT/'target/release/im2480.exe',acquisition/'im2480.exe')
+    # Preserve operator settings. A new package intentionally has no default port.
+    if not (acquisition/'config.json').exists():
+        shutil.copyfile(ROOT/'plugins/im2480/config.example.json',acquisition/'config.json')
     for rel in ['LICENSE','docs/CORE_GUIDE.md','docs/en/CORE_GUIDE.md','docs/CORE_INTERNALS.md','docs/en/CORE_INTERNALS.md','docs/CORE_VALIDATION.md','docs/en/CORE_VALIDATION.md','docs/ARCHITECTURE.md','docs/en/ARCHITECTURE.md','docs/ROADMAP.md','docs/en/ROADMAP.md','docs/DEPENDENCIES.md','docs/en/DEPENDENCIES.md','docs/dependencies.json','docs/validation/core-0.1.0.json','docs/validation/core-resources-0.1.0.json']:
         target=bundle/rel;target.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(ROOT/rel,target)
     shutil.copytree(notices,bundle/'third_party/licenses',dirs_exist_ok=True)
-    for rel in ['docs/PLUGINS.md','docs/en/PLUGINS.md','docs/validation/desktop-0.1.0.json','docs/validation/desktop-idle-0.1.0.json','docs/validation/raw-with-desktop-0.1.0.json']:
+    for rel in ['docs/PLUGINS.md','docs/en/PLUGINS.md','docs/IM2480.md','docs/en/IM2480.md','docs/validation/im2480-0.1.0.json','docs/validation/im2480-live-0.1.0.json','docs/validation/desktop-0.1.0.json','docs/validation/desktop-idle-0.1.0.json','docs/validation/raw-with-desktop-0.1.0.json']:
         target=bundle/rel;target.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(ROOT/rel,target)
     commands = {
         'Start-Kern.cmd': 'kern-core.exe shell --profile "%~dp0data\\default" >nul 2>nul\nif errorlevel 1 kern-core.exe run --profile "%~dp0data\\default"',

@@ -63,6 +63,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "kern-im2480"
+version = "0.1.0"
+dependencies = [
+ "kern-protocol",
+ "serde",
+ "serde_json",
+ "windows-sys",
+]
+
+[[package]]
 name = "kern-plugins"
 version = "0.1.0"
 dependencies = [

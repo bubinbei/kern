@@ -1,6 +1,6 @@
 # Plugins and the required shell
 
-The first native Windows desktop slice is implemented: a separate `kern-shell` process, menus, core status, freshness setting, and listing/starting/stopping optional processes. Acquisition, tables and the mandatory journal remain in the core. No interpreter, device drivers or charts are implemented here yet.
+The first native Windows desktop slice is implemented: a separate `kern-shell` process, menus, core status, freshness setting, and listing/starting/stopping optional processes. Acquisition, tables and the mandatory journal remain in the core. No interpreter or charts are implemented here yet. The first COM source [im2480](IM2480.md) is a separate package; physical hardware is not accepted yet.
 
 ## Package installation
 
@@ -24,7 +24,7 @@ Limits: 32 directory entries, 16 KiB manifest, up to 16 arguments of 1024 bytes,
 
 `kern-core run --profile PATH` starts the required adjacent `kern-shell.exe`. It appears as `kern.shell` and cannot be disabled using the optional-plugin stop button. Closing the window keeps the core running. Explicitly reopen with `kern-core shell --profile PATH`. `serve` remains a separate headless mode for tests and future service operation. A missing required file causes a desktop startup error, without a silent substitute.
 
-The shell polls once per second through an IPC worker; the window never waits for disk/network operations. Only changed text/lists are redrawn; there is no continuous graphics loop. It uses system Win32/GDI controls through official `windows-sys` bindings; no web runtime is included. The only `unsafe` code is the documented Win32 boundary in `crates/shell/src/native.rs`; core, protocol, package loader and source retain `unsafe_code=forbid`. Full memory review, Windows10 and weak-hardware acceptance remain outstanding. DPI uses the system scale at startup, without custom dynamic rescaling between monitors.
+The shell polls once per second through an IPC worker; the window never waits for disk/network operations. Only changed text/lists are redrawn; there is no continuous graphics loop. It uses system Win32/GDI controls through official `windows-sys` bindings; no web runtime is included. The `unsafe` code is confined to OS boundaries: Win32 UI in `crates/shell/src/native.rs` and COM in `crates/im2480/src/native_port.rs`. Core, protocol, loader, demo and the IM2480 decoding library forbid unsafe. Full memory review, Windows10 and weak-hardware acceptance remain outstanding. DPI uses the system scale at startup, without custom dynamic rescaling between monitors.
 
 The main UI handler generates heartbeats; expired heartbeat jobs are discarded. If the window crashes or a heartbeat is missing for over 10 seconds, supervision terminates only its owned shell process and retries after one second. At most three launches per 60 seconds, then latched safe mode until explicit opening/new startup. Normal closure does not respawn. This is initial shell supervision, not a general correctness monitor for processing plugins.
 

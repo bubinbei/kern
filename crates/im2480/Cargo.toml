@@ -1,0 +1,22 @@
+[package]
+name = "kern-im2480"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "im2480"
+path = "src/main.rs"
+
+[dependencies]
+kern-protocol.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61.2", features = ["Win32_Foundation", "Win32_Devices_Communication"] }
+
+# Safe protocol/configuration library; only native_port.rs crosses the OS boundary.
+[lints.rust]
+unsafe_op_in_unsafe_fn = "deny"

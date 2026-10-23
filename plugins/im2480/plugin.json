@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "id": "im2480",
+  "name": "im2480",
+  "version": "0.1.0",
+  "protocol": 1,
+  "executable": "im2480.exe",
+  "args": ["run", "--config", "config.json"]
+}

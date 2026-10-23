@@ -1,6 +1,6 @@
 # KERN core: a guide without specialist prerequisites
 
-Version 0.1.0 provides a command-line core, a separate synthetic source and a native Windows shell with menus/settings/package management. Charts, real hardware and a calibration interpreter are not implemented. [Verified results and limits](CORE_VALIDATION.md).
+Version 0.1.0 provides a command-line core, a separate synthetic source and a native Windows shell with menus/settings/package management. The first COM source [im2480](IM2480.md) is connected. Charts and a calibration interpreter are not implemented; physical hardware is not accepted yet. [Verified results and limits](CORE_VALIDATION.md).
 
 ## What the core is
 

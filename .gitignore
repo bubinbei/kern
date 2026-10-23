@@ -25,6 +25,7 @@ backup/
 *.log
 core.lock
 endpoint.json
+plugins/**/config.json
 __pycache__/
 *.py[cod]
 .venv/

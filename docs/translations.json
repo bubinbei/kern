@@ -1,8 +1,8 @@
 {
   "README.ru.md": {
-    "source_sha256": "c569e8d149a85ff90ebeb5786ce206f1221e7f7482ebe3a2dea7c2ecb1699d2b",
+    "source_sha256": "558d08d5a41c28a59daa38c30353470420097d0169a6e3b660e9fa78462afdd6",
     "translation": "README.md",
-    "translation_sha256": "3bcfe13e3d158f09bed9b2f6453d0ff45a22e3b4a633f98b421bf2790b44d012"
+    "translation_sha256": "4ad12cd7cf5037a5d74727c2641034b76b2094552ebbe75309dac01151bb84d7"
   },
   "docs/ARCHITECTURE.md": {
     "source_sha256": "cb2236a5325b0629a41665015b87f0af53e659c6c972f28a20c2fecd1d3d161f",
@@ -15,9 +15,9 @@
     "translation_sha256": "8e51436292fadbbeab74b1789608f47cb27513fc7895ac9593e4f6be724ec550"
   },
   "docs/CORE_GUIDE.md": {
-    "source_sha256": "e6890e16de784d2d34140f89e292b3570f82705b8d15289438b12b76023f7056",
+    "source_sha256": "f67c7cfaa8ad1dcd7f9caf7efb9a77d19d2d348c9d9a8a84aa0c397fecfed8cb",
     "translation": "docs/en/CORE_GUIDE.md",
-    "translation_sha256": "0af9e4456065701abe63667c74a2a677eea7ac83fd762d72d62962a5ed76fb11"
+    "translation_sha256": "592df11bafdd5b4538851ed134011cd8519149dd584c9333830e66d9ccb50722"
   },
   "docs/CORE_INTERNALS.md": {
     "source_sha256": "97afd9faa980c451e28bc4f4dc163d62a8dc9797f3818235dede5758c27f77d9",
@@ -25,28 +25,33 @@
     "translation_sha256": "a40b90fd8ee1d4e143990415670e097d1b288a5b58a0b825e00ed107ac681d1d"
   },
   "docs/CORE_VALIDATION.md": {
-    "source_sha256": "ee016d1bbd93251200677c928d358b1bc67c9626a0ffe11fca4d68cb5fb2a225",
+    "source_sha256": "cc990c44ad7fcee9190809cadfd714e58ad05280864b1027da480aaff05926dd",
     "translation": "docs/en/CORE_VALIDATION.md",
-    "translation_sha256": "2d26d5a5240af7a8521b458507860e67406e0c9b5f43a8a277bc1c21aeba8bdd"
+    "translation_sha256": "c9d9aadd191ef30d798197054fdb9fa67a211960de44927800770f73c9c3089d"
   },
   "docs/DEPENDENCIES.md": {
-    "source_sha256": "52af06935a944f0177d2d06534dc241d45dabc4eabd35a94e2cb84f4ecf6372c",
+    "source_sha256": "a92a68b8618a230827e6544e28403a9150c07b78c53e0c1a7ecc23011dedae65",
     "translation": "docs/en/DEPENDENCIES.md",
-    "translation_sha256": "7c58b1e2ef8d0bcb7ee03ee7769aa72866a9a3b3005cbf62939d949abbfb1b44"
+    "translation_sha256": "9dba29684f15c151e00a88b9813e9e8fc11b2a2e5ee6a252e1941ef0e4406254"
+  },
+  "docs/IM2480.md": {
+    "source_sha256": "ad1e87dfb1dd88cf40c75bc6c277df66698350d1ae1d3c34fe3cc5af435ab1eb",
+    "translation": "docs/en/IM2480.md",
+    "translation_sha256": "23e5082ec294c1bd7974b1b8a07c067a83bc18f4d3e1ffeceed3e0cb8bbc3ea9"
   },
   "docs/MATERIALS.md": {
-    "source_sha256": "b6deb5c3d3a87b92a01fd62e02f6ec933d10061cc9f51f18b3a5413c3e655e0b",
+    "source_sha256": "c7d1e85d27c0efe622b6525bc0796ab78548dad3d23609c9e340639bff8f3d77",
     "translation": "docs/en/MATERIALS.md",
-    "translation_sha256": "e49b01832910f27622345f58ffaff2d906dbe5f21fe4dfcca1151ecb73b6ee4a"
+    "translation_sha256": "d322ea41996677634ae896e8e6551452348ab18b6bf230b2847cb310182dbc5e"
   },
   "docs/PLUGINS.md": {
-    "source_sha256": "8a127aed32dde110983e30faeef939d19233577acd187e3a309a7e3c24f93936",
+    "source_sha256": "cb7d0596be4574bace39449d542ef6bd82b8f60bda16d9ba39f20f07a90bd469",
     "translation": "docs/en/PLUGINS.md",
-    "translation_sha256": "0aeb2e28e530ee2b91376aa06a921137a0892b565471cc401e18c0e35092aeed"
+    "translation_sha256": "ffecb3c81fe67559882e348f1243f0477df029d8736f9a20bf3f59dc8dbedf82"
   },
   "docs/ROADMAP.md": {
-    "source_sha256": "b6f6f6744b9ba5c7b9568ae22f669717def596a7811b7138ab5a137703941be7",
+    "source_sha256": "3a4f981d9390ccf1e6b73ddcf5a8c5c560cfae38e3d7b032e9a6b66f97abb4b4",
     "translation": "docs/en/ROADMAP.md",
-    "translation_sha256": "0d8f64c4c8b8e7105ca38ff8ff591216718122c4f60913a0c44bda349d6dd5c7"
+    "translation_sha256": "ea534ecba54677aef8f2924ed1688c5a206740005ef8ef2a90abc34700bcb74b"
   }
 }

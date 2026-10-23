@@ -13,4 +13,4 @@ MIT is selected where explicitly offered as a permissive alternative. This inclu
 
 New KERN code is MIT. The Rust standard library/toolchain have separate terms; the compiler is not bundled. External binary distribution needs a separate composition review, including standard-library notices. This is a local test bundle; no public binary release is published.
 
-Official `windows-sys`/`windows-link` bindings (MIT alternative) were added for the separate native shell; they are not linked into the headless core. No web runtime/async framework was added. The absence of a browser engine does not replace CPU/RAM/GPU/disk measurements or Windows 10 validation.
+Official `windows-sys`/`windows-link` bindings (MIT alternative) are used by the separate native shell and im2480 COM boundary; they are not linked into the headless core. No web runtime/async framework was added. The absence of a browser engine does not replace CPU/RAM/GPU/disk measurements or Windows 10 validation.

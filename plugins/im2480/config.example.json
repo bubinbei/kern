@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "source_id": "im2480",
+  "port": "",
+  "baud": 9600,
+  "timeout_ms": 200,
+  "poll_interval_ms": 1000,
+  "modules": [{ "address": 27, "slot": 0 }]
+}

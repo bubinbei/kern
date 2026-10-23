@@ -9,3 +9,5 @@ New code is MIT; third-party dependencies need separate license/provenance revie
 Conversational comparisons with third-party interfaces become independent KERN requirements: readability, information density, behavior and resource budgets. Product names, links and nickname mappings are not published, even when mentioned in conversation. If context is necessary, a neutral description such as “a program with a white interface” is acceptable.
 
 Before publication, review the diff, index and entire new history; exclude local paths, credentials and real data. The logo/palette define style; the README illustration is not a running product screenshot.
+
+For im2480, a new Modbus RTU reader and independent synthetic peer were written, with public primary transport references in the [contract](IM2480.md). A restricted profile of the owner's emulator is used; earlier application sources/binaries and private research are not included. Previously selected port settings were restored only in the local bundle configuration without copying the old profile.

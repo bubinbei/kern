@@ -51,3 +51,7 @@ After shell integration, 20 Rust tests, the existing 18 raw scenarios and 14 des
 The resource numbers above belong to the previous source fingerprint, not to core plus shell. The desktop report includes new executable sizes; GPU, weak hardware and endurance remain unaccepted. Initial shell supervision is implemented; general processing-plugin supervision remains ahead.
 
 An additional short observation showed about 10.8 MiB shell working set and 4.7 MiB for the core in desktop mode; shell CPU increased by zero at counter resolution over five seconds. This is idle on this Windows11 host, not a budget/GPU/weak-machine guarantee. [Raw metrics](../validation/desktop-idle-0.1.0.json).
+
+## im2480 source
+
+Six driver tests (26 Rust total), including identical-batch retry after an uncertain acknowledgement, and 17 end-to-end checks against an independent COM peer additionally passed: types/CRC/loss/recovery, address isolation, stable expansion, busy-port refusal and release. The already-running emulator separately supplied 5 modules / 30 channels / 10 batches / 60 samples confirmed by an independent reader. See [IM2480](IM2480.md) for contract/reports/limits. Core/state protocol were unchanged; physical/endurance acceptance remains ahead.

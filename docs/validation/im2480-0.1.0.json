@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "rust_source_sha256": "bbe699c509a9c58264a17cfe197a6965103b1b1b26f386cfdaf5ba612faf0030",
+  "platform": "Windows11, dedicated com0com pair, independent Python peer",
+  "checks": [
+    "package_launch_and_real_virtual_com",
+    "independent_values_types_endianness_and_address_200",
+    "exclusive_os_and_core_port_ownership",
+    "isolated_silent",
+    "isolated_crc",
+    "isolated_address",
+    "isolated_exception",
+    "isolated_order",
+    "isolated_short",
+    "nonfinite_frequency_does_not_poison_other_channels",
+    "fragmented_serial_response",
+    "cooperative_stop_closes_source",
+    "normal_stop_releases_com",
+    "module_growth_preserves_reserved_channel_ids",
+    "busy_port_fails_without_fake_live_source",
+    "stop_interrupts_silent_reads_within_supervisor_budget",
+    "independent_crc_reader_confirms_typed_plugin_journal"
+  ],
+  "plugin_batches": 68,
+  "plugin_samples": 408,
+  "total_batches": 208,
+  "plugin_binary": {
+    "bytes": 645632,
+    "sha256": "091957af81cf11a3edfd7c01d4dd7be7a613c4f8f4bdf23fd55ee2ef32724cfb"
+  },
+  "not_checked": [
+    "Physical IM2480/USB-RS485",
+    "Windows10 and weak hardware",
+    "24-72 hour run",
+    "Data order other than 0009=0"
+  ]
+}

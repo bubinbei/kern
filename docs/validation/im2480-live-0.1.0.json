@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "transport": "Existing operator emulator; explicit local COM configuration",
+  "module_count": 5,
+  "passed": true,
+  "batches": 10,
+  "samples": 60,
+  "channel_count": 30,
+  "independent_journal_check": true,
+  "plugin_binary": {
+    "bytes": 645632,
+    "sha256": "091957af81cf11a3edfd7c01d4dd7be7a613c4f8f4bdf23fd55ee2ef32724cfb"
+  },
+  "not_checked": [
+    "Physical hardware",
+    "Long-duration run",
+    "Other data orders"
+  ]
+}
