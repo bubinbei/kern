@@ -2,6 +2,8 @@
 
 Target plan; current completion and limits are in [CORE_VALIDATION](CORE_VALIDATION.md). The first C0–C1 raw slice and selected C2 checks are implemented on Windows 11; target Windows 10 is not accepted. Each extension repeats the shared fault regression. Start with an isolated synthetic profile; do not touch real instruments or working data without a separate task.
 
+The approved redb/uPlot implementation order is **R1 storage/raw → R2 offline import → R3 maps/interpreter/replay → R4 API/uPlot prototype → R5 writers/backup → R6 low-end hardware and integration**. This refines C2–C6 rather than replacing completed checks. R1 is the next working slice; the current build still uses KJNv1 without uPlot/redb. Three-dataset contracts and per-step acceptance: [STORAGE_CHARTS_PLAN](STORAGE_CHARTS_PLAN.md).
+
 | Stage | Deliverable | Acceptance |
 |---|---|---|
 | C0 | Minimal Rust workspace, message contract, deterministic test source | Windows 10 x64 build/run; reference IDs/values/quality |

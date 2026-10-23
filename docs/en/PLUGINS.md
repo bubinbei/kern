@@ -2,6 +2,8 @@
 
 The first native Windows desktop slice is implemented: a separate `kern-shell` process, menus, core status, freshness setting, and listing/starting/stopping optional processes. Acquisition, tables and the mandatory journal remain in the core. No interpreter or charts are implemented here yet. The first COM source [im2480](IM2480.md) is a separate package; physical hardware is not accepted yet.
 
+Approved: redb is an internal core dependency; uPlot is a library in a separate charts package with a Rust host. uPlot alone is not a native executable plugin; its host/bridge format remains to be implemented, and the current loader does not support web packages. Interpreter, working writers and independent backup are separate processes; the database is accessible only through the core. Three-dataset/history/recovery plan: [STORAGE_CHARTS_PLAN](STORAGE_CHARTS_PLAN.md).
+
 ## Package installation
 
 A plugin is a **directory**, not a DLL loaded into the core. For example:
@@ -38,7 +40,7 @@ The goal is for a GTI operator without programming knowledge to assemble widgets
 
 Critical components—device acquisition, the main interpreter, mandatory journal and working-file writers—remain Rust processes. Web shell/widgets receive data through a versioned, bounded API; no internal-memory references or bypassing the core. Screen failure cannot stop acquisition. Settings undergo the same revision checks and core acknowledgement. JavaScript needs a contract that preserves u64 precision.
 
-Sequence: complete the native slice and failure tests → stabilize API/permissions/subscriptions → build a separate web prototype → compare RAM/CPU/GPU/scrolling/failure behavior against native on the weak Windows laptop and later Mac2012/macOS → choose an engine and web package format. WebView/Chromium/framework choices remain open. Token or resource savings are not guaranteed; a reusable SDK and templates should reduce repeated context.
+Sequence: redb/maps/replay → stabilize API/permissions/subscriptions → build a separate uPlot chart prototype → compare RAM/CPU/GPU/scrolling/failure behavior against native on the weak Windows laptop and later Mac2012/macOS → choose a host and web package format → develop W1 separately. The chart library is selected; WebView/Chromium/framework choices remain open. Token or resource savings are not guaranteed; a reusable SDK and templates should reduce repeated context.
 
 ## Slice validation
 

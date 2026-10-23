@@ -8,6 +8,8 @@ Source → core validation → mandatory raw journal → interpreter → core re
 
 Raw-channel and parameter tables are coherent latest-state snapshots. Ordered events retain history; periodic table copies do not. A source batch is applied coherently; nearby receipt times from different instruments do not imply simultaneous measurement.
 
+redb is approved for internal core storage and uPlot for a replaceable web chart presentation. Three logical datasets hold inputs, immutable calibration revisions and results; history, registry/activations and consumer positions are additional data. The core is the only writer; all plugins use its API. This is the target contract, not the current KJN slice. Migration and acceptance: [STORAGE_CHARTS_PLAN](STORAGE_CHARTS_PLAN.md).
+
 ## Registry and quality
 
 Stable source/channel/parameter IDs survive disconnection and expansion. Reserve 100 addresses per source instance, initially targeting up to 10 instances; transmit occupied channels only. UI numbers do not replace stable IDs. Exceeding the reserve requires another instance with a separate connection; one COM port belongs to one instance. Instances of the same type use different ports. An 18-channel source can add 6 without shifting another source's 20 channels.
@@ -38,7 +40,7 @@ The core restarts only its own processes with retry limits/backoff, a new sessio
 
 The mandatory system shell is a separate client for menus, settings, plugins and minimal status. Measurement traffic goes through the core, not the UI. Intentional window closure does not respawn it; a confirmed hang permits limited restart and safe mode without deleting the profile. Closing the UI leaves recording alive; full shutdown is a separate command.
 
-Charts start as a separate shell library with a data contract. Acquisition frequency is independent of FPS. Repaint on events/deadlines and only visible content; screen aggregation preserves extrema/gaps without changing the archive. Cache grids/labels; hidden screens do no background work. A dynamic SDK for arbitrary renderers follows validated basic boundaries.
+Charts are a separate replaceable package using uPlot and a restricted bridge through a Rust host; the browser host is not selected or included yet. Retain the native system shell during prototyping. Acquisition frequency is independent of FPS. Repaint on events/deadlines and only visible content; screen aggregation preserves extrema/gaps without changing the archive. Cache grids/labels; hidden screens do no background work. A dynamic SDK for arbitrary renderers follows validated basic boundaries.
 
 ## Current shell and future web direction
 

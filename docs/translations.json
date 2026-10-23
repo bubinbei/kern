@@ -5,9 +5,9 @@
     "translation_sha256": "4ad12cd7cf5037a5d74727c2641034b76b2094552ebbe75309dac01151bb84d7"
   },
   "docs/ARCHITECTURE.md": {
-    "source_sha256": "cb2236a5325b0629a41665015b87f0af53e659c6c972f28a20c2fecd1d3d161f",
+    "source_sha256": "0388b6ef662e896230f7fed77b76bb1d9303af4911e6be5226d8b404520db151",
     "translation": "docs/en/ARCHITECTURE.md",
-    "translation_sha256": "0ae5bddf780f26917c6447f9f6081fee2c5a03aff4be6d85792b6890535cdb6b"
+    "translation_sha256": "d4d77f0fe3b8c2dfb8fded40e9afd7f5499352c2c5a364294ca4ccd9a6aa589d"
   },
   "docs/BRANDING.md": {
     "source_sha256": "e615cf60939c23b7f4b8d34d8fac982c4dc1b65fdc7155fbc68930f65246b89c",
@@ -45,13 +45,18 @@
     "translation_sha256": "d322ea41996677634ae896e8e6551452348ab18b6bf230b2847cb310182dbc5e"
   },
   "docs/PLUGINS.md": {
-    "source_sha256": "cb7d0596be4574bace39449d542ef6bd82b8f60bda16d9ba39f20f07a90bd469",
+    "source_sha256": "ebadebae0c06dfe62c28df60da8bd236072b9b5d47d5383ad734d3f2fb3f697c",
     "translation": "docs/en/PLUGINS.md",
-    "translation_sha256": "ffecb3c81fe67559882e348f1243f0477df029d8736f9a20bf3f59dc8dbedf82"
+    "translation_sha256": "c9e0e6bbbf15491c53e770363d1f1d7ccc03d431e7fe6301760065a4c1cfdbbd"
   },
   "docs/ROADMAP.md": {
-    "source_sha256": "3a4f981d9390ccf1e6b73ddcf5a8c5c560cfae38e3d7b032e9a6b66f97abb4b4",
+    "source_sha256": "1abbe4ad8f2ba5479610bf444a197d60470542ec723aad3aa91c09d30926a268",
     "translation": "docs/en/ROADMAP.md",
-    "translation_sha256": "ea534ecba54677aef8f2924ed1688c5a206740005ef8ef2a90abc34700bcb74b"
+    "translation_sha256": "752f3a3e86918d42dee4d8019e368ffcc5492acd190440762e29c615bfefb265"
+  },
+  "docs/STORAGE_CHARTS_PLAN.md": {
+    "source_sha256": "b1edabb8532987699335f57d9e37cedad31bb7fd827f325de4c89335bb7d79f2",
+    "translation": "docs/en/STORAGE_CHARTS_PLAN.md",
+    "translation_sha256": "1e252c8bb69dac563899d44329600c39b091d26076286e5b560402cc8bb52ecc"
   }
 }
