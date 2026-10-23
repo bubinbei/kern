@@ -1,6 +1,6 @@
 # Stages and acceptance
 
-A plan, not an implementation report. Each extension repeats the shared fault regression. Start with an isolated synthetic profile; do not touch real instruments or working data without a separate task.
+Target plan; current completion and limits are in [CORE_VALIDATION](CORE_VALIDATION.md). The first C0–C1 raw slice and selected C2 checks are implemented on Windows 11; target Windows 10 is not accepted. Each extension repeats the shared fault regression. Start with an isolated synthetic profile; do not touch real instruments or working data without a separate task.
 
 | Stage | Deliverable | Acceptance |
 |---|---|---|
@@ -18,4 +18,4 @@ Measure core, plugins and shell separately: CPU, GPU, RAM, disk, queues and late
 
 User's manual test machines: a low-end Windows Intel “4125” laptop (verify exact model during testing); a 2012 Mac running macOS at a later stage. Windows 10 x64 is the first required platform; macOS is not supported yet. Plan 24–72-hour recording after short fault tests. These machines have not been tested.
 
-Next: C0 followed by one end-to-end C1 increment. Do not expand detailed help or cosmetic work beforehand.
+Next: complete core fault acceptance, then the mandatory menu/settings shell. The owner requested a detailed core guide, which is maintained now; changing-UI help and cosmetic work remain deferred.

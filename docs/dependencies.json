@@ -1,0 +1,177 @@
+[
+  {
+    "name": "cfg-if",
+    "version": "1.0.5",
+    "license": "MIT OR Apache-2.0",
+    "selected": "MIT",
+    "source": "https://crates.io/crates/cfg-if/1.0.5",
+    "notices": [
+      "third_party/licenses/cfg-if-1.0.5/LICENSE-APACHE",
+      "third_party/licenses/cfg-if-1.0.5/LICENSE-MIT"
+    ]
+  },
+  {
+    "name": "crc32fast",
+    "version": "1.5.3",
+    "license": "MIT OR Apache-2.0",
+    "selected": "MIT",
+    "source": "https://crates.io/crates/crc32fast/1.5.3",
+    "notices": [
+      "third_party/licenses/crc32fast-1.5.3/LICENSE-APACHE",
+      "third_party/licenses/crc32fast-1.5.3/LICENSE-MIT"
+    ]
+  },
+  {
+    "name": "getrandom",
+    "version": "0.4.3",
+    "license": "MIT OR Apache-2.0",
+    "selected": "MIT",
+    "source": "https://crates.io/crates/getrandom/0.4.3",
+    "notices": [
+      "third_party/licenses/getrandom-0.4.3/LICENSE-APACHE",
+      "third_party/licenses/getrandom-0.4.3/LICENSE-MIT"
+    ]
+  },
+  {
+    "name": "itoa",
+    "version": "1.0.18",
+    "license": "MIT OR Apache-2.0",
+    "selected": "MIT",
+    "source": "https://crates.io/crates/itoa/1.0.18",
+    "notices": [
+      "third_party/licenses/itoa-1.0.18/LICENSE-APACHE",
+      "third_party/licenses/itoa-1.0.18/LICENSE-MIT"
+    ]
+  },
+  {
+    "name": "libc",
+    "version": "0.2.191",
+    "license": "MIT OR Apache-2.0",
+    "selected": "MIT",
+    "source": "https://crates.io/crates/libc/0.2.191",
+    "notices": [
+      "third_party/licenses/libc-0.2.191/LICENSE-APACHE",
+      "third_party/licenses/libc-0.2.191/LICENSE-MIT"
+    ]
+  },
+  {
+    "name": "memchr",
+    "version": "2.8.3",
+    "license": "Unlicense OR MIT",
+    "selected": "MIT",
+    "source": "https://crates.io/crates/memchr/2.8.3",
+    "notices": [
+      "third_party/licenses/memchr-2.8.3/COPYING",
+      "third_party/licenses/memchr-2.8.3/LICENSE-MIT"
+    ]
+  },
+  {
+    "name": "proc-macro2",
+    "version": "1.0.107",
+    "license": "MIT OR Apache-2.0",
+    "selected": "MIT",
+    "source": "https://crates.io/crates/proc-macro2/1.0.107",
+    "notices": [
+      "third_party/licenses/proc-macro2-1.0.107/LICENSE-APACHE",
+      "third_party/licenses/proc-macro2-1.0.107/LICENSE-MIT"
+    ]
+  },
+  {
+    "name": "quote",
+    "version": "1.0.47",
+    "license": "MIT OR Apache-2.0",
+    "selected": "MIT",
+    "source": "https://crates.io/crates/quote/1.0.47",
+    "notices": [
+      "third_party/licenses/quote-1.0.47/LICENSE-APACHE",
+      "third_party/licenses/quote-1.0.47/LICENSE-MIT"
+    ]
+  },
+  {
+    "name": "r-efi",
+    "version": "6.0.0",
+    "license": "MIT OR Apache-2.0 OR LGPL-2.1-or-later",
+    "selected": "MIT",
+    "source": "https://crates.io/crates/r-efi/6.0.0",
+    "notices": [
+      "third_party/licenses/r-efi-6.0.0/AUTHORS"
+    ]
+  },
+  {
+    "name": "serde",
+    "version": "1.0.229",
+    "license": "MIT OR Apache-2.0",
+    "selected": "MIT",
+    "source": "https://crates.io/crates/serde/1.0.229",
+    "notices": [
+      "third_party/licenses/serde-1.0.229/LICENSE-APACHE",
+      "third_party/licenses/serde-1.0.229/LICENSE-MIT"
+    ]
+  },
+  {
+    "name": "serde_core",
+    "version": "1.0.229",
+    "license": "MIT OR Apache-2.0",
+    "selected": "MIT",
+    "source": "https://crates.io/crates/serde_core/1.0.229",
+    "notices": [
+      "third_party/licenses/serde_core-1.0.229/LICENSE-APACHE",
+      "third_party/licenses/serde_core-1.0.229/LICENSE-MIT"
+    ]
+  },
+  {
+    "name": "serde_derive",
+    "version": "1.0.229",
+    "license": "MIT OR Apache-2.0",
+    "selected": "MIT",
+    "source": "https://crates.io/crates/serde_derive/1.0.229",
+    "notices": [
+      "third_party/licenses/serde_derive-1.0.229/LICENSE-APACHE",
+      "third_party/licenses/serde_derive-1.0.229/LICENSE-MIT"
+    ]
+  },
+  {
+    "name": "serde_json",
+    "version": "1.0.154",
+    "license": "MIT OR Apache-2.0",
+    "selected": "MIT",
+    "source": "https://crates.io/crates/serde_json/1.0.154",
+    "notices": [
+      "third_party/licenses/serde_json-1.0.154/LICENSE-APACHE",
+      "third_party/licenses/serde_json-1.0.154/LICENSE-MIT"
+    ]
+  },
+  {
+    "name": "syn",
+    "version": "3.0.9",
+    "license": "MIT OR Apache-2.0",
+    "selected": "MIT",
+    "source": "https://crates.io/crates/syn/3.0.9",
+    "notices": [
+      "third_party/licenses/syn-3.0.9/LICENSE-APACHE",
+      "third_party/licenses/syn-3.0.9/LICENSE-MIT"
+    ]
+  },
+  {
+    "name": "unicode-ident",
+    "version": "1.0.27",
+    "license": "(MIT OR Apache-2.0) AND Unicode-3.0",
+    "selected": "MIT + Unicode-3.0",
+    "source": "https://crates.io/crates/unicode-ident/1.0.27",
+    "notices": [
+      "third_party/licenses/unicode-ident-1.0.27/LICENSE-APACHE",
+      "third_party/licenses/unicode-ident-1.0.27/LICENSE-MIT",
+      "third_party/licenses/unicode-ident-1.0.27/LICENSE-UNICODE"
+    ]
+  },
+  {
+    "name": "zmij",
+    "version": "1.0.23",
+    "license": "MIT",
+    "selected": "MIT",
+    "source": "https://crates.io/crates/zmij/1.0.23",
+    "notices": [
+      "third_party/licenses/zmij-1.0.23/LICENSE-MIT"
+    ]
+  }
+]

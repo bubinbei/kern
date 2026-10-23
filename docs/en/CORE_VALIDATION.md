@@ -1,0 +1,45 @@
+# Core 0.1.0 validation
+
+Date: 2026-10-23. Platform: **Windows 11, 10.0.22631**, Rust/Cargo 1.96.0. Windows 10, low-end machines and 24–72-hour runs are not accepted. This is the first end-to-end C0–C1 slice and selected C2 fault checks, not completion of the whole architecture.
+
+## Reproduction
+
+```powershell
+cargo fmt --all -- --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test --workspace --locked
+cargo build --workspace --release --locked
+python tools/validate_core.py
+```
+
+The validator creates its own target/qa/core-date-pid profiles/processes/sockets and saves report.json. It does not use working user profiles, COM or external projects. A Python decoder independently verifies sequence, zlib CRC and the deterministic value formula; the Rust reader is not the sole reference.
+
+19 Rust tests and 18 end-to-end checks cover separate sources, stable slots, exact u64 transport, duplicate/conflicting batches, invalid samples, staleness without input, settings revisions, IPC bounds, exclusive profiles, independent CRC reading, recovered quality, forced core death, CRC startup refusal, separate recovery copies, preserved incomplete tails, another recovery restart and responsive status after disk failure. The deterministic portion produced **27 batches / 459 samples**.
+
+Disk failure is simulated by blocking creation of the next segment. A Rust test also checks writer poisoning on write failure. This is not physical disk removal or proof of every partial sync failure. Byte-by-byte final-record truncation tests verify the intact prefix and unchanged original.
+
+## Preliminary resources
+
+| Metric | Result |
+|---|---:|
+| Release kern-core.exe | 1,025,024 bytes, 1001 KiB |
+| Release kern-demo.exe | 465,408 bytes, 454.5 KiB |
+| Core working set after test input, five seconds idle | 4,481,024 bytes, about 4.3 MiB |
+| Same process private bytes | 974,848 bytes, about 0.9 MiB |
+| CPU increment over those five seconds | Zero at GetProcessTimes resolution |
+
+CPU is per process as a share of one full CPU core. A short zero reading does not mean literally no consumption. GPU counters were not measured; this slice creates no graphics context. Executable size is not RAM usage. These are observations from one run, not universal budgets.
+
+## Still outstanding
+
+- Windows 10 x64 on the low-end laptop, confirming its exact Intel model; 2012 Mac/macOS later.
+- Long runs, multiple-source rates/scaling, disk usage and large-history recovery.
+- Complete C2 fault matrix: real/partial sync failures, power loss, missing segments and interrupted recovery boundaries. Some structural failures currently stop safely rather than automatically continue.
+- Per-plugin permissions, subscriptions, supervision/bounded restart; current sources are launched explicitly and not automatically restarted.
+- Interpreter/maps/activation, physical parameters, working formats, backup, mandatory menus and charts.
+
+A build, passing tests and production readiness are different results. The next UI component builds on the current contract without hiding these limits.
+
+[Machine-readable report and source fingerprint](../validation/core-0.1.0.json).
+
+A separate short run used two six-channel sources with a 100 ms sleep after each acknowledged batch: 200 batches/1200 values. During five observed live seconds the core working set was 4,444,160 bytes (about 4.2 MiB), with zero CPU increment at counter resolution; this is not peak load. [Report](../validation/core-resources-0.1.0.json).

@@ -1,0 +1,23 @@
+{
+  "platform": "Windows-11-10.0.22631-SP0",
+  "scenario": "two sources, six channels each; 100 ms sleep after each acknowledged batch; 200 batches/1200 samples total",
+  "idle": {
+    "seconds": 5.0,
+    "one_cpu_percent": 0.0,
+    "working_set_bytes": 4300800,
+    "private_bytes": 872448
+  },
+  "live": {
+    "seconds": 5.0,
+    "one_cpu_percent": 0.0,
+    "working_set_bytes": 4444160,
+    "private_bytes": 929792
+  },
+  "not_measured": [
+    "GPU",
+    "weak_hardware",
+    "24_to_72_hours",
+    "peak_load"
+  ],
+  "rust_source_sha256": "2b0dc6a674e0c49a66864310e19f1f756dc0ce569a96965a40d9bad6c0e91aba"
+}

@@ -1,6 +1,6 @@
 # Core contract
 
-Status: agreed architecture, not implemented. The core is independent of charts and any particular instrument.
+Status: target architecture; the first raw-data slice 0.1.0 is implemented, not every mechanism below. The core is independent of charts and any particular instrument. See the [guide](CORE_GUIDE.md), [0.1 contract](CORE_INTERNALS.md) and [validation](CORE_VALIDATION.md) for implemented behavior and limits.
 
 ## Data flow
 

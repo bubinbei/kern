@@ -21,6 +21,10 @@ backup/
 *.rar
 *.tmp
 *.bak
+*.kjn
+*.log
+core.lock
+endpoint.json
 __pycache__/
 *.py[cod]
 .venv/

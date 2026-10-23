@@ -6,7 +6,10 @@
       "docs/ARCHITECTURE.md",
       "docs/ROADMAP.md",
       "docs/BRANDING.md",
-      "docs/MATERIALS.md"
+      "docs/MATERIALS.md",
+      "docs/CORE_GUIDE.md",
+      "docs/CORE_INTERNALS.md",
+      "docs/CORE_VALIDATION.md"
     ]
   }
 }

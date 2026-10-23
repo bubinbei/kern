@@ -6,9 +6,9 @@
 
 **Independent drilling measurement recording. A small Rust core, replaceable plugins and preserved measurements.**
 
-We begin with a resilient headless core. Hardware sources, the interpreter and working formats connect as separate components; the mandatory recovery journal keeps recording inputs when calculations or the interface fail.
+The first headless core slice 0.1.0 is implemented: a separate process, raw-batch validation, CRC journal with disk acknowledgements, recovery, status and freshness settings. Hardware sources, the interpreter and working formats connect as separate components; the mandatory recovery journal keeps recording inputs when calculations or the interface fail.
 
-[Architecture](docs/en/ARCHITECTURE.md) · [Stages and acceptance](docs/en/ROADMAP.md) · [Style](docs/en/BRANDING.md) · [Material provenance](docs/en/MATERIALS.md)
+[Plain-language core guide](docs/en/CORE_GUIDE.md) · [Validation](docs/en/CORE_VALIDATION.md) · [Architecture](docs/en/ARCHITECTURE.md) · [Stages and acceptance](docs/en/ROADMAP.md) · [Style](docs/en/BRANDING.md) · [Material provenance](docs/en/MATERIALS.md)
 
 | Component | Responsibility |
 |---|---|
@@ -19,9 +19,11 @@ We begin with a resilient headless core. Hardware sources, the interpreter and w
 | System shell | Mandatory separate process: menus, settings and status |
 | Charts | Replaceable presentation; rendering load does not set acquisition frequency |
 
-**Status: pre-alpha, architecture agreed, core implementation has not started.** This repository contains no ready application or accepted performance measurements. Windows 10 x64 is the first target. Testing on a low-end Intel “4125” laptop and later on a 2012 Mac running macOS is planned; support is not claimed.
+**Status: the first pre-alpha headless slice.** 19 Rust tests and 18 end-to-end checks passed on Windows 11. The core executable is about 1 MiB; a short idle observation showed about 4.3 MiB working set. These are preliminary observations, not Windows 10, low-end hardware or 24–72-hour acceptance. Interpreter/maps/physical parameters, plugin supervision and graphical menus are not implemented.
 
-Before alpha, the priority is working, verifiable increments. Detailed user help follows stable behavior. The three-layer mark and amber Ember / Gruvbox palette are approved; application integration is ahead.
+Build: `cargo build --workspace --release --locked`. Run `target/release/kern-core.exe serve --profile runtime/first-test`, then `target/release/kern-demo.exe --profile runtime/first-test` in another window. `python tools/package_core.py` creates a local bundle with CMD launchers in `dist/Kern-Core-0.1.0/`.
+
+At the owner's request, a detailed core guide explains the system for non-specialists; changing-UI help remains deferred until alpha. The next mandatory component is a separate menu/settings shell. The three-layer mark and Ember/Gruvbox are approved; application styling is ahead. [Dependencies and notices](docs/en/DEPENDENCIES.md).
 
 ```powershell
 python tools/project_context.py start core
