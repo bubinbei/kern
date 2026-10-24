@@ -10,17 +10,28 @@ const fs=require('fs'),path=require('path'),assert=require('assert/strict');
   await page.goto(ui.url);await page.waitForFunction(()=>typeof plots!=='undefined'&&plots.length===6&&plots[0].u.data[0].length>0);
   const tiles=await page.evaluate(()=>{
    const ratio=uPlot.pxRatio,from=1700000000000,range=300000,seed=plots[0].tileSeed;
+   let gradientCreations=0,dashes=[];
+   const ctx={save(){},beginPath(){},rect(){},clip(){},stroke(){},restore(){},moveTo(){},lineTo(){},setLineDash(v){dashes=v},createLinearGradient(x0,y0,x1,y1){gradientCreations++;return {stops:[],addColorStop(at,color){this.stops.push([at,color])}}},fillRect(x,y,w,h){fills.push({x,y,w,h,color:this.fillStyle.stops?JSON.stringify(this.fillStyle.stops):this.fillStyle})}};
+   let fills=[];const item={tileSeed:seed},u={ctx,bbox:{left:0,top:0,width:320*ratio,height:600*ratio},valToPos:t=>(t-item.from)/range*600*ratio};
    function capture(start){
-    const fills=[],ctx={save(){},beginPath(){},rect(){},clip(){},stroke(){},restore(){},moveTo(){},lineTo(){},fillRect(x,y,w,h){fills.push({x,y,w,h,color:this.fillStyle})}};
-    tileGrid({from:start,to:start+range,tileSeed:seed},{ctx,bbox:{left:0,top:0,width:320*ratio,height:600*ratio},valToPos:t=>(t-start)/range*600*ratio});
-    return fills.slice(1);
+    fills=[];item.from=start;item.to=start+range;tileGrid(item,u);return fills.slice(1);
    }
    const a=capture(from),b=capture(from+1000),colors=new Set(a.map(c=>c.color));
    let overlap=0;for(const cell of a){const match=b.find(c=>c.x===cell.x&&Math.abs(c.y-(cell.y-2*ratio))<1e-6);if(match){if(match.color!==cell.color)throw Error('Tile changed shade on scroll');overlap++;}}
    const rows=Array.from({length:128},(_,r)=>Array.from({length:8},(_,c)=>tileShade(r,c,seed)).join(','));
    if(new Set(rows).size<120)throw Error('Short repeating tile pattern');
    const start=performance.now();for(let i=0;i<100;i++)capture(from+i*1000);
-   return {colors:colors.size,overlap,opaque:a.every(c=>/^#[0-9a-f]{6}$/.test(c.color)),hundred_draws_ms:performance.now()-start};
+   const elapsed=performance.now()-start;
+   if(gradientCreations!==7)throw Error('Scrolling recreated cached gradients');
+   if(JSON.stringify(dashes)!==JSON.stringify([5*ratio,5*ratio]))throw Error('Grid is not dashed');
+   const opaque=[...item.tilePalette.colors.values()].every(g=>g.stops.every(([,c])=>/^#[0-9a-f]{6}$/.test(c)));
+   const beforeResize=item.tilePalette;u.bbox.width+=10;capture(from);if(beforeResize===item.tilePalette||gradientCreations!==14)throw Error('Gradient cache did not follow resize');
+   const canvas=document.createElement('canvas');canvas.width=640*ratio;canvas.height=600*ratio;const real=canvas.getContext('2d');
+   for(let n=0;n<2;n++)tileGrid({from,to:from+range,tileSeed:seed+n},{ctx:real,bbox:{left:n*320*ratio,top:0,width:320*ratio,height:600*ratio},valToPos:t=>(t-from)/range*600*ratio});
+   const pixel=(x,y)=>real.getImageData(Math.floor(x*ratio),Math.floor(y*ratio),1,1).data[0];
+   const contrasts=[43,83,143,203,263].map(y=>pixel(315,y)-pixel(325,y));
+   if(!contrasts.every(d=>d>=6))throw Error('Adjacent track boundary is not visible');
+   return {colors:colors.size,overlap,opaque,hundred_draws_ms:elapsed,cached_gradients_during_scroll:7,resize_rebuilds_cache:true,dash_css_pixels:[5,5],adjacent_track_pixel_contrasts:contrasts};
   });
   assert(tiles.colors>=5&&tiles.overlap>100&&tiles.opaque);
   const area=page.locator('.plot').first();await area.hover();
@@ -112,7 +123,7 @@ const fs=require('fs'),path=require('path'),assert=require('assert/strict');
   assert(await page.evaluate(()=>dirty));await page.locator('#undoParam').click();assert.equal(await page.evaluate(()=>parameterDraft.parameters[0].name),await page.evaluate(()=>map.parameters[0].name));
   await page.locator('#reloadMap').click();await page.waitForFunction(()=>!dirty);await page.screenshot({path:path.join(qa,'parameter-settings.png')});
   assert.deepEqual(errors,[]);
-  const report={passed:true,tile_rendering:tiles,tests:['stable opaque pseudorandom shades follow time cells while scrolling; no short row repetition','reversed wheel direction','switching tabs during return to live clears history anchor','multiple intermediate scroll positions; settled target; bounded plot requests','parameter selection and separate calibration window','calibration zoom in/out changes both axes reversibly','calibration background pan preserves points, draft and core map','grid strokes and equal-valued ticks follow both pan axes','fit and signal-unit changes reset viewport','pointer cancellation releases calibration pan','voltage/raw view roundtrip without changing points','duplicate signal rejected','draft then save/activate','voltage points reopen correctly','1280x720 modal controls fit','point export/import with unit validation','coefficient edits isolated by cancel','external map revision preserves open editor; cancel reloads it','counter/frequency units preserved','parameter metadata edit and undo','no browser errors'],scroll_positions:motion.length};
+  const report={passed:true,tile_rendering:tiles,tests:['stable pseudorandom tile gradients, visible adjacent-track contrast, dashed grid and cached resize/scroll rendering','reversed wheel direction','switching tabs during return to live clears history anchor','multiple intermediate scroll positions; settled target; bounded plot requests','parameter selection and separate calibration window','calibration zoom in/out changes both axes reversibly','calibration background pan preserves points, draft and core map','grid strokes and equal-valued ticks follow both pan axes','fit and signal-unit changes reset viewport','pointer cancellation releases calibration pan','voltage/raw view roundtrip without changing points','duplicate signal rejected','draft then save/activate','voltage points reopen correctly','1280x720 modal controls fit','point export/import with unit validation','coefficient edits isolated by cancel','external map revision preserves open editor; cancel reloads it','counter/frequency units preserved','parameter metadata edit and undo','no browser errors'],scroll_positions:motion.length};
   fs.writeFileSync(path.join(qa,'browser-report.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report));
  }finally{await browser.close()}
 })().catch(error=>{console.error(error);process.exit(1)});

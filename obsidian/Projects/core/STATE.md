@@ -15,7 +15,7 @@ IM2480: эксклюзивный COM,FC03,0009=0,6типизированных �
 
 processing_context строится из committed parameters_stored; окна≤8×302точки,1–300с. Restart/replay сохраняет контекст,новая карта/сессия зависимого источника сбрасывает окно. Календарная регрессия явная; свежесть ядра монотонная. Стандартные дешёвые операции общие для проверки ядра/processor; тяжёлого SDK нет. Старые карты/CRC сохранены,float_roundtrip обязателен.
 
-kern-shell обязателен; charts отдельный loopback Rust-host/ключ/локальный uPlot,окно Edge/Chrome. Каталог и Modules пока встроены в host,web SDK впереди. Семь псевдослучайных оттенков плитки привязаны к ячейкам. LAN/роли — NETWORK_PLAN.
+kern-shell обязателен; charts отдельный loopback Rust-host/ключ/локальный uPlot,окно Edge/Chrome. Каталог и Modules пока встроены в host,web SDK впереди. Плитка:7кешированных градиентов слева направо,хеш ячеек;сетка пунктир5/5. LAN/роли — NETWORK_PLAN.
 
 CSV/backup независимы,CRC/позиции,restore в новый профиль. Общий drain/периоды впереди. Надзор processor/csv/backup:3старта/60с→safe;lease15с/нет прогресса20с;stop запрещает restart.
 

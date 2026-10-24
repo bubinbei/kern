@@ -1,0 +1,110 @@
+{
+  "schema": 1,
+  "passed": true,
+  "date": "2026-10-24T14:19:18.153367+00:00",
+  "platform": "Windows 11; owned synthetic core/browser and read-only live emulator",
+  "runtime_source_sha256": "fcee03a4718d75f244e8d103e7a85aa06ec173d30f9b4bcfc4e06c3b4099d532",
+  "runtime_hash_scope": "Sorted POSIX paths; path UTF-8 + NUL + UTF-8 content normalized to LF. crates/**/*.{rs,toml,js,css,html}, Cargo.toml, Cargo.lock, plugins/calibration.example.json, plugins/*/plugin.json, crates/processor/parameter-library.json.",
+  "binary_sha256": "287b076b831686fa7f622fb99b5a1fd2435701bf3f3f80966e32a316e5e9139c",
+  "release_locked": true,
+  "editor_and_chart_regression": {
+    "passed": true,
+    "date": "2026-10-24T14:17:36.869746+00:00",
+    "binary_sha256": "287b076b831686fa7f622fb99b5a1fd2435701bf3f3f80966e32a316e5e9139c",
+    "browser": {
+      "passed": true,
+      "tile_rendering": {
+        "colors": 7,
+        "overlap": 168,
+        "opaque": true,
+        "hundred_draws_ms": 5.700000017881393,
+        "cached_gradients_during_scroll": 7,
+        "resize_rebuilds_cache": true,
+        "dash_css_pixels": [
+          5,
+          5
+        ],
+        "adjacent_track_pixel_contrasts": [
+          9,
+          14,
+          13,
+          15,
+          10
+        ]
+      },
+      "tests": [
+        "stable pseudorandom tile gradients, visible adjacent-track contrast, dashed grid and cached resize/scroll rendering",
+        "reversed wheel direction",
+        "switching tabs during return to live clears history anchor",
+        "multiple intermediate scroll positions; settled target; bounded plot requests",
+        "parameter selection and separate calibration window",
+        "calibration zoom in/out changes both axes reversibly",
+        "calibration background pan preserves points, draft and core map",
+        "grid strokes and equal-valued ticks follow both pan axes",
+        "fit and signal-unit changes reset viewport",
+        "pointer cancellation releases calibration pan",
+        "voltage/raw view roundtrip without changing points",
+        "duplicate signal rejected",
+        "draft then save/activate",
+        "voltage points reopen correctly",
+        "1280x720 modal controls fit",
+        "point export/import with unit validation",
+        "coefficient edits isolated by cancel",
+        "external map revision preserves open editor; cancel reloads it",
+        "counter/frequency units preserved",
+        "parameter metadata edit and undo",
+        "no browser errors"
+      ],
+      "scroll_positions": 8
+    },
+    "previous_chart_interactions": {
+      "passed": true,
+      "columns": 6,
+      "initialPoints": 14,
+      "tests": [
+        "uPlot vertical tracks",
+        "single click inert",
+        "double click flag add/remove",
+        "outline cursor markers",
+        "right click add curve",
+        "30s/5min history",
+        "three parameter-panel modes",
+        "edit/save/activate calibration",
+        "no browser page errors"
+      ]
+    },
+    "independent_checks": [
+      "voltage points persisted as exact raw codes",
+      "interpreter result checked against independent formula",
+      "continuous synthetic ingestion; no COM access"
+    ]
+  },
+  "controlled_charts_replacement": {
+    "passed": true,
+    "only_charts_replaced": true,
+    "other_pids_preserved": true,
+    "core_endpoint_preserved": true,
+    "map_and_config_preserved": true,
+    "raw_intake_advanced": true,
+    "binary_sha256": "287b076b831686fa7f622fb99b5a1fd2435701bf3f3f80966e32a316e5e9139c"
+  },
+  "live_read_only": {
+    "passed": true,
+    "modules": 5,
+    "channels": 30,
+    "all_values_fresh": true,
+    "acquisition_advances": true,
+    "browser_errors": [],
+    "read_only": true,
+    "catalog_parameters": 81,
+    "builtin_presets": 7,
+    "opening_presets_preserves_map": true
+  },
+  "limits": [
+    "Runtime change is charts app.js only; no core, calibration, source or writer logic changes.",
+    "Seven cached opaque gradients; left-to-right brightness increment 14/255 per RGB channel, stable coordinate-hashed variation.",
+    "Grid dash is 5/5 CSS pixels; canvas state restored before curves.",
+    "Canvas pixel contrast checks are synthetic; mock-canvas timing is not GPU or weak-machine resource acceptance.",
+    "No new physical, long-duration, power-loss or cross-platform acceptance."
+  ]
+}

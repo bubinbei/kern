@@ -36,19 +36,25 @@ function layout(){
  });
  sizeDirty=true;
 }
-// Opaque shades: no blending, image allocation or random state during scrolling.
+// Opaque gradients are cached per canvas/width; scrolling only selects a stable shade.
 const tileShades=['#1b1e1f','#1c1f20','#1d2021','#1e2122','#1f2223','#202324','#212425'];
 function tileShade(row,column,seed){
  let h=Math.imul(row|0,0x9e3779b1)^Math.imul(Math.floor(row/4294967296),0x85ebca6b)^Math.imul(column+1,0xc2b2ae35)^seed;
  h=Math.imul(h^(h>>>16),0x7feb352d);h=Math.imul(h^(h>>>15),0x846ca68b);
  return tileShades[((h^(h>>>16))>>>0)%tileShades.length];
 }
+function tilePalette(item,u){
+ const {ctx,bbox:b}=u,old=item.tilePalette;
+ if(old&&old.ctx===ctx&&old.left===b.left&&old.width===b.width)return old.colors;
+ const colors=new Map(tileShades.map(shade=>{const gradient=ctx.createLinearGradient(b.left,0,b.left+b.width,0),right='#'+shade.slice(1).match(/../g).map(v=>(parseInt(v,16)+14).toString(16).padStart(2,'0')).join('');gradient.addColorStop(0,shade);gradient.addColorStop(1,right);return [shade,gradient];}));
+ item.tilePalette={ctx,left:b.left,width:b.width,colors};return colors;
+}
 function tileGrid(item,u){
  const ctx=u.ctx,b=u.bbox,ratio=uPlot.pxRatio;ctx.save();ctx.beginPath();ctx.rect(b.left,b.top,b.width,b.height);ctx.clip();
  ctx.fillStyle='#1d2021';ctx.fillRect(b.left,b.top,b.width,b.height);
- const height=b.height/ratio,range=item.to-item.from,step=gridStep(range,height),minor=step/4,col=b.width/8;
- for(let t=Math.floor(item.from/minor)*minor;t<=item.to;t+=minor){const y=u.valToPos(t,'x',true),y2=u.valToPos(t+minor,'x',true);for(let n=0;n<8;n++){ctx.fillStyle=tileShade(Math.round(t/minor),n,item.tileSeed);ctx.fillRect(b.left+n*col,Math.min(y,y2),col,Math.abs(y2-y));}}
- ctx.strokeStyle='#a899842b';ctx.lineWidth=ratio*.7;ctx.beginPath();for(let n=0;n<=4;n++){const x=b.left+n*b.width/4;ctx.moveTo(x,b.top);ctx.lineTo(x,b.top+b.height);}for(let t=Math.ceil(item.from/step)*step;t<=item.to;t+=step){const y=u.valToPos(t,'x',true);ctx.moveTo(b.left,y);ctx.lineTo(b.left+b.width,y);}ctx.stroke();ctx.restore();
+ const height=b.height/ratio,range=item.to-item.from,step=gridStep(range,height),minor=step/4,col=b.width/8,palette=tilePalette(item,u);
+ for(let t=Math.floor(item.from/minor)*minor;t<=item.to;t+=minor){const y=u.valToPos(t,'x',true),y2=u.valToPos(t+minor,'x',true);for(let n=0;n<8;n++){ctx.fillStyle=palette.get(tileShade(Math.round(t/minor),n,item.tileSeed));ctx.fillRect(b.left+n*col,Math.min(y,y2),col,Math.abs(y2-y));}}
+ ctx.strokeStyle='#a899842b';ctx.lineWidth=ratio*.7;ctx.setLineDash([5*ratio,5*ratio]);ctx.beginPath();for(let n=0;n<=4;n++){const x=b.left+n*b.width/4;ctx.moveTo(x,b.top);ctx.lineTo(x,b.top+b.height);}for(let t=Math.ceil(item.from/step)*step;t<=item.to;t+=step){const y=u.valToPos(t,'x',true);ctx.moveTo(b.left,y);ctx.lineTo(b.left+b.width,y);}ctx.stroke();ctx.restore();
 }
 function gridStep(range,height){return [1000,2000,5000,10000,15000,30000,60000,120000,300000,600000,1800000,3600000,7200000].find(s=>s/range*height>=70)||14400000;}
 function placePens(item){
