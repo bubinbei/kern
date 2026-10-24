@@ -7,5 +7,6 @@ license.workspace = true
 [dependencies]
 kern-protocol.workspace = true
 serde_json.workspace = true
+kern-im2480 = { path = "../im2480" }
 [lints]
 workspace = true

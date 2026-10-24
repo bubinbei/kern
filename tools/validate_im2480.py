@@ -83,10 +83,10 @@ def main():
         assert set(values())=={m['slot']*6+i for m in config['modules'] for i in range(6)};checks.append('module_growth_preserves_reserved_channel_ids')
         stop()
         probe=Com(args.ports[0]);start()
-        until(lambda:view()['state']=='stopped')
         status_file=profile/'plugin-status/im2480.json'
         until(lambda:json.loads(status_file.read_text())['phase']=='error')
-        assert not source()['online'];probe.close();checks.append('busy_port_fails_without_fake_live_source')
+        assert view()['state']=='running' # Keep the settings controller available for recovery.
+        assert not source()['online'];stop();probe.close();checks.append('busy_port_keeps_control_available_without_fake_live_source')
         start();until(good)
         for m in config['modules']:peer.mode(m['address'],'silent')
         time.sleep(.05);t=time.monotonic();stop();assert time.monotonic()-t<2;checks.append('stop_interrupts_silent_reads_within_supervisor_budget')

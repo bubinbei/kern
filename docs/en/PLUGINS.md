@@ -1,5 +1,7 @@
 # Plugins and the required shell
 
+The im2480 package now contributes a Modules tab to the shared host: this is a specific built-in extension gated by the core package registry, not a general web plugin loader. COM stays in a separate Rust process, which alone consumes a bounded local command mailbox. Parameter bindings are versioned core maps; line configuration currently has separate local history. Full contract: [IM2480](IM2480.md).
+
 The first native Windows desktop slice is implemented: a separate `kern-shell` process, menus, core status, freshness setting, and listing/starting/stopping optional processes. Acquisition, tables and the mandatory journal remain in the core. A separate end-to-end prototype adds a Rust interpreter, uPlot host, CSV and backup; launch and limits: [PROTOTYPE](PROTOTYPE.md). The first COM source [im2480](IM2480.md) is a separate package; physical hardware is not accepted yet.
 
 Approved: redb is an internal core dependency; uPlot is a library in a separate charts package with a Rust host. uPlot is embedded in the native `charts` package: a separate Rust host with a restricted local HTTP bridge. Its window uses installed Edge/Chrome application mode; the final WebView and general web SDK remain undecided. Interpreter, working writers and independent backup are separate processes; the database is accessible only through the core. Three-dataset/history/recovery plan: [STORAGE_CHARTS_PLAN](STORAGE_CHARTS_PLAN.md).

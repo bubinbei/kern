@@ -1,4 +1,5 @@
 //! Local-only, capability-limited web presentation host. Never serves core IPC tokens.
+mod im2480_web;
 use kern_protocol::*;
 use std::{
     fs::{self, OpenOptions},
@@ -15,6 +16,7 @@ use std::{
 const HTML: &[u8] = include_bytes!("../web/index.html");
 const JS: &[u8] = include_bytes!("../web/app.js");
 const PARAMETER_SETTINGS: &[u8] = include_bytes!("../web/parameter-settings.js");
+const IM2480_UI: &[u8] = include_bytes!("../web/im2480.js");
 const CSS: &[u8] = include_bytes!("../web/app.css");
 const UPLOT: &[u8] = include_bytes!("../../../third_party/uplot-1.6.32/uPlot.iife.min.js");
 const UPLOT_CSS: &[u8] = include_bytes!("../../../third_party/uplot-1.6.32/uPlot.min.css");
@@ -31,7 +33,13 @@ fn respond(s: &mut TcpStream, status: &str, kind: &str, data: &[u8]) -> io::Resu
     )?;
     s.write_all(data)
 }
-fn handle(s: &mut TcpStream, e: &Endpoint, key: &str, host: &str) -> io::Result<()> {
+fn handle(
+    s: &mut TcpStream,
+    e: &Endpoint,
+    key: &str,
+    host: &str,
+    profile: &std::path::Path,
+) -> io::Result<()> {
     // Windows can inherit FIONBIO from the listener. Workers use blocking I/O
     // with timeouts; a partially arrived request must not become WSAEWOULDBLOCK.
     s.set_nonblocking(false)?;
@@ -81,6 +89,7 @@ fn handle(s: &mut TcpStream, e: &Endpoint, key: &str, host: &str) -> io::Result<
         let asset = match path {
             "/" => Some(("text/html; charset=utf-8", HTML)),
             "/app.js" => Some(("text/javascript; charset=utf-8", JS)),
+            "/im2480.js" => Some(("text/javascript; charset=utf-8", IM2480_UI)),
             "/parameter-settings.js" => {
                 Some(("text/javascript; charset=utf-8", PARAMETER_SETTINGS))
             }
@@ -109,6 +118,24 @@ fn handle(s: &mut TcpStream, e: &Endpoint, key: &str, host: &str) -> io::Result<
     }
     let mut body = vec![0; length];
     s.read_exact(&mut body)?;
+    if (method == "GET" && path == "/api/im2480/status")
+        || (method == "POST" && path == "/api/im2480/command")
+    {
+        let result = if method == "GET" {
+            im2480_web::state(profile, e)
+        } else {
+            im2480_web::command(profile, e, &body)
+        };
+        let result = result.unwrap_or_else(
+            |err| serde_json::json!({"result":"error","code":"im2480","message":err.to_string()}),
+        );
+        return respond(
+            s,
+            "200 OK",
+            "application/json; charset=utf-8",
+            &serde_json::to_vec(&result)?,
+        );
+    }
     let request = match (method, path) {
         ("GET", "/api/status") => Request::Status,
         ("GET", "/api/snapshot") => Request::Snapshot,
@@ -216,8 +243,9 @@ fn run() -> io::Result<()> {
                 let e = endpoint.clone();
                 let key = key.clone();
                 let host = host.clone();
+                let profile = profile.clone();
                 workers.push(thread::spawn(move || {
-                    if let Err(error) = handle(&mut stream, &e, &key, &host) {
+                    if let Err(error) = handle(&mut stream, &e, &key, &host, &profile) {
                         let _ = respond(
                             &mut stream,
                             "400 Bad Request",
@@ -282,7 +310,13 @@ mod tests {
                 token: String::new(),
                 pid: 0,
             };
-            handle(&mut stream, &endpoint, "test", &address.to_string())
+            handle(
+                &mut stream,
+                &endpoint,
+                "test",
+                &address.to_string(),
+                std::path::Path::new("."),
+            )
         });
         let mut client = TcpStream::connect(address).unwrap();
         client

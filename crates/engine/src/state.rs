@@ -666,6 +666,9 @@ impl State {
     pub fn parameter_snapshot(&self) -> Vec<serde_json::Value> {
         let sources = self.snapshot();
         self.parameters.iter().filter(|(id,_)|self.maps.get(&self.active_revision).is_some_and(|m|m.parameters.iter().any(|p|p.id==**id))).map(|(id,(value,batch))|{
+            if self.maps.get(&self.active_revision).is_some_and(|m|m.parameters.iter().any(|p|p.id==*id&&!p.enabled)) {
+                return serde_json::json!({"id":id,"value":null,"quality":"disabled","revision":self.active_revision,"raw_event":batch.raw_event.to_string(),"received_unix_ms":batch.received_unix_ms});
+            }
             let quality=sources.iter().find(|s|s.id==batch.source).and_then(|s|{
                 let def=self.maps.get(&batch.revision)?.parameters.iter().find(|p|p.id==*id)?;
                 s.channels.iter().find(|c|c.id==def.channel).map(|c|c.quality.as_str())
@@ -799,6 +802,7 @@ mod tests {
                 max: 1.,
                 color: "#fabd2f".into(),
                 extrapolate: false,
+                enabled: true,
             }],
             ..Default::default()
         };

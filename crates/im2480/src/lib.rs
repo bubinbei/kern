@@ -14,14 +14,16 @@ use std::{
 pub const FIELDS: usize = 6;
 pub const MAX_MODULES: usize = 16;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+pub mod control;
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Module {
     pub address: u8,
     pub slot: u16,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
     pub schema: u32,

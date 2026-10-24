@@ -82,6 +82,8 @@ def main():
         stop(processor)
         changed=json.loads(json.dumps(m));changed['parameters'][0]['points'][1]['value']=2
         assert mutate(profile,'save_calibration',expected_revision=1,map=changed)['result']=='durable'
+        assert rpc(profile,'calibration_at',revision=1)['map']==m
+        assert rpc(profile,'calibration_at',revision=999)['code']=='unknown_revision'
         old_seq=ingest(input_batch(session,4,4900));assert rpc(profile,'calibration')['position']<old_seq
         processor=spawn('kern-processor','--profile',profile);wait(lambda:rpc(profile,'calibration')['active_revision']==2);output_at(old_seq)
         new_seq=ingest(input_batch(session,5,4900));output_at(new_seq)

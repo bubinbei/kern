@@ -315,6 +315,17 @@ pub fn serve(
                 Request::Calibration => {
                     let _ = reply.send(state.calibration());
                 }
+                Request::CalibrationAt { revision } => {
+                    let response = state
+                        .maps
+                        .get(&revision)
+                        .cloned()
+                        .map(|map| Reply::HistoricalCalibration { revision, map })
+                        .unwrap_or_else(|| {
+                            Reply::error("unknown_revision", "Calibration revision not found")
+                        });
+                    let _ = reply.send(response);
+                }
                 Request::Status => {
                     let mut status = state.status(pending.is_some(), disk_error.clone());
                     status.shell_connected = desktop

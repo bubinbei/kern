@@ -1,0 +1,195 @@
+{
+  "schema": 1,
+  "passed": true,
+  "date": "2026-10-24T09:21:03.173254+00:00",
+  "platform": "Windows 11; independent com0com peer and read-only live emulator",
+  "runtime_source_sha256": "b39e613d1f40ec6ed578e735bf26df8b8c7d716dc851231a32758591097ac572",
+  "runtime_hash_scope": "Sorted POSIX paths; path UTF-8 + NUL + UTF-8 content with LF. crates/**/*.{rs,toml,js,css,html}, Cargo.toml, Cargo.lock, plugins/calibration.example.json, plugins/*/plugin.json.",
+  "binaries": {
+    "kern-core.exe": "1d8b2935126f87ef53bf494d5fafe4fd9846a524c6010628aebb0113204eb71a",
+    "im2480.exe": "a1816739b051ec4a706bb4ad1a04659375819a793809dd10d5da92349383d283",
+    "kern-charts.exe": "2959b17032ea7e4445a730aaf288d39d40d451511455f1b53a4649ddf9e66c59",
+    "kern-processor.exe": "6ff38a322dc92d25dc078ab8c281b1a79dedc51cd9c7881f9200155a532b7670"
+  },
+  "build_checks": {
+    "rust_tests": 38,
+    "python_tool_tests": 13,
+    "fmt": true,
+    "clippy_all_targets_deny_warnings": true,
+    "release_locked": true
+  },
+  "management": {
+    "passed": true,
+    "checks": [
+      "managed package acquisition with owned COM; control status and native port enumeration",
+      "browser wiring/disable/re-enable/fanout and settings apply without process restart",
+      "scan skips broadcast zero; interleaved acquisition; no second COM owner",
+      "full 1..100 scan remains within status bound while acquisition advances",
+      "per-address errors persist after recovery; reset preserves availability",
+      "busy destination COM rolls back to working configuration with same source process",
+      "external configuration edit is never overwritten by stale UI",
+      "validated configuration change and preserved before/after history",
+      "management requires presentation key; only FC03 observed"
+    ],
+    "browser": {
+      "passed": true,
+      "tests": [
+        "IM2480 tab follows installed package",
+        "configured module cards and outputs",
+        "pointer drag creates staged binding; Apply persists",
+        "middle-click disables without deleting calibration; snapshot clears value",
+        "click-two-port reconnect",
+        "one output fans out to several parameters",
+        "calibration points preserved",
+        "port timing settings hot-apply without process restart",
+        "module reorder preserves physical channel IDs",
+        "scan starts and cancels through source owner",
+        "per-module details",
+        "1280x720 layout",
+        "no browser errors"
+      ]
+    },
+    "source_pid_unchanged": true,
+    "observed_serial_requests": 637
+  },
+  "serial_regression": {
+    "checks": [
+      "package_launch_and_real_virtual_com",
+      "independent_values_types_endianness_and_address_200",
+      "exclusive_os_and_core_port_ownership",
+      "isolated_silent",
+      "isolated_crc",
+      "isolated_address",
+      "isolated_exception",
+      "isolated_order",
+      "isolated_short",
+      "nonfinite_frequency_does_not_poison_other_channels",
+      "fragmented_serial_response",
+      "cooperative_stop_closes_source",
+      "normal_stop_releases_com",
+      "module_growth_preserves_reserved_channel_ids",
+      "busy_port_keeps_control_available_without_fake_live_source",
+      "stop_interrupts_silent_reads_within_supervisor_budget",
+      "independent_crc_reader_confirms_typed_plugin_journal"
+    ],
+    "plugin_binary": {
+      "bytes": 1001984,
+      "sha256": "a1816739b051ec4a706bb4ad1a04659375819a793809dd10d5da92349383d283"
+    }
+  },
+  "core_regression": {
+    "checks": [
+      "two_source_processes",
+      "stable_slots",
+      "typed_uint64",
+      "deduplication",
+      "sequence_conflict",
+      "invalid_batch",
+      "staleness_without_inputs",
+      "settings_revision",
+      "frame_bound",
+      "exclusive_profile",
+      "independent_crc_reader",
+      "restart_recovered_quality",
+      "forced_core_death",
+      "crc_corruption_refusal",
+      "recovery_copy_preserves_original",
+      "truncated_tail_preserves_original",
+      "recovery_boundary_restart",
+      "disk_failure_status_responsive"
+    ],
+    "rust_source_sha256": "49d50f038a2d0dafed063ea129fd9dca70b7144a20ffbdacb2adcea4c622da3e",
+    "deterministic_batches": 27,
+    "deterministic_samples": 459
+  },
+  "pipeline": {
+    "passed": true,
+    "tests": [
+      "raw -> historical map -> independently verified 0/0.5/1; duplicate input",
+      "backlog uses historical revision; activation boundary; stale map/tampered result rejected",
+      "uPlot bridge history; no key/cross-origin rejection; screen stop leaves ingestion",
+      "independent CSV/backup CRC readers; consumer restart without duplicate rows",
+      "forced core termination preserves confirmed prefix; recovered values are not fresh",
+      "restore into empty profile solely from backup; exact independent event comparison"
+    ]
+  },
+  "editor_regression": {
+    "passed": true,
+    "date": "2026-10-24T09:29:40.125968+00:00",
+    "binary_sha256": "2959b17032ea7e4445a730aaf288d39d40d451511455f1b53a4649ddf9e66c59",
+    "browser": {
+      "passed": true,
+      "tests": [
+        "reversed wheel direction",
+        "switching tabs during return to live clears history anchor",
+        "multiple intermediate scroll positions; settled target; bounded plot requests",
+        "parameter selection and separate calibration window",
+        "calibration zoom in/out changes both axes reversibly",
+        "calibration background pan preserves points, draft and core map",
+        "grid strokes and equal-valued ticks follow both pan axes",
+        "fit and signal-unit changes reset viewport",
+        "pointer cancellation releases calibration pan",
+        "voltage/raw view roundtrip without changing points",
+        "duplicate signal rejected",
+        "draft then save/activate",
+        "voltage points reopen correctly",
+        "1280x720 modal controls fit",
+        "point export/import with unit validation",
+        "coefficient edits isolated by cancel",
+        "external map revision preserves open editor; cancel reloads it",
+        "counter/frequency units preserved",
+        "parameter metadata edit and undo",
+        "no browser errors"
+      ],
+      "scroll_positions": 8
+    },
+    "previous_chart_interactions": {
+      "passed": true,
+      "columns": 6,
+      "initialPoints": 12,
+      "tests": [
+        "uPlot vertical tracks",
+        "single click inert",
+        "double click flag add/remove",
+        "outline cursor markers",
+        "right click add curve",
+        "30s/5min history",
+        "three parameter-panel modes",
+        "edit/save/activate calibration",
+        "no browser page errors"
+      ]
+    },
+    "independent_checks": [
+      "voltage points persisted as exact raw codes",
+      "interpreter result checked against independent formula",
+      "continuous synthetic ingestion; no COM access"
+    ]
+  },
+  "controlled_upgrade": {
+    "passed": true,
+    "offline_checkpoint": true,
+    "recorder_prefixes_drained": true,
+    "working_config_and_calibration_unchanged": true,
+    "old_raw_prefix_preserved": true,
+    "intake_resumed": true,
+    "processor_caught_up": true,
+    "core_boot_seconds": 1.843
+  },
+  "live_read_only": {
+    "passed": true,
+    "modules": 5,
+    "channels": 30,
+    "all_values_fresh": true,
+    "acquisition_advances": true,
+    "browser_errors": [],
+    "read_only": true
+  },
+  "limits": [
+    "One managed IM2480 instance per profile; one owned COM port.",
+    "FC03/order 0009=0 and six channels per module only; no device-register writes or alternate DOL modes.",
+    "Line configuration and calibration-map save are separate acknowledged operations.",
+    "Line history is local and not yet included in the generic core settings journal/JSONL backup.",
+    "Modules UI is a built-in host contribution gated by package presence, not a general web plugin SDK.",
+    "No physical hardware, Windows 10, macOS, weak-machine, GPU, power-loss or 24-72h acceptance."
+  ]
+}

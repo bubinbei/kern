@@ -1,3 +1,4 @@
+mod management;
 #[cfg(windows)]
 mod native_port;
 use kern_im2480::{Config, Module, Port, missing, query, samples};
@@ -28,7 +29,7 @@ fn argument(args: &[String], key: &str) -> io::Result<String> {
         .map(|a| a[1].clone())
         .ok_or_else(|| io::Error::other(format!("Missing {key}")))
 }
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 struct DeviceStatus {
     address: u8,
     slot: u16,
@@ -38,6 +39,7 @@ struct DeviceStatus {
     online: bool,
     last_good_unix_ms: Option<i64>,
     last_error: Option<String>,
+    last_error_unix_ms: Option<i64>,
 }
 #[derive(Serialize)]
 struct Report {
@@ -78,6 +80,7 @@ impl Report {
                     online: false,
                     last_good_unix_ms: None,
                     last_error: None,
+                    last_error_unix_ms: None,
                 })
                 .collect(),
         }
@@ -229,142 +232,266 @@ fn acquire(
     let words = query(port, module.address, 0x0400, 31, timeout, stop)?;
     samples(module, &words)
 }
-struct Connection<'a> {
-    endpoint: &'a Endpoint,
-    session: u64,
-}
-fn poll(
-    port: &mut impl Port,
-    config: &Config,
-    profile: &Path,
-    connection: &Connection<'_>,
-    cycles: u64,
-    report: &mut Report,
-    stop: &AtomicBool,
-) -> io::Result<()> {
-    let mut sequence = 1;
-    let mut cycle = 0;
-    while !stop.load(Ordering::Acquire) {
-        for (index, module) in config.modules.iter().enumerate() {
-            if stop.load(Ordering::Acquire) {
-                return Ok(());
-            }
-            let device = &mut report.devices[index];
-            device.polls += 1;
-            let data = match acquire(port, module, config, stop) {
-                Ok(samples) => {
-                    device.online = true;
-                    device.consecutive_errors = 0;
-                    device.last_good_unix_ms = Some(unix_ms());
-                    device.last_error = if samples.iter().any(|s| s.value.is_none()) {
-                        Some("Non-finite frequency marked missing".into())
-                    } else {
-                        None
-                    };
-                    samples
-                }
-                Err(_) if stop.load(Ordering::Acquire) => return Ok(()),
-                Err(e) => {
-                    device.online = false;
-                    device.errors += 1;
-                    device.consecutive_errors += 1;
-                    device.last_error = Some(e.to_string());
-                    missing(module)
-                }
-            };
-            let count = data.len() as u64;
-            let batch = Batch {
-                source: config.source_id.clone(),
-                session: connection.session,
-                sequence,
-                measured_unix_ms: unix_ms(),
-                samples: data,
-            };
-            match accepted(connection.endpoint, Request::Ingest { batch }, Some(stop)) {
-                Ok(Reply::Durable { .. }) => {
-                    report.durable_batches += 1;
-                    report.durable_samples += count;
-                    sequence += 1;
-                }
-                Err(_) if stop.load(Ordering::Acquire) => return Ok(()),
-                Err(e) => return Err(e),
-                _ => return Err(io::Error::other("Unexpected batch acknowledgement")),
-            }
-            // After errors, leave a full response timeout before the next address:
-            // delayed RTU replies have no transaction ID and must be drained.
-            let gap = if device.online {
-                Duration::from_millis(35_000_u64.div_ceil(config.baud as u64).max(2))
-            } else {
-                Duration::from_millis(config.timeout_ms)
-            };
-            if !wait(stop, gap) {
-                return Ok(());
-            }
-        }
-        report.phase = "polling".into();
-        report.save(profile);
-        cycle += 1;
-        if cycles != 0 && cycle >= cycles {
-            return Ok(());
-        }
-        if !wait(stop, Duration::from_millis(config.poll_interval_ms)) {
-            return Ok(());
-        }
-    }
-    Ok(())
-}
 #[cfg(windows)]
-fn run(config: &Config, profile: &Path, cycles: u64) -> io::Result<()> {
+fn run(initial: &Config, profile: &Path, config_path: &Path, cycles: u64) -> io::Result<()> {
+    use kern_im2480::control::Action;
+    fs::create_dir_all(profile.join("im2480"))?;
+    let owner = fs::OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .truncate(false)
+        .open(profile.join("im2480/owner.lock"))?;
+    owner
+        .try_lock()
+        .map_err(|_| io::Error::other("Only one IM2480 control owner is supported per profile"))?;
     let endpoint = load_endpoint(profile)?;
-    let mut report = Report::new(config);
-    report.save(profile);
-    let mut port = match native_port::NativePort::open(&config.port, config.baud) {
-        Ok(p) => p,
-        Err(e) => {
-            report.phase = "error".into();
-            report.last_error = Some(e.to_string());
-            report.save(profile);
-            return Err(e);
-        }
-    };
-    let session = match open_source(&endpoint, config) {
-        Ok(s) => s,
-        Err(e) => {
-            report.phase = "error".into();
-            report.last_error = Some(e.to_string());
-            report.save(profile);
-            return Err(e);
-        }
-    };
     let stop = Arc::new(AtomicBool::new(false));
     stop_input(stop.clone());
-    report.phase = "polling".into();
+    let mut config = initial.clone();
+    let mut report = Report::new(&config);
+    let mut manager = management::Manager::new(profile, config_path);
+    let mut port = None;
+    let mut session = None;
+    match native_port::NativePort::open(&config.port, config.baud) {
+        Ok(p) => match open_source(&endpoint, &config) {
+            Ok(s) => {
+                port = Some(p);
+                session = Some(s);
+                report.phase = "polling".into();
+            }
+            Err(e) => {
+                report.phase = "error".into();
+                report.last_error = Some(e.to_string());
+            }
+        },
+        Err(e) => {
+            report.phase = "error".into();
+            report.last_error = Some(e.to_string());
+        }
+    }
     report.save(profile);
-    let result = poll(
-        &mut port,
-        config,
-        profile,
-        &Connection {
-            endpoint: &endpoint,
-            session,
-        },
-        cycles,
-        &mut report,
-        &stop,
-    );
-    drop(port); // Release COM before attempting final core acknowledgement.
-    let close = accepted(
-        &endpoint,
-        Request::CloseSource {
-            id: config.source_id.clone(),
-            session,
-        },
-        None,
-    );
-    let result = result.and(close.map(|_| ()));
+    manager.publish(&config, &report, true);
+    if cycles != 0 && port.is_none() {
+        return Err(io::Error::other(report.last_error.unwrap_or_default()));
+    }
+    let mut sequence = 1;
+    let mut index = 0;
+    let mut completed = 0;
+    let mut due = Instant::now();
+    let result = (|| -> io::Result<()> {
+        while !stop.load(Ordering::Acquire) {
+            match manager.command() {
+                Ok(Some(command)) => {
+                    if let Some(Action::Apply {
+                        expected,
+                        config: candidate,
+                    }) = manager.handle_simple(&command, &mut report, port.is_some())
+                    {
+                        if expected != config
+                            || !Config::load(config_path).is_ok_and(|disk| disk == config)
+                        {
+                            manager.result(
+                                &command.id,
+                                false,
+                                "Configuration changed; reload before applying",
+                            );
+                        } else if candidate == config && port.is_some() {
+                            manager.result(&command.id, true, "Configuration is unchanged");
+                        } else {
+                            manager.scan = serde_json::json!({"active":false,"found":[]});
+                            report.phase = "applying".into();
+                            manager.publish(&config, &report, true);
+                            if let Some(old_session) = session.take() {
+                                accepted(
+                                    &endpoint,
+                                    Request::CloseSource {
+                                        id: config.source_id.clone(),
+                                        session: old_session,
+                                    },
+                                    Some(&stop),
+                                )?;
+                            }
+                            drop(port.take());
+                            let attempt = (|| -> io::Result<(native_port::NativePort, u64)> {
+                                let p =
+                                    native_port::NativePort::open(&candidate.port, candidate.baud)?;
+                                let s = open_source(&endpoint, &candidate)?;
+                                if let Err(e) = if candidate == config {
+                                    Ok(())
+                                } else {
+                                    manager.save_config(&command.id, &config, &candidate)
+                                } {
+                                    accepted(
+                                        &endpoint,
+                                        Request::CloseSource {
+                                            id: candidate.source_id.clone(),
+                                            session: s,
+                                        },
+                                        Some(&stop),
+                                    )?;
+                                    return Err(e);
+                                }
+                                Ok((p, s))
+                            })();
+                            match attempt {
+                                Ok((p, s)) => {
+                                    port = Some(p);
+                                    session = Some(s);
+                                    let previous =
+                                        std::mem::replace(&mut report, Report::new(&candidate));
+                                    report.durable_batches = previous.durable_batches;
+                                    report.durable_samples = previous.durable_samples;
+                                    for d in &mut report.devices {
+                                        if let Some(old) = previous
+                                            .devices
+                                            .iter()
+                                            .find(|old| old.address == d.address)
+                                        {
+                                            d.polls = old.polls;
+                                            d.errors = old.errors;
+                                            d.consecutive_errors = old.consecutive_errors;
+                                            d.last_error = old.last_error.clone();
+                                            d.last_error_unix_ms = old.last_error_unix_ms;
+                                        }
+                                    }
+                                    config = candidate;
+                                    report.phase = "polling".into();
+                                    manager.result(&command.id,true,"Configuration saved and activated; awaiting device responses");
+                                }
+                                Err(e) => {
+                                    manager.result(
+                                        &command.id,
+                                        false,
+                                        &format!(
+                                            "Apply failed: {e}; restoring previous configuration"
+                                        ),
+                                    );
+                                    match native_port::NativePort::open(&config.port, config.baud)
+                                        .and_then(|p| {
+                                            open_source(&endpoint, &config).map(|s| (p, s))
+                                        }) {
+                                        Ok((p, s)) => {
+                                            port = Some(p);
+                                            session = Some(s);
+                                            report.phase = "polling".into();
+                                        }
+                                        Err(e) => {
+                                            report.phase = "error".into();
+                                            report.last_error = Some(e.to_string());
+                                        }
+                                    }
+                                }
+                            }
+                            index = 0;
+                            sequence = 1;
+                            due = Instant::now();
+                            report.save(profile);
+                            manager.publish(&config, &report, true);
+                        }
+                    }
+                }
+                Ok(None) => {}
+                Err(e) => {
+                    report.last_error = Some(format!("Control: {e}"));
+                    manager.publish(&config, &report, true);
+                }
+            }
+            if stop.load(Ordering::Acquire) {
+                break;
+            }
+            if due <= Instant::now()
+                && let (Some(p), Some(source_session)) = (port.as_mut(), session)
+            {
+                let module = &config.modules[index];
+                let device = &mut report.devices[index];
+                device.polls += 1;
+                let data = match acquire(p, module, &config, &stop) {
+                    Ok(data) => {
+                        device.online = true;
+                        device.consecutive_errors = 0;
+                        device.last_good_unix_ms = Some(unix_ms());
+                        if data.iter().any(|s| s.value.is_none()) {
+                            device.errors += 1;
+                            device.consecutive_errors += 1;
+                            device.last_error = Some("Non-finite frequency marked missing".into());
+                            device.last_error_unix_ms = Some(unix_ms());
+                        }
+                        data
+                    }
+                    Err(_) if stop.load(Ordering::Acquire) => break,
+                    Err(e) => {
+                        device.online = false;
+                        device.errors += 1;
+                        device.consecutive_errors += 1;
+                        device.last_error = Some(e.to_string());
+                        device.last_error_unix_ms = Some(unix_ms());
+                        missing(module)
+                    }
+                };
+                let count = data.len() as u64;
+                let batch = Batch {
+                    source: config.source_id.clone(),
+                    session: source_session,
+                    sequence,
+                    measured_unix_ms: unix_ms(),
+                    samples: data,
+                };
+                match accepted(&endpoint, Request::Ingest { batch }, Some(&stop)) {
+                    Ok(Reply::Durable { .. }) => {
+                        report.durable_batches += 1;
+                        report.durable_samples += count;
+                        sequence += 1;
+                    }
+                    Err(_) if stop.load(Ordering::Acquire) => break,
+                    Err(e) => return Err(e),
+                    _ => return Err(io::Error::other("Unexpected batch acknowledgement")),
+                }
+                let gap = if device.online {
+                    Duration::from_millis(35_000_u64.div_ceil(config.baud as u64).max(2))
+                } else {
+                    Duration::from_millis(config.timeout_ms)
+                };
+                index += 1;
+                if index == config.modules.len() {
+                    index = 0;
+                    completed += 1;
+                    report.save(profile);
+                    if cycles != 0 && completed >= cycles {
+                        break;
+                    }
+                    due = Instant::now() + Duration::from_millis(config.poll_interval_ms);
+                } else {
+                    due = Instant::now() + gap;
+                }
+                manager.scan_step(p, &config, &stop);
+            }
+            manager.publish(&config, &report, false);
+            if !wait(&stop, Duration::from_millis(10)) {
+                break;
+            }
+        }
+        Ok(())
+    })();
+    drop(port.take());
+    let close = if let Some(s) = session {
+        accepted(
+            &endpoint,
+            Request::CloseSource {
+                id: config.source_id.clone(),
+                session: s,
+            },
+            None,
+        )
+        .map(|_| ())
+    } else {
+        Ok(())
+    };
+    let result = result.and(close);
     report.phase = if result.is_ok() { "stopped" } else { "error" }.into();
     report.last_error = result.as_ref().err().map(ToString::to_string);
     report.save(profile);
+    manager.publish(&config, &report, true);
     result
 }
 fn execute() -> io::Result<()> {
@@ -419,7 +546,12 @@ fn execute() -> io::Result<()> {
     let profile = PathBuf::from(argument(&args, "--profile")?);
     #[cfg(windows)]
     {
-        run(&config, &profile, cycles)
+        run(
+            &config,
+            &profile,
+            Path::new(&argument(&args, "--config")?),
+            cycles,
+        )
     }
     #[cfg(not(windows))]
     {

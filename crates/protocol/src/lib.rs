@@ -125,6 +125,9 @@ pub enum Request {
         parameters: Vec<String>,
     },
     Calibration,
+    CalibrationAt {
+        revision: u64,
+    },
     SaveCalibration {
         expected_revision: u64,
         map: CalibrationMap,
@@ -208,6 +211,10 @@ pub enum Reply {
     InterpreterOpened {
         session: u64,
     },
+    HistoricalCalibration {
+        revision: u64,
+        map: CalibrationMap,
+    },
     Plugins {
         plugins: Vec<PluginView>,
         diagnostic: String,
@@ -279,6 +286,14 @@ pub struct ParameterDef {
     pub color: String,
     #[serde(default)]
     pub extrapolate: bool,
+    #[serde(default = "enabled_parameter", skip_serializing_if = "is_enabled")]
+    pub enabled: bool,
+}
+fn enabled_parameter() -> bool {
+    true
+}
+fn is_enabled(value: &bool) -> bool {
+    *value
 }
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]

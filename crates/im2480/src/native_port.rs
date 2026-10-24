@@ -11,6 +11,19 @@ pub struct NativePort {
     file: File,
 }
 impl NativePort {
+    pub fn available_ports() -> Vec<String> {
+        let mut ports = [0u32; 256];
+        let mut count = 0;
+        // SAFETY: fixed output buffer and its matching length; enumeration opens no ports.
+        let result = unsafe { GetCommPorts(ports.as_mut_ptr(), ports.len() as u32, &mut count) };
+        if result != 0 {
+            return Vec::new();
+        }
+        ports[..(count as usize).min(ports.len())]
+            .iter()
+            .map(|n| format!("COM{n}"))
+            .collect()
+    }
     pub fn open(port: &str, baud: u32) -> io::Result<Self> {
         let port = normalize_port(port)?;
         let file = OpenOptions::new()

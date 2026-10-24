@@ -58,6 +58,7 @@ pub fn convert(map: &CalibrationMap, batch: &Batch) -> Vec<ParameterSample> {
                 _ => None,
             };
             let value = raw
+                .filter(|_| p.enabled)
                 .filter(|_| sample.quality == Quality::Good)
                 .and_then(|x| {
                     let first = &p.points[0];
@@ -79,7 +80,7 @@ pub fn convert(map: &CalibrationMap, batch: &Batch) -> Vec<ParameterSample> {
                 value,
                 quality: if value.is_some() {
                     Quality::Good
-                } else if sample.quality == Quality::Missing {
+                } else if !p.enabled || sample.quality == Quality::Missing {
                     Quality::Missing
                 } else {
                     Quality::Bad
@@ -115,6 +116,7 @@ mod tests {
                 max: 2.,
                 color: "#fabd2f".into(),
                 extrapolate: false,
+                enabled: true,
             }],
         }
     }
@@ -145,5 +147,37 @@ mod tests {
         let mut bad = m;
         bad.parameters[0].points[1].raw = 1000.;
         assert!(validate(&bad).is_err());
+    }
+    #[test]
+    fn disconnected_binding_retains_points_and_reports_missing() {
+        let mut m = map();
+        let points = m.parameters[0].points.clone();
+        let legacy = serde_json::to_value(&m).unwrap();
+        assert!(legacy["parameters"][0].get("enabled").is_none());
+        assert!(
+            serde_json::from_value::<CalibrationMap>(legacy)
+                .unwrap()
+                .parameters[0]
+                .enabled
+        );
+        let b = Batch {
+            source: "test".into(),
+            session: 1,
+            sequence: 1,
+            measured_unix_ms: 0,
+            samples: vec![Sample {
+                channel: 0,
+                value: Some(Value::Unsigned(4900)),
+                quality: Quality::Good,
+            }],
+        };
+        assert_eq!(convert(&m, &b)[0].value, Some(0.5));
+        m.parameters[0].enabled = false;
+        validate(&m).unwrap();
+        assert_eq!(convert(&m, &b)[0].value, None);
+        assert_eq!(convert(&m, &b)[0].quality, Quality::Missing);
+        assert_eq!(m.parameters[0].points, points);
+        m.parameters[0].enabled = true;
+        assert_eq!(convert(&m, &b)[0].value, Some(0.5));
     }
 }

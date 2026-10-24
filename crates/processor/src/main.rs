@@ -63,8 +63,8 @@ fn run() -> io::Result<()> {
     });
     let mut maps = BTreeMap::new();
     maps.insert(0, CalibrationMap::default());
-    // Re-read map history even after restart; skip already committed raw positions.
-    let mut cursor = 0;
+    // Resume after the durable position; immutable historical maps are fetched on demand.
+    let mut cursor = position;
     let mut position = position;
     while !stop.load(Ordering::Acquire) {
         if matches!(
@@ -110,6 +110,26 @@ fn run() -> io::Result<()> {
                     calibration_revision,
                     ..
                 } if record.sequence > position => {
+                    if let std::collections::btree_map::Entry::Vacant(entry) =
+                        maps.entry(calibration_revision)
+                    {
+                        let Reply::HistoricalCalibration { revision, map } = request(
+                            &e,
+                            Request::CalibrationAt {
+                                revision: calibration_revision,
+                            },
+                        )?
+                        else {
+                            return Err(io::Error::other("Historical calibration unavailable"));
+                        };
+                        if revision != calibration_revision {
+                            return Err(io::Error::other(
+                                "Historical calibration revision mismatch",
+                            ));
+                        }
+                        calibration::validate(&map).map_err(io::Error::other)?;
+                        entry.insert(map);
+                    }
                     let map = maps
                         .get(&calibration_revision)
                         .ok_or_else(|| io::Error::other("Historical map absent"))?;
