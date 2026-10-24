@@ -1,0 +1,61 @@
+{
+  "passed": true,
+  "date": "2026-10-24T07:43:48.639929+00:00",
+  "binary_sha256": "79e5bab37073bd0007c62bc326dc363e3210171952ef1f181ef513561a39dfd6",
+  "browser": {
+    "passed": true,
+    "tests": [
+      "reversed wheel direction",
+      "switching tabs during return to live clears history anchor",
+      "multiple intermediate scroll positions; settled target; bounded plot requests",
+      "parameter selection and separate calibration window",
+      "calibration zoom in/out changes both axes reversibly",
+      "calibration background pan preserves points, draft and core map",
+      "grid strokes and equal-valued ticks follow both pan axes",
+      "fit and signal-unit changes reset viewport",
+      "pointer cancellation releases calibration pan",
+      "voltage/raw view roundtrip without changing points",
+      "duplicate signal rejected",
+      "draft then save/activate",
+      "voltage points reopen correctly",
+      "1280x720 modal controls fit",
+      "point export/import with unit validation",
+      "coefficient edits isolated by cancel",
+      "external map revision preserves open editor; cancel reloads it",
+      "counter/frequency units preserved",
+      "parameter metadata edit and undo",
+      "no browser errors"
+    ],
+    "scroll_positions": 8
+  },
+  "previous_chart_interactions": {
+    "passed": true,
+    "columns": 6,
+    "initialPoints": 16,
+    "tests": [
+      "uPlot vertical tracks",
+      "single click inert",
+      "double click flag add/remove",
+      "outline cursor markers",
+      "right click add curve",
+      "30s/5min history",
+      "three parameter-panel modes",
+      "edit/save/activate calibration",
+      "no browser page errors"
+    ]
+  },
+  "independent_checks": [
+    "voltage points persisted as exact raw codes",
+    "interpreter result checked against independent formula",
+    "continuous synthetic ingestion; no COM access"
+  ],
+  "live_update": {
+    "passed": true,
+    "only_charts_restarted": true,
+    "core_and_other_plugins_unchanged": true,
+    "raw_acquisition_continued": true,
+    "calibration_map_and_revision_unchanged": true
+  },
+  "runtime_source_sha256": "6f428be7cb4edfcab163aef553c03786321ec93ca0f5bd22faca737f2a708235",
+  "limits": "UI grid correction on Windows 11; not physical, GPU, low-end or endurance acceptance."
+}

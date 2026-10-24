@@ -30,9 +30,28 @@ const fs=require('fs'),path=require('path'),assert=require('assert/strict');
   assert(zoomed.y1-zoomed.y0<(originalView.y1-originalView.y0)*.81);
   await page.locator('#calibrationZoomOut').click();await page.waitForTimeout(50);
   const unzoomed=await viewport();assert(Math.abs((unzoomed.x1-unzoomed.x0)/(originalView.x1-originalView.x0)-1)<1e-10);
+  await page.evaluate(()=>{
+   const ctx=document.querySelector('#calibrationCanvas').getContext('2d');
+   const fill=ctx.fillRect.bind(ctx),move=ctx.moveTo.bind(ctx),text=ctx.fillText.bind(ctx);
+   ctx.fillRect=(x,y,w,h)=>{if(x===0&&y===0&&w>100)window.gridCapture={moves:[],labels:[]};return fill(x,y,w,h);};
+   ctx.moveTo=(x,y)=>{if(ctx.getLineDash().length)window.gridCapture.moves.push({x,y});return move(x,y);};
+   ctx.fillText=(value,x,y)=>{if(ctx.getLineDash().length)window.gridCapture.labels.push({text:String(value),x,y});return text(value,x,y);};
+   drawCalibration();
+  });
+  const gridBefore=await page.evaluate(()=>window.gridCapture);
   const box=await calibrationCanvas.boundingBox(),start={x:box.x+originalView.x+originalView.w*.5,y:box.y+originalView.y+originalView.h*.5};
   await page.mouse.move(start.x,start.y);await page.mouse.down();await page.mouse.move(start.x+65,start.y+35,{steps:8});await page.mouse.up();await page.waitForTimeout(50);
   const panned=await viewport();assert(panned.x0<unzoomed.x0&&panned.y0>unzoomed.y0);
+  const gridAfter=await page.evaluate(()=>window.gridCapture);
+  for(const axis of ['x','y']){
+   const isTick=p=>axis==='x'?p.y>unzoomed.y+unzoomed.h:p.x<unzoomed.x;
+   const before=gridBefore.labels.filter(isTick),after=gridAfter.labels.filter(isTick);
+   const matches=before.map(a=>({a,b:after.find(b=>a.text===b.text)})).filter(pair=>pair.b);
+   assert(matches.length>0,'No shared value-anchored grid ticks after pan');
+   for(const {a,b} of matches){assert(Math.abs(b[axis]-a[axis]-(axis==='x'?65:35))<.01,'Grid tick did not follow the curve displacement');
+    for(const [capture,label] of [[gridBefore,a],[gridAfter,b]])assert(capture.moves.some(p=>Math.abs(p.x-(axis==='x'?label.x:unzoomed.x))<.01&&Math.abs(p.y-(axis==='x'?unzoomed.y:label.y-5))<.01),'Grid stroke is detached from its label');
+   }
+  }
   assert(Math.abs((panned.x1-panned.x0)/(unzoomed.x1-unzoomed.x0)-1)<1e-10);
   assert(!await calibrationCanvas.evaluate(e=>e.classList.contains('panning')));
   assert.equal(await page.evaluate(()=>JSON.stringify(calibrationDraft.points)),original);assert(!await page.evaluate(()=>dirty));
@@ -78,7 +97,7 @@ const fs=require('fs'),path=require('path'),assert=require('assert/strict');
   assert(await page.evaluate(()=>dirty));await page.locator('#undoParam').click();assert.equal(await page.evaluate(()=>parameterDraft.parameters[0].name),await page.evaluate(()=>map.parameters[0].name));
   await page.locator('#reloadMap').click();await page.waitForFunction(()=>!dirty);await page.screenshot({path:path.join(qa,'parameter-settings.png')});
   assert.deepEqual(errors,[]);
-  const report={passed:true,tests:['reversed wheel direction','switching tabs during return to live clears history anchor','multiple intermediate scroll positions; settled target; bounded plot requests','parameter selection and separate calibration window','calibration zoom in/out changes both axes reversibly','calibration background pan preserves points, draft and core map','fit and signal-unit changes reset viewport','pointer cancellation releases calibration pan','voltage/raw view roundtrip without changing points','duplicate signal rejected','draft then save/activate','voltage points reopen correctly','1280x720 modal controls fit','point export/import with unit validation','coefficient edits isolated by cancel','external map revision preserves open editor; cancel reloads it','counter/frequency units preserved','parameter metadata edit and undo','no browser errors'],scroll_positions:motion.length};
+  const report={passed:true,tests:['reversed wheel direction','switching tabs during return to live clears history anchor','multiple intermediate scroll positions; settled target; bounded plot requests','parameter selection and separate calibration window','calibration zoom in/out changes both axes reversibly','calibration background pan preserves points, draft and core map','grid strokes and equal-valued ticks follow both pan axes','fit and signal-unit changes reset viewport','pointer cancellation releases calibration pan','voltage/raw view roundtrip without changing points','duplicate signal rejected','draft then save/activate','voltage points reopen correctly','1280x720 modal controls fit','point export/import with unit validation','coefficient edits isolated by cancel','external map revision preserves open editor; cancel reloads it','counter/frequency units preserved','parameter metadata edit and undo','no browser errors'],scroll_positions:motion.length};
   fs.writeFileSync(path.join(qa,'browser-report.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report));
  }finally{await browser.close()}
 })().catch(error=>{console.error(error);process.exit(1)});

@@ -92,6 +92,14 @@ function calibrationExtent(){
  const [x0,x1]=bounds(finite.map(p=>p.value)),[y0,y1]=bounds(finite.map(p=>signalValue(p.raw,kind)));
  return {x0,x1,y0,y1};
 }
+function calibrationTicks(min,max){
+ const rough=(max-min)/6;if(!Number.isFinite(rough)||rough<=0)return {values:[],digits:0};
+ const magnitude=10**Math.floor(Math.log10(rough)),factor=[1,2,2.5,5,10].find(n=>n*magnitude>=rough*(1-1e-10)),step=factor*magnitude;
+ if(!Number.isFinite(step)||step<=0)return {values:[],digits:0};
+ const first=Math.ceil(min/step-1e-10),last=Math.floor(max/step+1e-10),values=[];
+ for(let n=0;n<Math.min(32,last-first+1);n++){const value=(first+n)*step;values.push(Math.abs(value)<step*1e-10?0:value);}
+ return {values,digits:Math.min(12,Math.max(0,-Math.floor(Math.log10(step)))+(factor===2.5?1:0))};
+}
 function setCalibrationView(view){
  if(!calibrationDraft||!Object.values(view).every(Number.isFinite)||view.x1<=view.x0||view.y1<=view.y0)return;
  calibrationDraft.view=view;
@@ -136,7 +144,9 @@ function drawCalibration(){
  const {x0,x1,y0,y1}=calibrationDraft.view||calibrationExtent(),x=v=>b.x+(v-x0)/(x1-x0)*b.w,y=v=>b.y+b.h-(v-y0)/(y1-y0)*b.h;
  calibrationGeometry={...b,x0,x1,y0,y1};
  ctx.strokeStyle='#a8998438';ctx.lineWidth=1;ctx.setLineDash([3,4]);
- for(let n=0;n<=5;n++){const px=b.x+b.w*n/5,py=b.y+b.h*n/5;ctx.beginPath();ctx.moveTo(px,b.y);ctx.lineTo(px,b.y+b.h);ctx.moveTo(b.x,py);ctx.lineTo(b.x+b.w,py);ctx.stroke();ctx.fillStyle='#bdae93';ctx.textAlign='center';ctx.fillText(fmt(x0+(x1-x0)*n/5),px,b.y+b.h+22);ctx.textAlign='right';ctx.fillText(fmt(y1-(y1-y0)*n/5),b.x-10,py+5);}
+ const xt=calibrationTicks(x0,x1),yt=calibrationTicks(y0,y1);ctx.fillStyle='#bdae93';
+ for(const value of xt.values){const px=x(value);ctx.beginPath();ctx.moveTo(px,b.y);ctx.lineTo(px,b.y+b.h);ctx.stroke();ctx.textAlign='center';ctx.fillText(value.toLocaleString('ru-RU',{maximumFractionDigits:xt.digits}),px,b.y+b.h+22);}
+ for(const value of yt.values){const py=y(value);ctx.beginPath();ctx.moveTo(b.x,py);ctx.lineTo(b.x+b.w,py);ctx.stroke();ctx.textAlign='right';ctx.fillText(value.toLocaleString('ru-RU',{maximumFractionDigits:yt.digits}),b.x-10,py+5);}
  ctx.setLineDash([]);ctx.strokeStyle='#a89984';ctx.strokeRect(b.x,b.y,b.w,b.h);ctx.fillStyle='#ebdbb2';ctx.textAlign='center';ctx.fillText('Значение параметра, '+parameter.unit,b.x+b.w/2,h-8);
  ctx.save();ctx.translate(17,b.y+b.h/2);ctx.rotate(-Math.PI/2);ctx.fillText('Уровень сигнала, '+signalUnit(kind),0,0);ctx.restore();
  ctx.save();ctx.beginPath();ctx.rect(b.x,b.y,b.w,b.h);ctx.clip();ctx.strokeStyle=parameter.color;ctx.lineWidth=2;ctx.beginPath();valid.sort((a,b)=>a.y-b.y).forEach((p,i)=>{if(i)ctx.lineTo(x(p.x),y(p.y));else ctx.moveTo(x(p.x),y(p.y));});ctx.stroke();
