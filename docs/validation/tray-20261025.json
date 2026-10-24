@@ -1,0 +1,99 @@
+{
+  "schema": 1,
+  "passed": true,
+  "date": "2026-10-25T01:45:12.296487+04:00",
+  "platform": "Windows 11; owned synthetic native UI plus read-only live profile",
+  "runtime_source_sha256": "6dc52d554ab6590a0ca9326115476b0b395f305ca3f0474d6a41728aa42adb2f",
+  "runtime_hash_scope": "Sorted POSIX paths; path UTF-8 + NUL + UTF-8 content normalized to LF. crates/**/*.{rs,toml,js,css,html}, Cargo.toml, Cargo.lock, plugins/calibration.example.json, plugins/*/plugin.json, crates/processor/parameter-library.json.",
+  "binaries": {
+    "kern-core.exe": {
+      "bytes": 3615744,
+      "sha256": "03003292f71ae1222a5d6a27fcf292307f3b3799be7e040ce86644bf535d5293"
+    },
+    "kern-shell.exe": {
+      "bytes": 930816,
+      "sha256": "79775ab758781c6aac756119fd99817912c4aebc5f1694c891898978d8442fd1"
+    }
+  },
+  "build_checks": {
+    "rust_tests": 51,
+    "python_tool_tests": 13,
+    "fmt": true,
+    "clippy_all_targets_deny_warnings": true,
+    "release_locked": true
+  },
+  "native": {
+    "schema": 1,
+    "rust_source_sha256": "993f43a7d29e875c9f5df05d2791628b2fafdb9ce46b7c1490894255e307b2ea",
+    "ui_confirmation_over_hang_timeout": true,
+    "checks": [
+      "native_shell_connected",
+      "native_tray_registered_and_storage_sizes_visible",
+      "discovery_does_not_execute",
+      "gui_settings_durable",
+      "stale_settings_revision_rejected",
+      "required_shell_cannot_be_disabled",
+      "gui_starts_synthetic_package",
+      "confirmed_raw_changes_cached_icon_frames_without_gdi_growth",
+      "tray_context_menu_shows_components_and_keeps_heartbeat_over_watchdog_timeout",
+      "taskbar_restart_notification_recreates_owned_icon",
+      "cooperative_stop_closes_source",
+      "package_restarts_with_new_source_session",
+      "shell_crash_restarts_without_stopping_raw",
+      "hung_ui_thread_restarts_while_recording_continues",
+      "normal_window_close_hides_to_tray_and_keeps_shell_and_recording_alive",
+      "tray_selection_reopens_same_shell",
+      "restart_budget_enters_safe_mode_without_losing_acquisition",
+      "independent_journal_count_matches_live_after_ui_failures"
+    ],
+    "tray_cached_frames_observed": 3,
+    "gui_resources_before_after": [
+      [
+        44,
+        40
+      ],
+      [
+        44,
+        40
+      ]
+    ],
+    "raw_batches": 308,
+    "raw_samples": 1848,
+    "binaries": {
+      "kern-core.exe": {
+        "bytes": 3615744,
+        "sha256": "03003292f71ae1222a5d6a27fcf292307f3b3799be7e040ce86644bf535d5293"
+      },
+      "kern-shell.exe": {
+        "bytes": 930816,
+        "sha256": "79775ab758781c6aac756119fd99817912c4aebc5f1694c891898978d8442fd1"
+      }
+    },
+    "platform": "Windows 11; automated native UI, synthetic profile only",
+    "limits": [
+      "No Windows 10/weak-hardware/long-duration acceptance",
+      "Native plugins are trusted local processes, not a sandbox",
+      "Synthetic source only; physical devices, consumer file-fsync telemetry and weak-machine resources not accepted"
+    ]
+  },
+  "live_update": {
+    "passed": true,
+    "only_shell_replaced": true,
+    "core_endpoint_and_other_pids_preserved": true,
+    "map_and_line_configuration_preserved": true,
+    "acquisition_advances": true,
+    "tray_registered": true,
+    "free_and_data_sizes_visible": true,
+    "cached_pulse_frames_observed": 2,
+    "close_hides_same_process_and_retains_icon": true,
+    "binary_sha256": "79775ab758781c6aac756119fd99817912c4aebc5f1694c891898978d8442fd1"
+  },
+  "limits": [
+    "Green pulses prove confirmed primary raw-journal progress, not secondary-file fsync; process Running is not a consumer-position acknowledgement.",
+    "Data-file sizes are logical active-file lengths, including database overhead and duplicate copies; not filesystem allocation or numeric payload size.",
+    "Meter samples every five seconds off the heartbeat worker; unavailable/stale measurement never becomes zero.",
+    "Four GiB free-space threshold warns only; kernel durability and acquisition are unchanged.",
+    "Window close now hides the existing shell to the tray; click the icon to reveal it.",
+    "No J4125/Windows10/macOS/24-72h/GPU/power-loss resource acceptance."
+  ]
+}

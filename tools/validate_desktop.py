@@ -72,6 +72,33 @@ def kill_shell_owned(profile, core):
     finally: K.CloseHandle(handle)
     return view['pid']
 
+class TrayId(C.Structure):
+    _fields_=[('cbSize',W.DWORD),('hWnd',W.HWND),('uID',W.UINT),('guid',C.c_ubyte*16)]
+S=C.WinDLL('shell32',use_last_error=True)
+S.Shell_NotifyIconGetRect.argtypes=[C.POINTER(TrayId),C.POINTER(W.RECT)];S.Shell_NotifyIconGetRect.restype=C.c_long
+U.GetGuiResources.argtypes=[W.HANDLE,W.DWORD];U.GetGuiResources.restype=W.DWORD
+U.GetMenuStringW.argtypes=[W.HMENU,W.UINT,W.LPWSTR,C.c_int,W.UINT]
+def tray_exists(hwnd):
+    item=TrayId(C.sizeof(TrayId),hwnd,1);rect=W.RECT();return S.Shell_NotifyIconGetRect(C.byref(item),C.byref(rect))==0
+def child_texts(hwnd):
+    texts=[]
+    @CALLBACK
+    def visit(child,_):
+        value=C.create_unicode_buffer(2048);U.GetWindowTextW(child,value,2048);texts.append(value.value);return True
+    U.EnumChildWindows(hwnd,visit,0);return texts
+def context_rows(pid):
+    result=[]
+    @CALLBACK
+    def visit(hwnd,_):
+        owner=W.DWORD();U.GetWindowThreadProcessId(hwnd,C.byref(owner));name=C.create_unicode_buffer(128);U.GetClassNameW(hwnd,name,128)
+        if owner.value==pid and name.value=='#32768':
+            menu=U.SendMessageW(hwnd,0x1e1,0,0)
+            for n in range(20):
+                value=C.create_unicode_buffer(1024)
+                if U.GetMenuStringW(menu,n,value,1024,0x400):result.append(value.value)
+        return True
+    U.EnumWindows(visit,0);return result
+
 def main():
     assert os.name=='nt'
     QA.mkdir(parents=True)
@@ -85,6 +112,7 @@ def main():
         until(lambda:(profile/'endpoint.json').exists())
         until(lambda:status(profile)['shell_connected'])
         pid=child(profile)['pid']; hwnd=until(lambda:window(pid)); checks.append('native_shell_connected')
+        until(lambda:tray_exists(hwnd));until(lambda:any('Свободно:' in t and 'Файлы данных:' in t and 'н/д' not in t for t in child_texts(hwnd)));checks.append('native_tray_registered_and_storage_sizes_visible')
         # A native confirmation dialog has a nested message pump; it must not hide
         # the UI heartbeat even when the operator waits beyond the hang timeout.
         U.PostMessageW(hwnd,0x111,106,0)
@@ -112,6 +140,21 @@ def main():
         U.SendMessageW(lst,0x186,1,0) # LB_SETCURSEL
         U.PostMessageW(hwnd,0x111,102,0)
         until(lambda:status(profile)['raw_batches']>=4); checks.append('gui_starts_synthetic_package')
+        # The same cached icon is mirrored in WM_GETICON for titlebar/accessibility.
+        icons=set()
+        process=K.OpenProcess(0x400,False,pid);assert process
+        baseline=(U.GetGuiResources(process,0),U.GetGuiResources(process,1));assert all(baseline),baseline
+        try:
+            for _ in range(30):icons.add(U.SendMessageW(hwnd,0x7f,0,0));time.sleep(.1)
+            after=(U.GetGuiResources(process,0),U.GetGuiResources(process,1));assert all(after),after;assert all(b<=a+2 for a,b in zip(baseline,after)),(baseline,after)
+        finally:K.CloseHandle(process)
+        assert 0 not in icons and 2<=len(icons)<=10;checks.append('confirmed_raw_changes_cached_icon_frames_without_gdi_growth')
+        U.PostMessageW(hwnd,0x8000+12,0,(1<<16)|0x7b)
+        until(lambda:any('База:' in t and 'Резерв:' in t for t in context_rows(pid)))
+        menu_before=status(profile)['raw_batches'];time.sleep(10)
+        assert child(profile)['pid']==pid and status(profile)['shell_connected'] and status(profile)['raw_batches']>menu_before
+        U.PostMessageW(hwnd,0x1f,0,0);checks.append('tray_context_menu_shows_components_and_keeps_heartbeat_over_watchdog_timeout')
+        taskbar=U.RegisterWindowMessageW('TaskbarCreated');U.PostMessageW(hwnd,taskbar,0,0);until(lambda:tray_exists(hwnd));checks.append('taskbar_restart_notification_recreates_owned_icon')
         U.PostMessageW(hwnd,0x111,103,0)
         until(lambda:status(profile)['active_sources']==0)
         until(lambda:rpc(profile,'plugins')['plugins'][1]['state']=='stopped'); checks.append('cooperative_stop_closes_source')
@@ -130,16 +173,14 @@ def main():
         K.CloseHandle(thread_handle);thread_handle=None
         final_pid=child(profile)['pid']; hwnd=until(lambda:window(final_pid))
         U.PostMessageW(hwnd,0x10,0,0)
-        until(lambda:child(profile)['state']=='closed' and child(profile)['pid'] is None)
-        before=status(profile)['raw_batches']; time.sleep(2)
-        assert child(profile)['pid'] is None and status(profile)['raw_batches']>before; checks.append('normal_window_close_does_not_respawn_or_stop_core')
-        # Explicit reopen is separate from crash respawn.
+        until(lambda:not U.IsWindowVisible(hwnd));before=status(profile)['raw_batches'];time.sleep(2)
+        assert child(profile)['pid']==final_pid and status(profile)['shell_connected'] and status(profile)['raw_batches']>before and tray_exists(hwnd);checks.append('normal_window_close_hides_to_tray_and_keeps_shell_and_recording_alive')
+        U.PostMessageW(hwnd,0x8000+12,0,(1<<16)|1024);until(lambda:U.IsWindowVisible(hwnd));checks.append('tray_selection_reopens_same_shell')
         assert rpc(profile,'plugin_control',id='kern.shell',action='start')['result']=='accepted'
-        until(lambda:status(profile)['shell_connected']); checks.append('explicit_shell_reopen')
-        # Three launches per minute, then latched safe mode; raw keeps progressing.
-        for i in range(3):
+        # Three fresh launches per minute after reset (the existing child is not a launch), then latched safe mode; raw keeps progressing.
+        for i in range(4):
             old=kill_shell_owned(profile,core)
-            if i<2: until(lambda:child(profile)['pid'] not in (None,old) and status(profile)['shell_connected'])
+            if i<3: until(lambda:child(profile)['pid'] not in (None,old) and status(profile)['shell_connected'])
         until(lambda:child(profile)['state']=='closed' and child(profile)['pid'] is None)
         before=status(profile)['raw_batches']; time.sleep(2)
         assert status(profile)['raw_batches']>before and 'safe mode' in rpc(profile,'plugins')['diagnostic']
@@ -155,10 +196,10 @@ def main():
         source_hash=hashlib.sha256()
         files=sorted([ROOT/'Cargo.toml',ROOT/'Cargo.lock',*(ROOT/'crates').rglob('*.toml'),*(ROOT/'crates').rglob('*.rs')],key=lambda p:p.relative_to(ROOT).as_posix())
         for path in files:source_hash.update(path.relative_to(ROOT).as_posix().encode()+b'\0'+path.read_bytes().replace(b'\r\n',b'\n'))
-        report={'schema':1,'rust_source_sha256':source_hash.hexdigest(),'ui_confirmation_over_hang_timeout':True,'checks':checks,'raw_batches':final['raw_batches'],'raw_samples':final['raw_samples'],
+        report={'schema':1,'rust_source_sha256':source_hash.hexdigest(),'ui_confirmation_over_hang_timeout':True,'checks':checks,'tray_cached_frames_observed':len(icons),'gui_resources_before_after':[baseline,after],'raw_batches':final['raw_batches'],'raw_samples':final['raw_samples'],
                 'binaries':{p.name:{'bytes':p.stat().st_size,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()} for p in (CORE,SHELL)},
                 'platform':'Windows 11; automated native UI, synthetic profile only',
-                'limits':['No Windows 10/weak-hardware/long-duration acceptance','Native plugins are trusted local processes, not a sandbox','No interpreter or device driver is implemented']}
+                'limits':['No Windows 10/weak-hardware/long-duration acceptance','Native plugins are trusted local processes, not a sandbox','Synthetic source only; physical devices, consumer file-fsync telemetry and weak-machine resources not accepted']}
         (QA/'report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
         print(json.dumps({'checks':len(checks),'report':str((QA/'report.json').relative_to(ROOT))}))
     finally:

@@ -132,6 +132,7 @@ dependencies = [
 name = "kern-shell"
 version = "0.1.0"
 dependencies = [
+ "kern-engine",
  "kern-protocol",
  "windows-sys",
 ]

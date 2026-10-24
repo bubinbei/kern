@@ -151,6 +151,6 @@ Segments are at most 4 MiB, with 4096 segments allowed. Each boot starts another
 
 ## The first menu is connected
 
-`Start-Kern.cmd` in the local bundle starts the core and a separate native window with menus, status, freshness setting and package list. Select the synthetic source and start it; stop ends that source. Closing the window keeps the core running; reopen using `kern-core shell --profile PATH`. Full KERN shutdown is separate. The CLI/headless commands above remain valid.
+`Start-Kern.cmd` in the local bundle starts the core and a separate native window with menus, status, freshness setting and package list. Select the synthetic source and start it; stop ends that source. Closing hides the window to the tray while shell/core keep running. Click the icon to reveal it; hover shows space/files/recording state — [TRAY](TRAY.md). Full KERN shutdown is separate. The CLI/headless commands above remain valid.
 
-A package is a directory containing `plugin.json` and an `.exe`; copying never launches code. See [PLUGINS](PLUGINS.md) for the contract/supervision/limits and separate operator web-environment plan. Subscriptions, interpreter and general SDK remain ahead.
+A package is a directory containing `plugin.json` and an `.exe`; copying never launches code. See [PLUGINS](PLUGINS.md) for the contract/supervision/limits and separate operator web-environment plan. Current maps/interpreter are described in [PARAMETERS](PARAMETERS.md); subscriptions and a general SDK remain future work.

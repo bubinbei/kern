@@ -15,9 +15,9 @@
     "translation_sha256": "8e51436292fadbbeab74b1789608f47cb27513fc7895ac9593e4f6be724ec550"
   },
   "docs/CORE_GUIDE.md": {
-    "source_sha256": "4b1ef535328d3009fd77a5469f1ac7f000589bb4496fe67391aaec65a63c4de1",
+    "source_sha256": "04b726ca151932ce32706fb82a93afd1d023a5e7acb9db06a00fdbaca55ca20b",
     "translation": "docs/en/CORE_GUIDE.md",
-    "translation_sha256": "1610d37342bfb587e1e0ca2d42ee311462f4408409ba0186c271535ac2e263fa"
+    "translation_sha256": "f51c7a3e5d0a5c939526d376976e8bba812533ddf01bffd0b9c1da6acd629416"
   },
   "docs/CORE_INTERNALS.md": {
     "source_sha256": "043a5d47fd0950591e85b46a2d10720f2bdb0b45541c03689455e14f7d96880e",
@@ -25,9 +25,9 @@
     "translation_sha256": "0b26f79e5401f166e913e4c81cf5653f1cfd3d33a19d3832b9049557b63ab9d0"
   },
   "docs/CORE_VALIDATION.md": {
-    "source_sha256": "01b55ad3311d0a462ef6b995e8e637bb3c4888ac003893e8aa20039b881c7193",
+    "source_sha256": "8d3cbf9eb74434eb54abe1ed408cd0ac79e959be152292fdb57ed743412689c7",
     "translation": "docs/en/CORE_VALIDATION.md",
-    "translation_sha256": "ac95fb2970b5b9119c616fc65e4a5a7b049eafb0b747c27c43fdcb0c7b5bdaa0"
+    "translation_sha256": "b24dfd76cfb7e2950baec0bef8b1a6843fd3e01bd581429f5fb64b35b55cd596"
   },
   "docs/DEPENDENCIES.md": {
     "source_sha256": "517321ad80253672ec478fa8098abb2159bb98e7d77f46f1a6297155a1d1640f",
@@ -60,9 +60,9 @@
     "translation_sha256": "2ee883303f2e01395604c3d6ac3ca0419e7f1dc2cefedd382df6a9ce4f0a8f4c"
   },
   "docs/PLUGINS.md": {
-    "source_sha256": "ba00ef0bbcb030db066441314aed6b858929c567b783fcd79b0c7ee66de3236a",
+    "source_sha256": "011d4b77068a3a1128f38b22dc290546249792275d004784f447b0ac954a8380",
     "translation": "docs/en/PLUGINS.md",
-    "translation_sha256": "08eb735fc797758c404ce9ae29ce3f940e75dd772332ecd48d15dbf21711e0c8"
+    "translation_sha256": "2612a1b4e37d902c3bba205d23a2a1aae4aa107c64c54431993a6f854a96a52f"
   },
   "docs/PROTOTYPE.md": {
     "source_sha256": "260bf3179d70b0c6d1fc160a8ca95b7922caf1ba2c243425119cdfbd86d8ed0d",
@@ -78,5 +78,10 @@
     "source_sha256": "648533525636c4b49a774c8236a9eb2a25511e59aab2e0cef368cbcc98df958c",
     "translation": "docs/en/STORAGE_CHARTS_PLAN.md",
     "translation_sha256": "4dea9c75c7f9a7c88d0159fda785b3f9b03df202a551182c635c22123d7999b7"
+  },
+  "docs/TRAY.md": {
+    "source_sha256": "d7bec45b118fe150dba2698963247d56fdf6b6d10848c2d3a48cd891035e3712",
+    "translation": "docs/en/TRAY.md",
+    "translation_sha256": "b80d66330e6001412f7c4df987631b492ca98eac1840c937c02af791cda305b9"
   }
 }
