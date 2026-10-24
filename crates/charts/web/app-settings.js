@@ -2,9 +2,7 @@
 const defaultChartAppearance=Object.freeze({tile_left:0,tile_right:35,tile_overall:100});
 let chartAppearance={...defaultChartAppearance},appearanceSaved={revision:0,charts:{...defaultChartAppearance}},appearanceDraft=null,settingsSection='general',settingsPlugins=[],settingsPluginNotice='',settingsSaving=false,appearanceTimer=0,previewTracks=[];
 const settingsNames={general:'Приложение',charts:'Графики',processor:'Интерпретатор',im2480:'Модули IM2480',csv:'Запись CSV',backup:'Восстановительный резерв','kern.shell':'Системная оболочка'};
-function pluginSettingsButton(id){
- const b=element('button','iconButton','⚙');b.type='button';b.title='Настройки · '+(settingsNames[id]||id);b.setAttribute('aria-label',b.title);b.onclick=()=>openAppSettings(id);return b;
-}
+function settingsContext(){return {charts:'charts',calibration:'processor',modules:'im2480',plugins:'general'}[tab]||'general';}
 function redrawAppearance(){
  if(appearanceTimer)return;
  appearanceTimer=setTimeout(()=>{appearanceTimer=0;if(tab==='charts'&&!document.hidden)for(const p of plots)p.u.redraw(false,false);drawAppearancePreview();},32);
@@ -33,7 +31,7 @@ function leaveSettingsFor(tabName,action){
 function settingsLink(text,tabName,action){const b=element('button','',text);b.onclick=()=>leaveSettingsFor(tabName,action);return b;}
 function renderAppSettings(){
  const sections=$('#settingsSections');sections.replaceChildren();
- const ids=['general','charts',...settingsPlugins.map(p=>p.id).filter(id=>id!=='charts')];
+ const ids=[...new Set(['general','charts','processor',...settingsPlugins.map(p=>p.id)])];
  if(!ids.includes(settingsSection))settingsSection='general';
  for(const id of ids){const b=element('button','settingsSection',settingsNames[id]||settingsPlugins.find(p=>p.id===id)?.name||id);b.classList.toggle('active',id===settingsSection);b.setAttribute('aria-current',id===settingsSection?'page':'false');b.onclick=()=>{settingsSection=id;renderAppSettings();};b.dataset.settingsSection=id;sections.append(b);}
  const content=$('#settingsContent');content.replaceChildren(element('h3','',settingsNames[settingsSection]||settingsPlugins.find(p=>p.id===settingsSection)?.name||settingsSection));previewTracks=[];
@@ -44,7 +42,7 @@ function renderAppSettings(){
    const row=element('label','appearanceSlider'),caption=element('span'),output=element('output','',appearanceDraft[id]+'%'),input=element('input');input.type='range';input.min='0';input.max='100';input.step='1';input.value=appearanceDraft[id];input.id='appearance-'+id;input.setAttribute('aria-label',label);output.htmlFor=input.id;caption.append(element('span','',label),output);input.oninput=()=>{appearanceDraft[id]=Number(input.value);chartAppearance={...appearanceDraft};output.textContent=input.value+'%';$('#appearanceError').textContent='';updateAppearanceActions();redrawAppearance();};row.append(caption,input,element('small','muted',hint));content.append(row);
   }
  }else if(settingsSection==='general'){
-  content.append(element('p','','KERN · Регистрация параметров'),element('p','muted','Выберите плагин слева. Шестерёнка рядом с плагином открывает этот же раздел напрямую.'),settingsLink('Управление плагинами','plugins'));if(settingsPluginNotice)content.append(element('p','muted','Реестр плагинов недоступен: '+settingsPluginNotice));
+  content.append(element('p','','KERN · Регистрация параметров'),element('p','muted','Выберите плагин слева. Кнопка ⋮ открывает настройки текущего экрана.'),settingsLink('Управление плагинами','plugins'));if(settingsPluginNotice)content.append(element('p','muted','Реестр плагинов недоступен: '+settingsPluginNotice));
  }else{
   const p=settingsPlugins.find(p=>p.id===settingsSection);content.append(element('p','muted',`${p?.id||settingsSection} · ${p?.version||''} · ${p?.state||''}`));
   if(settingsSection==='processor')content.append(element('p','','Параметры, наборы, источники, расчёты и карты калибровок.'),settingsLink('Настройка параметров…','calibration'));
@@ -63,7 +61,7 @@ function drawAppearancePreview(){
 }
 function setupAppSettings(){
  const dialog=element('dialog');dialog.id='appSettings';dialog.innerHTML='<div class="appSettingsHeading"><h2>Настройки</h2><span class="spacer"></span><button id="reloadAppSettings">Перечитать</button><button id="closeAppSettings" class="iconButton" aria-label="Закрыть настройки">×</button></div><div class="appSettingsBody"><aside id="settingsSections" aria-label="Разделы настроек"></aside><section id="settingsContent"></section></div><p id="appearanceError" role="status"></p><div class="settingsFooter"><button id="resetAppSettings">По умолчанию</button><span class="spacer"></span><button id="cancelAppSettings">Отмена</button><button id="saveAppSettings" class="primary" disabled>Сохранить</button></div>';document.body.append(dialog);
- $('#appSettingsButton').onclick=()=>openAppSettings();$('#chartSettingsButton').onclick=()=>openAppSettings('charts');
+ $('#appSettingsButton').onclick=()=>openAppSettings(settingsContext());
  for(const id of ['closeAppSettings','cancelAppSettings'])$('#'+id).onclick=()=>dialog.close();
  dialog.addEventListener('cancel',e=>{if(settingsSaving)e.preventDefault();});dialog.addEventListener('close',()=>{appearanceDraft=null;chartAppearance={...appearanceSaved.charts};previewTracks=[];redrawAppearance();});
  $('#resetAppSettings').onclick=()=>{appearanceDraft={...defaultChartAppearance};chartAppearance={...appearanceDraft};$('#appearanceError').textContent='';renderAppSettings();};

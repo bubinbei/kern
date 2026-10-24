@@ -1,6 +1,8 @@
 # First end-to-end KERN prototype
 
-Appearance settings: ⋮ → Charts or the gear beside the tab. Three sliders, preview, cancel/save/reset: [settings contract](PLUGINS.md). Profile preferences are separate from recording.
+The parameter workspace is compact: used definitions on the left, unused on the right, collapsible thematic groups and independent searches. Actions use a compact row; tested Windows/Chrome at 1280×720 gives 14px table text and 25px rows. Long names use ellipsis with full tooltips; header indicators stay on one line. This does not guarantee identical geometry at arbitrary system scaling.
+
+Appearance settings: the single upper-right header ⋮ button opens Charts automatically when the chart screen is active. Three sliders, preview, cancel/save/reset: [settings contract](PLUGINS.md). Profile preferences are separate from recording.
 
 The minor chart grid uses seven nearby opaque tile gradients. Each track brightens smoothly from left to right; the next track restarts dark to mark its boundary. An integer hash of time/column coordinates and track contents gives stable nonperiodic shades. They persist while scrolling at the same scale; changing grid spacing rebuilds cells. Seven CanvasGradients are cached by canvas/width/field origin and reused while scrolling. Major grid lines are subdued and dashed at 5/5 CSS px. The draw loop creates no random-generator state, images or extra network requests; drawing is bounded by visible cells. Browser acceptance verifies shade stability, cache reuse, motion and adjacent-track edge contrast; this is not low-end resource acceptance.
 

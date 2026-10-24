@@ -25,9 +25,9 @@
     "translation_sha256": "0b26f79e5401f166e913e4c81cf5653f1cfd3d33a19d3832b9049557b63ab9d0"
   },
   "docs/CORE_VALIDATION.md": {
-    "source_sha256": "145bba4ca733e078389e2789410850682fbb932db53201d6a6d0c424558092c4",
+    "source_sha256": "01b55ad3311d0a462ef6b995e8e637bb3c4888ac003893e8aa20039b881c7193",
     "translation": "docs/en/CORE_VALIDATION.md",
-    "translation_sha256": "36577b06fdf79222e1efa8bf4bde00bb2a9bbde76d62afef9160e1309c5a9ff0"
+    "translation_sha256": "ac95fb2970b5b9119c616fc65e4a5a7b049eafb0b747c27c43fdcb0c7b5bdaa0"
   },
   "docs/DEPENDENCIES.md": {
     "source_sha256": "517321ad80253672ec478fa8098abb2159bb98e7d77f46f1a6297155a1d1640f",
@@ -50,9 +50,9 @@
     "translation_sha256": "a205ddccfa63b5370f89be4eb411c2ee9e9db3d94db51a0b6b721ad9a8e9a5df"
   },
   "docs/PARAMETERS.md": {
-    "source_sha256": "56c3b213cfef7a818fd660d1bfc6458823c184a5634ffdc68510839ffc991044",
+    "source_sha256": "9a4966d072933d3487406a27bbcd7fd91c7c483a355508f9945c3026f21ed7f8",
     "translation": "docs/en/PARAMETERS.md",
-    "translation_sha256": "16709bd4ef16316c1e2a6e41e5e8233a5fe2b271ab7a940548d8890bca4cad27"
+    "translation_sha256": "0880244a6e8d076625205f3dfa1eddf1f15e6fa90d9e9ab2e968489ff9e1a98b"
   },
   "docs/PARAMETER_PRESETS_PLAN.md": {
     "source_sha256": "9cc4f7216aae251eaaa3ebf32abb77ae3c53bab1db8b6ff2f6c23c3b19e0657a",
@@ -60,14 +60,14 @@
     "translation_sha256": "2ee883303f2e01395604c3d6ac3ca0419e7f1dc2cefedd382df6a9ce4f0a8f4c"
   },
   "docs/PLUGINS.md": {
-    "source_sha256": "4f948864299fda9515bcbabf6328dbf9b8ebf8d63b8c634c0a3e98e8fb24f6a7",
+    "source_sha256": "ba00ef0bbcb030db066441314aed6b858929c567b783fcd79b0c7ee66de3236a",
     "translation": "docs/en/PLUGINS.md",
-    "translation_sha256": "3ed90a3b2b8463c53e84447071efc7d8e521b6632e3d11ceb3955f0bba2e2bb2"
+    "translation_sha256": "08eb735fc797758c404ce9ae29ce3f940e75dd772332ecd48d15dbf21711e0c8"
   },
   "docs/PROTOTYPE.md": {
-    "source_sha256": "28e7aca87ee93f5633d1b8058d86412a38adfb10da81e9de636cabca702a7dd2",
+    "source_sha256": "260bf3179d70b0c6d1fc160a8ca95b7922caf1ba2c243425119cdfbd86d8ed0d",
     "translation": "docs/en/PROTOTYPE.md",
-    "translation_sha256": "f64347239e708ae45ebf3c4469f69bc31c99d35cbea85ca22043b5c0b6824c41"
+    "translation_sha256": "925ca0439530db2c107a47a4b4b2f329c535138c994a0b1742e7d9d68bd87a04"
   },
   "docs/ROADMAP.md": {
     "source_sha256": "5948037667e2613fcba5abf7984d40b9c441507e934cf720622ca261ccfc7c96",

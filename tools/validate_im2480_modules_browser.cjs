@@ -20,7 +20,7 @@ const fs=require('fs'),path=require('path'),assert=require('assert/strict');
   await page.waitForTimeout(250);await output.click();await page.locator('[data-im-input="pressure"]').click();await page.locator('#imApply').click();await page.waitForFunction(()=>!imMapDirty&&!imBusy&&activeRevision>=imMapRevision);
   assert(await page.evaluate(()=>imMap.parameters.filter(p=>p.source===imSource()&&p.channel===1&&p.enabled!==false).length>=2));
   assert.equal(await page.evaluate(()=>JSON.stringify(map.parameters.find(p=>p.id==='weight').points)),firstPoints);
-  await page.locator('#imSettings').click();await page.locator('#imCfgInterval').fill('150');
+  await page.locator('#appSettingsButton').click();await page.waitForSelector('#appSettings[open]');assert.equal(await page.evaluate(()=>settingsSection),'im2480');await page.getByRole('button',{name:'Модули и настройки линии…',exact:true}).click();await page.waitForSelector('#imConfigDialog[open]');await page.locator('#imCfgInterval').fill('150');
   await page.locator('#imCfgModules tr').nth(1).getByRole('button',{name:'↑',exact:true}).click();
   await page.locator('#imCfgAccept').click();await page.locator('#imApply').click();await page.waitForFunction(()=>imData?.state?.config?.poll_interval_ms===150&&!imBusy);
   assert(await page.evaluate(()=>snapshot.sources.find(s=>s.id===imSource()).channels.some(c=>c.id===0&&c.name==='IM2480 27 A1')));

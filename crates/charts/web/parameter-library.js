@@ -84,6 +84,7 @@ async function loadParameterLibrary(){parameterLibrary=await api('parameter-libr
 function entryMap(){return new Map(parameterLibrary.entries.map(e=>[e.parameter.id,e]));}
 function sectionText(sections){const names={parameters:'параметры',calculations:'расчёты',bindings:'привязки',calibrations:'калибровки',operator_values:'введённые значения'};return sections.map(s=>names[s]||s).join(', ');}
 async function openParameterLibrary(mode){
+ if(mode==='catalog'){await focusParameterCatalog();return;}
  if(applyingParameters)return;try{await loadParameterLibrary();libraryMode=mode;librarySelected=null;libraryPreset=null;$('#librarySearch').value='';$('#libraryMerge').value='add';$('#libraryReplaceConfirm').checked=false;$('#libraryDialog').showModal();renderLibraryList();}catch(e){note(e.message);}
 }
 function renderLibraryList(){

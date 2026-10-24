@@ -1,0 +1,223 @@
+{
+  "schema": 1,
+  "passed": true,
+  "date": "2026-10-24T16:31:27.963793+00:00",
+  "platform": "Windows 11; owned synthetic profiles, dedicated virtual module pair and read-only live emulator",
+  "runtime_source_sha256": "bf8b7e4d670dec00fa4e84aa92355c3419071aaa05c1afabbe66c1c6c7d8d67c",
+  "runtime_hash_scope": "Sorted POSIX paths; path UTF-8 + NUL + UTF-8 content normalized to LF. crates/**/*.{rs,toml,js,css,html}, Cargo.toml, Cargo.lock, plugins/calibration.example.json, plugins/*/plugin.json, crates/processor/parameter-library.json.",
+  "binary_sha256": "f244a95d66552a5782b6798b8a30049160f29cb20d14e6d77cc4d6f5b0bd28e2",
+  "build_checks": {
+    "rust_tests": 47,
+    "python_tool_tests": 13,
+    "fmt": true,
+    "clippy_all_targets_deny_warnings": true,
+    "release_locked": true
+  },
+  "editor_and_settings": {
+    "passed": true,
+    "date": "2026-10-24T16:28:10.739314+00:00",
+    "binary_sha256": "f244a95d66552a5782b6798b8a30049160f29cb20d14e6d77cc4d6f5b0bd28e2",
+    "browser": {
+      "passed": true,
+      "tile_rendering": {
+        "colors": 7,
+        "overlap": 168,
+        "opaque": true,
+        "hundred_draws_ms": 5.5,
+        "cached_gradients_during_scroll": 7,
+        "resize_rebuilds_cache": true,
+        "dash_css_pixels": [
+          5,
+          5
+        ],
+        "adjacent_track_pixel_contrasts": [
+          9,
+          14,
+          13,
+          15,
+          10
+        ]
+      },
+      "tests": [
+        "one contextual settings entry opens charts",
+        "three sliders preview and cancel without saving",
+        "profile preferences save and survive page reload",
+        "appearance API authentication and invalid bounds",
+        "concurrent preference update refuses stale overwrite and preserves draft",
+        "1280x720 settings controls fit",
+        "defaults persist without changing core calibration",
+        "stable pseudorandom tile gradients, visible adjacent-track contrast, dashed grid and cached resize/scroll rendering",
+        "reversed wheel direction",
+        "switching tabs during return to live clears history anchor",
+        "multiple intermediate scroll positions; settled target; bounded plot requests",
+        "parameter selection and separate calibration window",
+        "calibration zoom in/out changes both axes reversibly",
+        "calibration background pan preserves points, draft and core map",
+        "grid strokes and equal-valued ticks follow both pan axes",
+        "fit and signal-unit changes reset viewport",
+        "pointer cancellation releases calibration pan",
+        "voltage/raw view roundtrip without changing points",
+        "duplicate signal rejected",
+        "draft then save/activate",
+        "voltage points reopen correctly",
+        "1280x720 modal controls fit",
+        "point export/import with unit validation",
+        "coefficient edits isolated by cancel",
+        "external map revision preserves open editor; cancel reloads it",
+        "counter/frequency units preserved",
+        "parameter metadata edit and undo",
+        "no browser errors"
+      ],
+      "scroll_positions": 8
+    },
+    "previous_chart_interactions": {
+      "passed": true,
+      "columns": 6,
+      "initialPoints": 18,
+      "tests": [
+        "uPlot vertical tracks",
+        "single click inert",
+        "double click flag add/remove",
+        "outline cursor markers",
+        "right click add curve",
+        "30s/5min history",
+        "three parameter-panel modes",
+        "edit/save/activate calibration",
+        "no browser page errors"
+      ]
+    },
+    "independent_checks": [
+      "voltage points persisted as exact raw codes",
+      "interpreter result checked against independent formula",
+      "continuous synthetic ingestion; no COM access"
+    ]
+  },
+  "catalog_and_pipeline": {
+    "passed": true,
+    "date": "2026-10-24T16:28:10.828145+00:00",
+    "checks": [
+      "browser preset/catalog/provider workflows on continuously ingesting native pipeline",
+      "independent 100-80=20 t, 60*2*.9/60=1.8 l/s, tank interpolation=10 m3, moving depth approximately 3600 m/h",
+      "interpreter restart restores committed window and catches ongoing raw backlog without new warmup",
+      "invalid map rejected atomically without replacing active revision",
+      "preset/catalog API requires presentation key",
+      "custom preset versions survive presentation-host restart while raw intake continues",
+      "independent CSV CRC reader confirms calculated load, flow and tank-volume rows",
+      "independent backup CRC/event equality and exact graph context/window restored without original database"
+    ],
+    "browser": {
+      "passed": true,
+      "checks": [
+        "inline available/used lists preview dependencies without changing the draft; contextual interpreter settings",
+        "both thematic lists collapse and expand without removing definitions",
+        "full preset content/counts and explicit replacement; 1280x720 controls fit",
+        "used definitions disappear from available; dependency removal blocked; remove and undo restore both lists",
+        "removing and re-adding a configured sensor preserves its calibration; undo restores original order",
+        "add-missing preserves original calibration; operator inputs drive native load calculation and readiness survives omitted enabled=true",
+        "new sensor starts without fabricated calibration; calibration and pump settings produce 1.8 l/s",
+        "individual tank table produces calibrated volume",
+        "rate editor exposes explicit history window",
+        "save-as is portable by default, leaves active map unchanged and creates immutable named versions",
+        "custom presets export/import, validate and explicitly store in selection list",
+        "empty search cannot apply stale selection",
+        "more than 32 parameters activate as one checked version without overwriting existing settings",
+        "compact two-pane workspace: 14px text, rows <=26px and both lists visible at 1280x720",
+        "no browser errors"
+      ],
+      "density": {
+        "row_height": 25,
+        "font": 14,
+        "visible_rows": 16,
+        "header_values_fit": true,
+        "available_visible": true
+      }
+    },
+    "catalog_parameters": 81,
+    "builtin_presets": 7,
+    "rate_observation": 3564.198994918157,
+    "binaries": {
+      "kern-core.exe": "03003292f71ae1222a5d6a27fcf292307f3b3799be7e040ce86644bf535d5293",
+      "kern-processor.exe": "2896565238c1f8e9e2fe96dba4cd40a0105922ef7a8c544ff1b8f8fa2317af02",
+      "kern-charts.exe": "f244a95d66552a5782b6798b8a30049160f29cb20d14e6d77cc4d6f5b0bd28e2",
+      "kern-recorder.exe": "ee1a86bafdf13b66b2c12f97071b347213119415c7f91af9d1f947fec5174574"
+    },
+    "not_checked": [
+      "Physical depth/load model",
+      "Low-end resources",
+      "Power loss",
+      "24-72h",
+      "macOS",
+      "Windows10"
+    ]
+  },
+  "module_management_regression": {
+    "passed": true,
+    "checks": [
+      "managed package acquisition with owned COM; control status and native port enumeration",
+      "browser wiring/disable/re-enable/fanout and settings apply without process restart",
+      "scan skips broadcast zero; interleaved acquisition; no second COM owner",
+      "full 1..100 scan remains within status bound while acquisition advances",
+      "per-address errors persist after recovery; reset preserves availability",
+      "busy destination COM rolls back to working configuration with same source process",
+      "external configuration edit is never overwritten by stale UI",
+      "validated configuration change and preserved before/after history",
+      "management requires presentation key; only FC03 observed"
+    ],
+    "browser": {
+      "passed": true,
+      "tests": [
+        "IM2480 tab follows installed package",
+        "configured module cards and outputs",
+        "pointer drag creates staged binding; Apply persists",
+        "middle-click disables without deleting calibration; snapshot clears value",
+        "click-two-port reconnect",
+        "one output fans out to several parameters",
+        "calibration points preserved",
+        "port timing settings hot-apply without process restart",
+        "module reorder preserves physical channel IDs",
+        "scan starts and cancels through source owner",
+        "per-module details",
+        "1280x720 layout",
+        "no browser errors"
+      ]
+    },
+    "binaries": {
+      "kern-core.exe": "03003292f71ae1222a5d6a27fcf292307f3b3799be7e040ce86644bf535d5293",
+      "im2480.exe": "d590c34235cdff712738f6684f0ffc64cf7f512e18da1872dd7126da4198531f",
+      "kern-charts.exe": "c9b381bdf3a78b0f70bc636836f1b71cd98f470f83c9a3b5222b59e4da7151ae",
+      "kern-processor.exe": "2896565238c1f8e9e2fe96dba4cd40a0105922ef7a8c544ff1b8f8fa2317af02"
+    },
+    "scope": "Unified contextual menu covered before final numeric-header wrapping-only CSS correction; original binary hashes retained."
+  },
+  "controlled_charts_replacement": {
+    "passed": true,
+    "only_charts_replaced": true,
+    "other_pids_preserved": true,
+    "core_endpoint_preserved": true,
+    "map_and_config_preserved": true,
+    "raw_intake_advanced": true,
+    "binary_sha256": "f244a95d66552a5782b6798b8a30049160f29cb20d14e6d77cc4d6f5b0bd28e2"
+  },
+  "live_read_only": {
+    "passed": true,
+    "contextual_destinations": 4,
+    "single_settings_entry": true,
+    "no_plugin_gears": true,
+    "im2480_settings_from_center": true,
+    "used_and_available_groups_collapse": true,
+    "selection_and_search_leave_draft_unchanged": true,
+    "map_and_preferences_preserved": true,
+    "modules": 5,
+    "channels": 30,
+    "acquisition_advances": true,
+    "read_only": true,
+    "browser_errors": []
+  },
+  "limits": [
+    "Theme grouping changes presentation only, not map IDs or definition order.",
+    "Removed definitions are retained in UI-session memory up to 128 entries; persistent custom libraries use presets.",
+    "Draft selection/transfer is distinct from Apply; no arbitrary source/calibration defaults are fabricated.",
+    "Measured 25px rows/14px font and header fit apply to tested Chrome/Windows viewport, not arbitrary OS scaling.",
+    "No physical, low-end resource, long-duration, power-loss or macOS acceptance."
+  ]
+}

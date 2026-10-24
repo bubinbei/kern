@@ -29,7 +29,7 @@ const fs=require('fs'),path=require('path');
  await page.selectOption('#interval','300');
  for(let n=0;n<3;n++)await page.locator('#paramsMode').click();
  await page.locator('button[data-tab="calibration"]').click();
- await page.locator('#mapRows tr').nth(1).dblclick();
+ await page.locator('#mapRows tr[data-index="'+1+'"]').dblclick();
  await page.locator('#edit-name').fill('Тест · давление · UI');await page.locator('#acceptEdit').click();
  const beforeRevision=await page.evaluate(()=>revision);
  await page.locator('#saveMap').click();await page.waitForFunction(previous=>revision>previous&&activeRevision===revision,beforeRevision);

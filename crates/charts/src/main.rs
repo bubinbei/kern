@@ -19,6 +19,7 @@ const HTML: &[u8] = include_bytes!("../web/index.html");
 const JS: &[u8] = include_bytes!("../web/app.js");
 const PARAMETER_SETTINGS: &[u8] = include_bytes!("../web/parameter-settings.js");
 const PARAMETER_LIBRARY: &[u8] = include_bytes!("../web/parameter-library.js");
+const PARAMETER_CATALOG: &[u8] = include_bytes!("../web/parameter-catalog.js");
 const APP_SETTINGS: &[u8] = include_bytes!("../web/app-settings.js");
 const IM2480_UI: &[u8] = include_bytes!("../web/im2480.js");
 const CSS: &[u8] = include_bytes!("../web/app.css");
@@ -97,6 +98,7 @@ fn handle(
             "/parameter-settings.js" => {
                 Some(("text/javascript; charset=utf-8", PARAMETER_SETTINGS))
             }
+            "/parameter-catalog.js" => Some(("text/javascript; charset=utf-8", PARAMETER_CATALOG)),
             "/app-settings.js" => Some(("text/javascript; charset=utf-8", APP_SETTINGS)),
             "/parameter-library.js" => Some(("text/javascript; charset=utf-8", PARAMETER_LIBRARY)),
             "/app.css" => Some(("text/css", CSS)),

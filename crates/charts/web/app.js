@@ -127,7 +127,7 @@ async function draw(){
  plotCache=r;paintPlot(true);sizeDirty=false;
 }
 function values(){
- const root=$('#values');root.replaceChildren();for(const p of map.parameters.slice(0,8)){const v=current(p.id),a=element('article');a.append(element('small','',p.name+' · '+p.unit));const b=element('b','',fmt(v?.value));b.style.color=p.color;b.style.opacity=v?.quality==='good'?'1':'.45';b.title=v?.quality||'missing';a.append(b);root.append(a);}
+ const root=$('#values');root.replaceChildren();for(const p of map.parameters.slice(0,8)){const v=current(p.id),a=element('article');a.title=p.name+' · '+p.unit;a.append(element('small','',p.name+' · '+p.unit));const b=element('b','',fmt(v?.value));b.style.color=p.color;b.style.opacity=v?.quality==='good'?'1':'.45';b.title=v?.quality||'missing';a.append(b);root.append(a);}
 }
 async function refresh(){if(busy)return;busy=true;try{
  const s=await api('status');snapshot=await api('snapshot');const cal=await api('calibration');
@@ -137,7 +137,7 @@ async function refresh(){if(busy)return;busy=true;try{
  updateMapState();updateParameterLive();values();if(tab==='modules')await refreshIM2480();
  if(tab==='charts')await draw();
  }catch(e){$('#connection').textContent='● Нет связи';$('#connection').className='error';note(e.message);}finally{busy=false;}}
-async function plugins(){try{const r=await api('plugins');$('#imTab').classList.toggle('hidden',!r.plugins.some(p=>p.id==='im2480'));const root=$('#pluginRows');root.replaceChildren();for(const p of r.plugins){const a=element('article'),name=element('div');name.append(element('strong','',p.name),element('small','',p.id+' · '+p.version));a.append(name,element('span','',p.state),element('span','spacer'));if(['im2480','processor','csv','backup'].includes(p.id)){const b=element('button','',p.state==='running'?'Остановить':'Запустить');b.onclick=async()=>{try{await api('control',{id:p.id,action:p.state==='running'?'stop':'start'});setTimeout(plugins,300);}catch(e){note(e.message);}};a.append(b);}a.append(pluginSettingsButton(p.id),element('small','',p.detail));root.append(a);}}catch(e){note(e.message);}}
+async function plugins(){try{const r=await api('plugins');$('#imTab').classList.toggle('hidden',!r.plugins.some(p=>p.id==='im2480'));const root=$('#pluginRows');root.replaceChildren();for(const p of r.plugins){const a=element('article'),name=element('div');name.append(element('strong','',p.name),element('small','',p.id+' · '+p.version));a.append(name,element('span','',p.state),element('span','spacer'));if(['im2480','processor','csv','backup'].includes(p.id)){const b=element('button','',p.state==='running'?'Остановить':'Запустить');b.onclick=async()=>{try{await api('control',{id:p.id,action:p.state==='running'?'stop':'start'});setTimeout(plugins,300);}catch(e){note(e.message);}};a.append(b);}a.append(element('small','',p.detail));root.append(a);}}catch(e){note(e.message);}}
 $$('nav [data-tab]').forEach(button=>button.onclick=()=>{tab=button.dataset.tab;$$('main>.screen').forEach(s=>s.classList.toggle('hidden',s.id!==tab));$$('nav [data-tab]').forEach(b=>b.classList.toggle('active',b===button));if(tab==='plugins')plugins();if(tab==='calibration')updateParameterLive();if(tab==='modules')refreshIM2480();if(tab==='charts'){sizeDirty=true;refresh();}});
 $('#autoScale').onclick=()=>{autoScale=!autoScale;$('#autoScale').classList.toggle('active',autoScale);refresh();};
 $('#refreshPlugins').onclick=plugins;$('#interval').onchange=()=>{offsetTarget=Math.min(offsetTarget,86400-Number($('#interval').value));offset=offsetTarget;sizeDirty=true;refresh();};$('#live').onclick=()=>moveHistory(0);$('#earlier').onclick=()=>moveHistory(offsetTarget+Number($('#interval').value)/2);$('#later').onclick=()=>moveHistory(offsetTarget-Number($('#interval').value)/2);$('#history').oninput=e=>moveHistory(86400-Number(e.target.value));$('#history').onchange=requestHistoryData;
@@ -148,6 +148,7 @@ setInterval(()=>{$('#clock').textContent=time(Date.now());if(!document.hidden)re
 setInterval(()=>{if(sizeDirty&&!busy&&tab==='charts'&&!document.hidden)refresh();},200);
 setupParameterSettings();
 setupParameterLibrary();
+setupParameterCatalog();
 setupIM2480();
 setupAppSettings();
 refresh();

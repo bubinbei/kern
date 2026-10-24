@@ -15,28 +15,33 @@ function changedParameters(){dirty=true;renderMaps();updateMapState();}
 function resetParameterDraft(){parameterDraft=cloneMap(map);parameterUndo=[];selectedParameter=Math.min(selectedParameter,parameterDraft.parameters.length-1);renderMaps();}
 function updateMapState(){
  $('#mapState').textContent=`Версия ${revision} · активна ${activeRevision}${dirty?' · есть изменения':''}`;
- $('#saveMap').disabled=!dirty;
+ $('#saveMap').disabled=!dirty||applyingParameters;
 }
 function updateParameterSelection(){
  const selected=selectedParameter>=0&&selectedParameter<parameterDraft.parameters.length;
  for(const id of ['editParam','removeParam','calibrateParam'])$('#'+id).disabled=!selected;
  $('#undoParam').disabled=parameterUndo.length===0;const p=parameterDraft.parameters[selectedParameter];$('#calibrateParam').textContent=p?.provider?'Настроить…':'Калибровка…';
- $$('#mapRows tr').forEach((row,index)=>{row.classList.toggle('selected',index===selectedParameter);row.setAttribute('aria-selected',String(index===selectedParameter));});
+ $$('#mapRows tr[data-index]').forEach(row=>{const selected=Number(row.dataset.index)===selectedParameter;row.classList.toggle('selected',selected);row.setAttribute('aria-selected',String(selected));});
 }
 function renderMaps(){
- const root=$('#mapRows');root.replaceChildren();
- parameterDraft.parameters.forEach((p,i)=>{
-  const row=element('tr');row.tabIndex=0;row.setAttribute('role','row');row.dataset.index=i;
-  for(const text of [i+1,p.name,p.unit,(p.provider?providerName(p):providerLabel(p)),'—','—',`${fmt(p.min)} … ${fmt(p.max)}`])row.append(element('td','',text));
-  row.append(element('td','readinessCell',parameterReadiness(p)));row.children[3].title=providerLabel(p);row.children[1].style.color=p.color;row.children[4].className='signalCell';row.children[5].className='valueCell';
-  row.onclick=()=>{selectedParameter=i;updateParameterSelection();};
-  row.ondblclick=()=>{selectedParameter=i;updateParameterSelection();edit(i);};
-  row.onkeydown=e=>{if(e.key==='Enter'){selectedParameter=i;updateParameterSelection();edit(i);}else if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();selectedParameter=Math.max(0,Math.min(parameterDraft.parameters.length-1,i+(e.key==='ArrowDown'?1:-1)));updateParameterSelection();root.children[selectedParameter]?.focus();}};
-  root.append(row);
- });updateParameterSelection();updateParameterLive();
+ const root=$('#mapRows');root.replaceChildren();const groups=new Map(),q=$('#usedParameterSearch').value.trim().toLocaleLowerCase('ru');
+ parameterDraft.parameters.forEach((p,i)=>{if(q&&!(p.name+' '+p.unit+' '+providerLabel(p)).toLocaleLowerCase('ru').includes(q))return;const group=parameterGroup(p);if(!groups.has(group))groups.set(group,[]);groups.get(group).push({p,i});});
+ for(const [group,rows] of groups){
+  const heading=element('tr','parameterGroup'),cell=element('td'),button=element('button','',`${usedGroupsClosed.has(group)?'▸':'▾'} ${group} · ${rows.length}`);cell.colSpan=8;button.setAttribute('aria-expanded',String(!usedGroupsClosed.has(group)));button.onclick=()=>{if(usedGroupsClosed.has(group))usedGroupsClosed.delete(group);else{usedGroupsClosed.add(group);if(rows.some(r=>r.i===selectedParameter))selectedParameter=-1;}renderMaps();};cell.append(button);heading.append(cell);root.append(heading);if(usedGroupsClosed.has(group))continue;
+  for(const {p,i} of rows){
+   const row=element('tr');row.tabIndex=0;row.setAttribute('role','row');row.dataset.index=i;row.dataset.parameter=p.id;
+   for(const text of [i+1,p.name,p.unit,p.provider?providerName(p):providerLabel(p),'—','—',`${fmt(p.min)} … ${fmt(p.max)}`]){const td=element('td','',text);td.title=String(text);row.append(td);}
+   row.append(element('td','readinessCell',parameterReadiness(p)));row.children[3].title=providerLabel(p);row.children[1].style.color=p.color;row.children[4].className='signalCell';row.children[5].className='valueCell';
+   row.onclick=()=>{selectedParameter=i;updateParameterSelection();};row.ondblclick=()=>{selectedParameter=i;updateParameterSelection();edit(i);};
+   row.onkeydown=e=>{if(e.key==='Enter'){selectedParameter=i;updateParameterSelection();edit(i);}else if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();const visible=$$('#mapRows tr[data-index]'),n=visible.indexOf(row),next=visible[Math.max(0,Math.min(visible.length-1,n+(e.key==='ArrowDown'?1:-1)))];selectedParameter=Number(next.dataset.index);updateParameterSelection();next.focus();}};
+   root.append(row);
+  }
+ }
+ if(!root.querySelector(`tr[data-index="${selectedParameter}"]`))selectedParameter=-1;
+ $('#usedParameterCount').textContent=`Используются · ${parameterDraft.parameters.length}`;updateParameterSelection();updateParameterLive();renderParameterCatalog();
 }
 function updateParameterLive(){
- if(tab==='calibration') $$('#mapRows tr').forEach((row,i)=>{const p=parameterDraft.parameters[i],raw=signalNow(p),kind=signalKind(p);row.querySelector('.signalCell').textContent=p.provider||raw==null?'—':fmt(signalValue(raw,kind))+' '+signalUnit(kind);row.querySelector('.readinessCell').textContent=parameterReadiness(p);const v=current(p.id),active=map.parameters.find(d=>d.id===p.id),signature=v=>JSON.stringify([v.source,v.channel,v.points,v.provider,v.enabled!==false]),same=active&&signature(active)===signature(p);row.querySelector('.valueCell').textContent=same?fmt(v?.value):'—';row.querySelector('.readinessCell').title=parameterReadiness(p);row.querySelector('.valueCell').style.color=v?.quality==='good'?p.color:'var(--muted)';});
+ if(tab==='calibration') $$('#mapRows tr[data-index]').forEach(row=>{const p=parameterDraft.parameters[Number(row.dataset.index)],raw=signalNow(p),kind=signalKind(p);row.querySelector('.signalCell').textContent=p.provider||raw==null?'—':fmt(signalValue(raw,kind))+' '+signalUnit(kind);row.querySelector('.readinessCell').textContent=parameterReadiness(p);const v=current(p.id),active=map.parameters.find(d=>d.id===p.id),signature=v=>JSON.stringify([v.source,v.channel,v.points,v.provider,v.enabled!==false]),same=active&&signature(active)===signature(p);row.querySelector('.valueCell').textContent=same?fmt(v?.value):'—';row.querySelector('.readinessCell').title=parameterReadiness(p);row.querySelector('.valueCell').style.color=v?.quality==='good'?p.color:'var(--muted)';});
  if(calibrationDraft){const p=calibrationDraft.parameter,raw=signalNow(p);$('#calibrationLive').textContent=`Сигнал сейчас: ${raw==null?'—':fmt(signalValue(raw,calibrationDraft.kind))+' '+signalUnit(calibrationDraft.kind)} · ${fmt(current(p.id)?.value)} ${p.unit}`;$('#captureSignal').disabled=raw==null;}
 }
 function edit(index){
@@ -160,11 +165,11 @@ function drawCalibration(){
 }
 function setupParameterSettings(){
  $('#newParam').onclick=()=>edit(-1);$('#editParam').onclick=()=>edit(selectedParameter);
- $('#removeParam').onclick=()=>{if(selectedParameter<0)return;const id=parameterDraft.parameters[selectedParameter].id,used=parameterDraft.parameters.find(p=>parameterInputs(p).includes(id));if(used){note('Используется в расчёте «'+used.name+'». Сначала измените его входы.');return;}checkpointParameters();parameterDraft.parameters.splice(selectedParameter,1);selectedParameter=Math.min(selectedParameter,parameterDraft.parameters.length-1);changedParameters();};
+ $('#removeParam').onclick=()=>{if(selectedParameter<0)return;const id=parameterDraft.parameters[selectedParameter].id,used=parameterDraft.parameters.find(p=>parameterInputs(p).includes(id));if(used){note('Используется в расчёте «'+used.name+'». Сначала измените его входы.');return;}checkpointParameters();rememberRemovedParameter(parameterDraft.parameters[selectedParameter]);parameterDraft.parameters.splice(selectedParameter,1);selectedParameter=Math.min(selectedParameter,parameterDraft.parameters.length-1);changedParameters();};
  $('#undoParam').onclick=()=>{if(!parameterUndo.length)return;parameterDraft=parameterUndo.pop();selectedParameter=Math.min(selectedParameter,parameterDraft.parameters.length-1);changedParameters();};
  $('#calibrateParam').onclick=calibrationPoints;
  $('#reloadMap').onclick=async()=>{try{const c=await api('calibration');map=c.map;revision=c.revision;activeRevision=c.active_revision;dirty=false;resetParameterDraft();layout();updateMapState();}catch(e){note(e.message);}};
- $('#saveMap').onclick=async()=>{if(applyingParameters)return;applyingParameters=true;const button=$('#saveMap');button.disabled=true;$('.parameterWorkspace').inert=true;$('#reloadMap').disabled=true;try{const submitted=normalizeParameterMap(cloneMap(parameterDraft));await api('calibration',{expected_revision:revision,map:submitted});dirty=false;revision=-1;note('Карты сохранены; ожидается применение интерпретатором');await refresh();}catch(e){note(e.message);}finally{applyingParameters=false;$('.parameterWorkspace').inert=false;$('#reloadMap').disabled=false;updateMapState();}};
+ $('#saveMap').onclick=async()=>{if(applyingParameters)return;applyingParameters=true;const button=$('#saveMap');button.disabled=true;$('.parameterWorkspace').inert=true;$('.parameterActions').inert=true;$('#reloadMap').disabled=true;try{const submitted=normalizeParameterMap(cloneMap(parameterDraft));await api('calibration',{expected_revision:revision,map:submitted});dirty=false;revision=-1;note('Карты сохранены; ожидается применение интерпретатором');await refresh();}catch(e){note(e.message);}finally{applyingParameters=false;$('.parameterWorkspace').inert=false;$('.parameterActions').inert=false;$('#reloadMap').disabled=false;updateMapState();}};
  const close=()=>$('#calibrationDialog').close();$('#closeCalibration').onclick=close;$('#cancelCalibration').onclick=close;$('#calibrationDialog').addEventListener('close',()=>{endCalibrationPan();cancelAnimationFrame(calibrationFrame);calibrationFrame=0;calibrationGeometry=null;calibrationDraft=null;});
  $('#signalView').onchange=e=>{endCalibrationPan();calibrationDraft.kind=e.target.value;calibrationDraft.view=null;renderPoints();updateParameterLive();};
  $('#addPoint').onclick=()=>{const points=calibrationDraft.points;if(points.length>=32)return;const sorted=points.filter(p=>Number.isFinite(p.raw)).slice().sort((a,b)=>a.raw-b.raw);let raw=0,value=0;
