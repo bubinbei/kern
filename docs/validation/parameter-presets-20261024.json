@@ -1,0 +1,270 @@
+{
+  "schema": 1,
+  "passed": true,
+  "date": "2026-10-24T14:01:43.279993+00:00",
+  "platform": "Windows 11; owned synthetic profiles and read-only live emulator",
+  "runtime_source_sha256": "7e02809024282f552a3cf2130ab29bd66678ce37a4c8fecf8ef7c7ee640a4b6a",
+  "runtime_hash_scope": "Sorted POSIX paths; path UTF-8 + NUL + UTF-8 content normalized to LF. crates/**/*.{rs,toml,js,css,html}, Cargo.toml, Cargo.lock, plugins/calibration.example.json, plugins/*/plugin.json, crates/processor/parameter-library.json.",
+  "binaries": {
+    "kern-core.exe": "03003292f71ae1222a5d6a27fcf292307f3b3799be7e040ce86644bf535d5293",
+    "kern-processor.exe": "2896565238c1f8e9e2fe96dba4cd40a0105922ef7a8c544ff1b8f8fa2317af02",
+    "kern-charts.exe": "cfdaad9a2e5dcf3f12b156e48df71a7b091571c02166d8ada78783cce76229d5",
+    "kern-recorder.exe": "ee1a86bafdf13b66b2c12f97071b347213119415c7f91af9d1f947fec5174574",
+    "im2480.exe": "d590c34235cdff712738f6684f0ffc64cf7f512e18da1872dd7126da4198531f"
+  },
+  "build_checks": {
+    "rust_tests": 46,
+    "python_tool_tests": 13,
+    "fmt": true,
+    "clippy_all_targets_deny_warnings": true,
+    "release_locked": true
+  },
+  "parameters": {
+    "passed": true,
+    "date": "2026-10-24T14:01:43.279993+00:00",
+    "checks": [
+      "browser preset/catalog/provider workflows on continuously ingesting native pipeline",
+      "independent 100-80=20 t, 60*2*.9/60=1.8 l/s, tank interpolation=10 m3, moving depth approximately 3600 m/h",
+      "interpreter restart restores committed window and catches ongoing raw backlog without new warmup",
+      "invalid map rejected atomically without replacing active revision",
+      "preset/catalog API requires presentation key",
+      "custom preset versions survive presentation-host restart while raw intake continues",
+      "independent CSV CRC reader confirms calculated load, flow and tank-volume rows",
+      "independent backup CRC/event equality and exact graph context/window restored without original database"
+    ],
+    "browser": {
+      "passed": true,
+      "checks": [
+        "catalog dependency preview and cancel leave working draft unchanged",
+        "full preset content/counts and explicit replacement; 1280x720 controls fit",
+        "add-missing preserves original calibration; operator inputs drive native load calculation and readiness survives omitted enabled=true",
+        "new sensor starts without fabricated calibration; calibration and pump settings produce 1.8 l/s",
+        "individual tank table produces calibrated volume",
+        "rate editor exposes explicit history window",
+        "save-as is portable by default, leaves active map unchanged and creates immutable named versions",
+        "custom presets export/import, validate and explicitly store in selection list",
+        "empty search cannot apply stale selection",
+        "more than 32 parameters activate as one checked version without overwriting existing settings",
+        "no browser errors"
+      ]
+    },
+    "catalog_parameters": 81,
+    "builtin_presets": 7,
+    "rate_observation": 3617.5267770432974,
+    "binaries": {
+      "kern-core.exe": "03003292f71ae1222a5d6a27fcf292307f3b3799be7e040ce86644bf535d5293",
+      "kern-processor.exe": "2896565238c1f8e9e2fe96dba4cd40a0105922ef7a8c544ff1b8f8fa2317af02",
+      "kern-charts.exe": "cfdaad9a2e5dcf3f12b156e48df71a7b091571c02166d8ada78783cce76229d5",
+      "kern-recorder.exe": "ee1a86bafdf13b66b2c12f97071b347213119415c7f91af9d1f947fec5174574"
+    },
+    "not_checked": [
+      "Physical depth/load model",
+      "Low-end resources",
+      "Power loss",
+      "24-72h",
+      "macOS",
+      "Windows10"
+    ]
+  },
+  "editor_and_tiles": {
+    "passed": true,
+    "date": "2026-10-24T14:01:42.209035+00:00",
+    "binary_sha256": "cfdaad9a2e5dcf3f12b156e48df71a7b091571c02166d8ada78783cce76229d5",
+    "browser": {
+      "passed": true,
+      "tile_rendering": {
+        "colors": 7,
+        "overlap": 168,
+        "opaque": true,
+        "hundred_draws_ms": 6.5
+      },
+      "tests": [
+        "stable opaque pseudorandom shades follow time cells while scrolling; no short row repetition",
+        "reversed wheel direction",
+        "switching tabs during return to live clears history anchor",
+        "multiple intermediate scroll positions; settled target; bounded plot requests",
+        "parameter selection and separate calibration window",
+        "calibration zoom in/out changes both axes reversibly",
+        "calibration background pan preserves points, draft and core map",
+        "grid strokes and equal-valued ticks follow both pan axes",
+        "fit and signal-unit changes reset viewport",
+        "pointer cancellation releases calibration pan",
+        "voltage/raw view roundtrip without changing points",
+        "duplicate signal rejected",
+        "draft then save/activate",
+        "voltage points reopen correctly",
+        "1280x720 modal controls fit",
+        "point export/import with unit validation",
+        "coefficient edits isolated by cancel",
+        "external map revision preserves open editor; cancel reloads it",
+        "counter/frequency units preserved",
+        "parameter metadata edit and undo",
+        "no browser errors"
+      ],
+      "scroll_positions": 8
+    },
+    "previous_chart_interactions": {
+      "passed": true,
+      "columns": 6,
+      "initialPoints": 15,
+      "tests": [
+        "uPlot vertical tracks",
+        "single click inert",
+        "double click flag add/remove",
+        "outline cursor markers",
+        "right click add curve",
+        "30s/5min history",
+        "three parameter-panel modes",
+        "edit/save/activate calibration",
+        "no browser page errors"
+      ]
+    },
+    "independent_checks": [
+      "voltage points persisted as exact raw codes",
+      "interpreter result checked against independent formula",
+      "continuous synthetic ingestion; no COM access"
+    ]
+  },
+  "previous_modules": {
+    "passed": true,
+    "checks": [
+      "managed package acquisition with owned COM; control status and native port enumeration",
+      "browser wiring/disable/re-enable/fanout and settings apply without process restart",
+      "scan skips broadcast zero; interleaved acquisition; no second COM owner",
+      "full 1..100 scan remains within status bound while acquisition advances",
+      "per-address errors persist after recovery; reset preserves availability",
+      "busy destination COM rolls back to working configuration with same source process",
+      "external configuration edit is never overwritten by stale UI",
+      "validated configuration change and preserved before/after history",
+      "management requires presentation key; only FC03 observed"
+    ],
+    "browser": {
+      "passed": true,
+      "tests": [
+        "IM2480 tab follows installed package",
+        "configured module cards and outputs",
+        "pointer drag creates staged binding; Apply persists",
+        "middle-click disables without deleting calibration; snapshot clears value",
+        "click-two-port reconnect",
+        "one output fans out to several parameters",
+        "calibration points preserved",
+        "port timing settings hot-apply without process restart",
+        "module reorder preserves physical channel IDs",
+        "scan starts and cancels through source owner",
+        "per-module details",
+        "1280x720 layout",
+        "no browser errors"
+      ]
+    },
+    "source_pid_unchanged": true,
+    "binaries": {
+      "kern-core.exe": "03003292f71ae1222a5d6a27fcf292307f3b3799be7e040ce86644bf535d5293",
+      "im2480.exe": "d590c34235cdff712738f6684f0ffc64cf7f512e18da1872dd7126da4198531f",
+      "kern-charts.exe": "1b8f7c7d8e2b37f0dc7f3161bde59c90a33fd5245f14916420368867a8f072ba",
+      "kern-processor.exe": "2896565238c1f8e9e2fe96dba4cd40a0105922ef7a8c544ff1b8f8fa2317af02"
+    },
+    "scope": "Before final tile-only JS change; original hashes retained."
+  },
+  "serial_regression": {
+    "checks": [
+      "package_launch_and_real_virtual_com",
+      "independent_values_types_endianness_and_address_200",
+      "exclusive_os_and_core_port_ownership",
+      "isolated_silent",
+      "isolated_crc",
+      "isolated_address",
+      "isolated_exception",
+      "isolated_order",
+      "isolated_short",
+      "nonfinite_frequency_does_not_poison_other_channels",
+      "fragmented_serial_response",
+      "cooperative_stop_closes_source",
+      "normal_stop_releases_com",
+      "module_growth_preserves_reserved_channel_ids",
+      "busy_port_keeps_control_available_without_fake_live_source",
+      "stop_interrupts_silent_reads_within_supervisor_budget",
+      "independent_crc_reader_confirms_typed_plugin_journal"
+    ],
+    "plugin_binary": {
+      "bytes": 1196032,
+      "sha256": "d590c34235cdff712738f6684f0ffc64cf7f512e18da1872dd7126da4198531f"
+    }
+  },
+  "core_regression": {
+    "checks": [
+      "two_source_processes",
+      "stable_slots",
+      "typed_uint64",
+      "deduplication",
+      "sequence_conflict",
+      "invalid_batch",
+      "staleness_without_inputs",
+      "settings_revision",
+      "frame_bound",
+      "exclusive_profile",
+      "independent_crc_reader",
+      "restart_recovered_quality",
+      "forced_core_death",
+      "crc_corruption_refusal",
+      "recovery_copy_preserves_original",
+      "truncated_tail_preserves_original",
+      "recovery_boundary_restart",
+      "disk_failure_status_responsive"
+    ],
+    "rust_source_sha256": "418b65bbe4e8723b77341c89c7c56633a2221ea2ff170f85b9cc6006b1997847",
+    "deterministic_batches": 27,
+    "deterministic_samples": 459
+  },
+  "previous_pipeline": {
+    "passed": true,
+    "tests": [
+      "raw -> historical map -> independently verified 0/0.5/1; duplicate input",
+      "backlog uses historical revision; activation boundary; stale map/tampered result rejected",
+      "uPlot bridge history; no key/cross-origin rejection; screen stop leaves ingestion",
+      "independent CSV/backup CRC readers; consumer restart without duplicate rows",
+      "forced core termination preserves confirmed prefix; recovered values are not fresh",
+      "restore into empty profile solely from backup; exact independent event comparison"
+    ]
+  },
+  "controlled_upgrade": {
+    "passed": true,
+    "offline_checkpoint": true,
+    "recorder_prefixes_drained": true,
+    "working_config_and_calibration_unchanged": true,
+    "old_raw_prefix_preserved": true,
+    "intake_resumed": true,
+    "processor_caught_up": true,
+    "core_boot_seconds": 1.828
+  },
+  "final_charts_replacement": {
+    "passed": true,
+    "only_charts_replaced": true,
+    "other_pids_preserved": true,
+    "core_endpoint_preserved": true,
+    "map_and_config_preserved": true,
+    "raw_intake_advanced": true,
+    "binary_sha256": "cfdaad9a2e5dcf3f12b156e48df71a7b091571c02166d8ada78783cce76229d5"
+  },
+  "live_read_only": {
+    "passed": true,
+    "modules": 5,
+    "channels": 30,
+    "all_values_fresh": true,
+    "acquisition_advances": true,
+    "browser_errors": [],
+    "read_only": true,
+    "catalog_parameters": 81,
+    "builtin_presets": 7,
+    "opening_presets_preserves_map": true
+  },
+  "limits": [
+    "Catalog and preset screen are built into the charts host; no general plugin-tab/catalog SDK.",
+    "Sensor calibrations are not supplied as field-verified defaults; depth inputs initially manual.",
+    "Windowed depth rate is not interval mechanical ROP with operation recognition.",
+    "Core and processor share bounded standard operations; not arbitrary heavy interpreter code in core.",
+    "Custom template library and IM2480 line history are not yet in JSONL backup; active calibration maps are.",
+    "UTC receipt time for graph ages/windows; backward clock resets windows. Monotonic core source freshness remains.",
+    "Mock-canvas timing is not a GPU or weak-machine benchmark.",
+    "No physical sensor, Windows 10, macOS, low-end machine, power-loss or 24-72h acceptance."
+  ]
+}

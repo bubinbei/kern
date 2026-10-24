@@ -1,6 +1,6 @@
 # Parameter catalog, presets and calculations
 
-Status: proposal for the next stage, 2026-10-24. The catalog, presets and calculation graph are not implemented. The current prototype has an individual parameter editor and linear-v1 maps: one raw channel, piecewise-linear calibration, up to 32 parameters. Importing a map is not a preset library. This document states independent KERN requirements; existing external profiles and implementations are not imported.
+Status: target design dated 2026-10-24, partially implemented by catalogs/presets and graph-v1. Current capabilities and precise limits: [PARAMETERS](PARAMETERS.md), with 81 definitions, seven presets, up to 128 parameters/48 KiB, predefined calculations and bounded rate windows. Further requirements here (SDK, arbitrary expressions, automatic depth/operation accounting and third-party checkpoints) are not implemented. Existing external profiles and implementations are not imported.
 
 ## Three operator concepts
 

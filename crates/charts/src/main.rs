@@ -1,5 +1,6 @@
 //! Local-only, capability-limited web presentation host. Never serves core IPC tokens.
 mod im2480_web;
+mod parameter_library;
 use kern_protocol::*;
 use std::{
     fs::{self, OpenOptions},
@@ -16,6 +17,7 @@ use std::{
 const HTML: &[u8] = include_bytes!("../web/index.html");
 const JS: &[u8] = include_bytes!("../web/app.js");
 const PARAMETER_SETTINGS: &[u8] = include_bytes!("../web/parameter-settings.js");
+const PARAMETER_LIBRARY: &[u8] = include_bytes!("../web/parameter-library.js");
 const IM2480_UI: &[u8] = include_bytes!("../web/im2480.js");
 const CSS: &[u8] = include_bytes!("../web/app.css");
 const UPLOT: &[u8] = include_bytes!("../../../third_party/uplot-1.6.32/uPlot.iife.min.js");
@@ -93,6 +95,7 @@ fn handle(
             "/parameter-settings.js" => {
                 Some(("text/javascript; charset=utf-8", PARAMETER_SETTINGS))
             }
+            "/parameter-library.js" => Some(("text/javascript; charset=utf-8", PARAMETER_LIBRARY)),
             "/app.css" => Some(("text/css", CSS)),
             "/uplot.js" => Some(("text/javascript", UPLOT)),
             "/uplot.css" => Some(("text/css", UPLOT_CSS)),
@@ -102,14 +105,6 @@ fn handle(
             return respond(s, "200 OK", kind, data);
         }
     }
-    if headers.get("x-kern-key").copied() != Some(key) {
-        return respond(
-            s,
-            "403 Forbidden",
-            "text/plain",
-            b"presentation key required",
-        );
-    }
     let length = headers
         .get("content-length")
         .map_or(Ok(0), |v| v.parse::<usize>().map_err(io::Error::other))?;
@@ -118,6 +113,32 @@ fn handle(
     }
     let mut body = vec![0; length];
     s.read_exact(&mut body)?;
+    // Drain the bounded body before rejecting: unread bytes cause a TCP reset on Windows.
+    if headers.get("x-kern-key").copied() != Some(key) {
+        return respond(
+            s,
+            "403 Forbidden",
+            "text/plain",
+            b"presentation key required",
+        );
+    }
+
+    if (method == "GET" && path == "/api/parameter-library")
+        || (method == "POST" && path == "/api/parameter-presets")
+    {
+        let result = if method == "GET" {
+            parameter_library::catalog(profile)
+        } else {
+            parameter_library::command(profile, &body)
+        };
+        let result=result.unwrap_or_else(|e|serde_json::json!({"result":"error","code":"parameter_library","message":e.to_string()}));
+        return respond(
+            s,
+            "200 OK",
+            "application/json; charset=utf-8",
+            &serde_json::to_vec(&result)?,
+        );
+    }
     if (method == "GET" && path == "/api/im2480/status")
         || (method == "POST" && path == "/api/im2480/command")
     {
@@ -343,6 +364,40 @@ mod tests {
         assert_eq!(&response[split + 4..], HTML);
     }
 
+    #[test]
+    fn unauthenticated_post_receives_403_without_an_unread_body_reset() {
+        for _ in 0..8 {
+            let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+            let address = listener.local_addr().unwrap();
+            let server = thread::spawn(move || {
+                let (mut s, _) = listener.accept().unwrap();
+                let e = Endpoint {
+                    version: VERSION,
+                    address,
+                    token: String::new(),
+                    pid: 0,
+                };
+                handle(
+                    &mut s,
+                    &e,
+                    "test",
+                    &address.to_string(),
+                    std::path::Path::new("."),
+                )
+                .unwrap();
+            });
+            let mut client = TcpStream::connect(address).unwrap();
+            client
+                .set_read_timeout(Some(Duration::from_secs(5)))
+                .unwrap();
+            let body = "x".repeat(4096);
+            write!(client,"POST /api/im2480/command HTTP/1.1\r\nHost: {address}\r\nContent-Length: {}\r\n\r\n{body}",body.len()).unwrap();
+            let mut response = String::new();
+            client.read_to_string(&mut response).unwrap();
+            server.join().unwrap();
+            assert!(response.starts_with("HTTP/1.1 403 Forbidden\r\n"));
+        }
+    }
     #[test]
     fn plain_text_error_declares_utf8_and_preserves_bytes() {
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();

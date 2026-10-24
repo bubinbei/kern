@@ -20,15 +20,15 @@ function updateMapState(){
 function updateParameterSelection(){
  const selected=selectedParameter>=0&&selectedParameter<parameterDraft.parameters.length;
  for(const id of ['editParam','removeParam','calibrateParam'])$('#'+id).disabled=!selected;
- $('#undoParam').disabled=parameterUndo.length===0;
+ $('#undoParam').disabled=parameterUndo.length===0;const p=parameterDraft.parameters[selectedParameter];$('#calibrateParam').textContent=p?.provider?'Настроить…':'Калибровка…';
  $$('#mapRows tr').forEach((row,index)=>{row.classList.toggle('selected',index===selectedParameter);row.setAttribute('aria-selected',String(index===selectedParameter));});
 }
 function renderMaps(){
  const root=$('#mapRows');root.replaceChildren();
  parameterDraft.parameters.forEach((p,i)=>{
   const row=element('tr');row.tabIndex=0;row.setAttribute('role','row');row.dataset.index=i;
-  for(const text of [i+1,p.name,p.unit,inputChannel(p)?.name||`${p.source} · #${p.channel}`,'—','—',`${fmt(p.min)} … ${fmt(p.max)}`])row.append(element('td','',text));
-  row.children[1].style.color=p.color;row.children[4].className='signalCell';row.children[5].className='valueCell';
+  for(const text of [i+1,p.name,p.unit,(p.provider?providerName(p):providerLabel(p)),'—','—',`${fmt(p.min)} … ${fmt(p.max)}`])row.append(element('td','',text));
+  row.append(element('td','readinessCell',parameterReadiness(p)));row.children[3].title=providerLabel(p);row.children[1].style.color=p.color;row.children[4].className='signalCell';row.children[5].className='valueCell';
   row.onclick=()=>{selectedParameter=i;updateParameterSelection();};
   row.ondblclick=()=>{selectedParameter=i;updateParameterSelection();edit(i);};
   row.onkeydown=e=>{if(e.key==='Enter'){selectedParameter=i;updateParameterSelection();edit(i);}else if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();selectedParameter=Math.max(0,Math.min(parameterDraft.parameters.length-1,i+(e.key==='ArrowDown'?1:-1)));updateParameterSelection();root.children[selectedParameter]?.focus();}};
@@ -36,26 +36,31 @@ function renderMaps(){
  });updateParameterSelection();updateParameterLive();
 }
 function updateParameterLive(){
- if(tab==='calibration') $$('#mapRows tr').forEach((row,i)=>{const p=parameterDraft.parameters[i],raw=signalNow(p),kind=signalKind(p);row.querySelector('.signalCell').textContent=raw==null?'—':fmt(signalValue(raw,kind))+' '+signalUnit(kind);const v=current(p.id);row.querySelector('.valueCell').textContent=fmt(v?.value);row.querySelector('.valueCell').style.color=v?.quality==='good'?p.color:'var(--muted)';});
+ if(tab==='calibration') $$('#mapRows tr').forEach((row,i)=>{const p=parameterDraft.parameters[i],raw=signalNow(p),kind=signalKind(p);row.querySelector('.signalCell').textContent=p.provider||raw==null?'—':fmt(signalValue(raw,kind))+' '+signalUnit(kind);row.querySelector('.readinessCell').textContent=parameterReadiness(p);const v=current(p.id),active=map.parameters.find(d=>d.id===p.id),signature=v=>JSON.stringify([v.source,v.channel,v.points,v.provider,v.enabled!==false]),same=active&&signature(active)===signature(p);row.querySelector('.valueCell').textContent=same?fmt(v?.value):'—';row.querySelector('.readinessCell').title=parameterReadiness(p);row.querySelector('.valueCell').style.color=v?.quality==='good'?p.color:'var(--muted)';});
  if(calibrationDraft){const p=calibrationDraft.parameter,raw=signalNow(p);$('#calibrationLive').textContent=`Сигнал сейчас: ${raw==null?'—':fmt(signalValue(raw,calibrationDraft.kind))+' '+signalUnit(calibrationDraft.kind)} · ${fmt(current(p.id)?.value)} ${p.unit}`;$('#captureSignal').disabled=raw==null;}
 }
 function edit(index){
  if(applyingParameters)return;editing=index;
- const p=index>=0?parameterDraft.parameters[index]:{id:'parameter-'+Date.now().toString(36),name:'Новый параметр',source:snapshot.sources[0]?.id||'im2480',channel:0,unit:'ед.',min:0,max:100,color:'#fabd2f',points:[{raw:0,value:0},{raw:65535,value:100}],extrapolate:false};
+ const p=index>=0?parameterDraft.parameters[index]:{id:'parameter-'+Date.now().toString(36),name:'Новый параметр',source:'unassigned',channel:0,enabled:false,unit:'ед.',min:0,max:100,color:'#fabd2f',points:[],extrapolate:false};
  const root=$('#editFields');root.replaceChildren();
  for(const [id,label,type,value] of [['name','Название','text',p.name],['unit','Единица','text',p.unit],['source','Источник','text',p.source],['channel','Канал','number',p.channel],['min','Минимум шкалы','number',p.min],['max','Максимум шкалы','number',p.max],['color','Цвет','color',p.color],['id','ID параметра','text',p.id]]){
   const l=element('label','',label),input=element('input');input.id='edit-'+id;input.type=type;input.value=value;if(type==='number')input.step='any';if((id==='id'||id==='unit')&&index>=0)input.disabled=true;l.append(input);root.append(l);
  }
+ const sourceChoices=element('datalist');sourceChoices.id='parameterSourceChoices';for(const source of snapshot.sources)sourceChoices.append(new Option(source.id,source.id));root.append(sourceChoices);$('#edit-source').setAttribute('list',sourceChoices.id);
+ const channelChoices=element('datalist');channelChoices.id='parameterChannelChoices';root.append(channelChoices);$('#edit-channel').setAttribute('list',channelChoices.id);
+ const channels=()=>channelChoices.replaceChildren(...(snapshot.sources.find(s=>s.id===$('#edit-source').value)?.channels||[]).map(c=>{const option=new Option(c.name,String(c.id));option.label=c.name;return option;}));$('#edit-source').oninput=channels;channels();
+ const readProvider=configureProviderEditor(p,root);
  $('#editTitle').textContent=index<0?'Добавить параметр':'Параметр · '+p.name;$('#editError').textContent='';$('#editor').showModal();
- $('#acceptEdit').onclick=e=>{e.preventDefault();try{
+ $('#acceptEdit').onclick=async e=>{e.preventDefault();$('#editor').inert=true;try{
   const get=id=>$('#edit-'+id).value,channel=numberInput(get('channel'));
   const result={...p,id:get('id').trim(),name:get('name').trim(),source:get('source').trim(),channel,unit:get('unit').trim(),color:get('color'),min:numberInput(get('min')),max:numberInput(get('max'))};
   if(!/^[A-Za-z0-9_.-]{1,64}$/.test(result.id)||!/^[A-Za-z0-9_.-]{1,64}$/.test(result.source)||!result.name||!Number.isInteger(channel)||channel<0||channel>=100||result.min>=result.max)throw Error('Проверьте название, источник, канал 0–99 и шкалу');
-  if(index<0&&parameterDraft.parameters.length>=32)throw Error('В прототипе не более 32 параметров');
+  if(index<0&&parameterDraft.parameters.length>=128)throw Error('Не более 128 параметров');
   if(index<0&&parameterDraft.parameters.some(v=>v.id===result.id))throw Error('Этот ID уже занят');
+  readProvider(result);const next=cloneMap(parameterDraft);if(index<0)next.parameters.push(result);else next.parameters[index]=result;await api('parameter-presets',{action:'check_map',map:normalizeParameterMap(next)});if(!$('#editor').open)return;
   checkpointParameters();if(index<0){parameterDraft.parameters.push(result);selectedParameter=parameterDraft.parameters.length-1;}else parameterDraft.parameters[index]=result;
   changedParameters();$('#editor').close();
- }catch(error){$('#editError').textContent=error.message;}};
+ }catch(error){$('#editError').textContent=error.message;}finally{$('#editor').inert=false;}};
 }
 function validatePoints(points,kind){
  if(points.length<2||points.length>32)throw Error('Нужно от 2 до 32 точек');
@@ -67,7 +72,8 @@ function validatePoints(points,kind){
 }
 function calibrationPoints(){
  const p=parameterDraft.parameters[selectedParameter];if(!p)return;
- calibrationDraft={parameter:cloneMap(p),points:cloneMap(p.points),kind:signalKind(p),view:null};selectedPoint=0;
+ if(p.provider){edit(selectedParameter);return;}
+ calibrationDraft={parameter:cloneMap(p),points:p.points.length?cloneMap(p.points):[{raw:NaN,value:NaN},{raw:NaN,value:NaN}],kind:signalKind(p),view:null};selectedPoint=0;
  $('#calibrationTitle').textContent='Точки калибровки · '+p.name;$('#parameterColumn').textContent='Значение, '+p.unit;
  const select=$('#signalView');select.replaceChildren();const kind=calibrationDraft.kind;
  select.append(new Option(signalUnit(kind),kind));if(kind==='volts')select.append(new Option('Сырой код','raw'));
@@ -154,11 +160,11 @@ function drawCalibration(){
 }
 function setupParameterSettings(){
  $('#newParam').onclick=()=>edit(-1);$('#editParam').onclick=()=>edit(selectedParameter);
- $('#removeParam').onclick=()=>{if(selectedParameter<0)return;checkpointParameters();parameterDraft.parameters.splice(selectedParameter,1);selectedParameter=Math.min(selectedParameter,parameterDraft.parameters.length-1);changedParameters();};
+ $('#removeParam').onclick=()=>{if(selectedParameter<0)return;const id=parameterDraft.parameters[selectedParameter].id,used=parameterDraft.parameters.find(p=>parameterInputs(p).includes(id));if(used){note('Используется в расчёте «'+used.name+'». Сначала измените его входы.');return;}checkpointParameters();parameterDraft.parameters.splice(selectedParameter,1);selectedParameter=Math.min(selectedParameter,parameterDraft.parameters.length-1);changedParameters();};
  $('#undoParam').onclick=()=>{if(!parameterUndo.length)return;parameterDraft=parameterUndo.pop();selectedParameter=Math.min(selectedParameter,parameterDraft.parameters.length-1);changedParameters();};
  $('#calibrateParam').onclick=calibrationPoints;
  $('#reloadMap').onclick=async()=>{try{const c=await api('calibration');map=c.map;revision=c.revision;activeRevision=c.active_revision;dirty=false;resetParameterDraft();layout();updateMapState();}catch(e){note(e.message);}};
- $('#saveMap').onclick=async()=>{if(applyingParameters)return;applyingParameters=true;const button=$('#saveMap');button.disabled=true;$('.parameterWorkspace').inert=true;$('#reloadMap').disabled=true;try{const submitted=cloneMap(parameterDraft);await api('calibration',{expected_revision:revision,map:submitted});dirty=false;revision=-1;note('Карты сохранены; ожидается применение интерпретатором');await refresh();}catch(e){note(e.message);}finally{applyingParameters=false;$('.parameterWorkspace').inert=false;$('#reloadMap').disabled=false;updateMapState();}};
+ $('#saveMap').onclick=async()=>{if(applyingParameters)return;applyingParameters=true;const button=$('#saveMap');button.disabled=true;$('.parameterWorkspace').inert=true;$('#reloadMap').disabled=true;try{const submitted=normalizeParameterMap(cloneMap(parameterDraft));await api('calibration',{expected_revision:revision,map:submitted});dirty=false;revision=-1;note('Карты сохранены; ожидается применение интерпретатором');await refresh();}catch(e){note(e.message);}finally{applyingParameters=false;$('.parameterWorkspace').inert=false;$('#reloadMap').disabled=false;updateMapState();}};
  const close=()=>$('#calibrationDialog').close();$('#closeCalibration').onclick=close;$('#cancelCalibration').onclick=close;$('#calibrationDialog').addEventListener('close',()=>{endCalibrationPan();cancelAnimationFrame(calibrationFrame);calibrationFrame=0;calibrationGeometry=null;calibrationDraft=null;});
  $('#signalView').onchange=e=>{endCalibrationPan();calibrationDraft.kind=e.target.value;calibrationDraft.view=null;renderPoints();updateParameterLive();};
  $('#addPoint').onclick=()=>{const points=calibrationDraft.points;if(points.length>=32)return;const sorted=points.filter(p=>Number.isFinite(p.raw)).slice().sort((a,b)=>a.raw-b.raw);let raw=0,value=0;
@@ -167,7 +173,7 @@ function setupParameterSettings(){
  $('#removePoint').onclick=()=>{if(calibrationDraft.points.length<=2)return;calibrationDraft.points.splice(selectedPoint,1);selectedPoint=Math.min(selectedPoint,calibrationDraft.points.length-1);renderPoints();};
  $('#captureSignal').onclick=()=>{const raw=signalNow(calibrationDraft.parameter);if(raw==null)return;calibrationDraft.points[selectedPoint].raw=raw;renderPoints();};
  $('#multiplyPoints').onclick=()=>{try{const factor=numberInput($('#pointFactor').value);if(!calibrationDraft.points.every(p=>Number.isFinite(p.value*factor)))throw Error('Некорректный коэффициент');for(const p of calibrationDraft.points)p.value*=factor;renderPoints();}catch(e){$('#calibrationError').textContent=e.message;}};
- $('#acceptCalibration').onclick=()=>{try{const points=validatePoints(calibrationDraft.points,signalKind(calibrationDraft.parameter));checkpointParameters();const p=parameterDraft.parameters[selectedParameter];p.points=points;p.extrapolate=$('#calibrationExtrapolate').checked;changedParameters();close();}catch(e){$('#calibrationError').textContent=e.message;}};
+ $('#acceptCalibration').onclick=()=>{try{const points=validatePoints(calibrationDraft.points,signalKind(calibrationDraft.parameter));checkpointParameters();const p=parameterDraft.parameters[selectedParameter];const unconfigured=p.points.length<2;p.points=points;if(unconfigured&&p.source!=='unassigned')p.enabled=true;p.extrapolate=$('#calibrationExtrapolate').checked;changedParameters();close();}catch(e){$('#calibrationError').textContent=e.message;}};
  $('#exportPoints').onclick=()=>{try{const points=validatePoints(calibrationDraft.points,signalKind(calibrationDraft.parameter)),payload={format:'kern-calibration-points-v1',unit:calibrationDraft.parameter.unit,points,extrapolate:$('#calibrationExtrapolate').checked};const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'})),link=element('a');link.href=url;link.download='kern-calibration-'+calibrationDraft.parameter.id+'.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}catch(e){$('#calibrationError').textContent=e.message;}};
  $('#importPoints').onclick=()=>{$('#pointsFile').value='';$('#pointsFile').click();};
  $('#pointsFile').onchange=async e=>{try{const file=e.target.files[0];if(!file)return;if(file.size>65536)throw Error('Файл больше 64 КиБ');const v=JSON.parse(await file.text());if(v.format!=='kern-calibration-points-v1'||v.unit!==calibrationDraft.parameter.unit||!Array.isArray(v.points)||typeof v.extrapolate!=='boolean')throw Error('Неверный формат или единица параметра');calibrationDraft.points=validatePoints(v.points,signalKind(calibrationDraft.parameter));$('#calibrationExtrapolate').checked=v.extrapolate;selectedPoint=0;$('#calibrationError').textContent='';renderPoints();}catch(error){$('#calibrationError').textContent=error.message;}};

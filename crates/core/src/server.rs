@@ -315,6 +315,17 @@ pub fn serve(
                 Request::Calibration => {
                     let _ = reply.send(state.calibration());
                 }
+                Request::ProcessingContext { position } => {
+                    let response = if position == state.processor_position {
+                        Reply::ProcessingContext {
+                            position,
+                            context: state.processing_context.clone(),
+                        }
+                    } else {
+                        Reply::error("position_conflict", "Interpreter context position changed")
+                    };
+                    let _ = reply.send(response);
+                }
                 Request::CalibrationAt { revision } => {
                     let response = state
                         .maps

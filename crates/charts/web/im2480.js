@@ -34,13 +34,13 @@ function imPortNode(side,id){return [...document.querySelectorAll(side==='input'
 function drawIMWires(){
  const board=$('#imBoard'),svg=$('#imWires');if(!imMap||tab!=='modules')return;svg.replaceChildren();svg.setAttribute('viewBox',`0 0 ${board.clientWidth} ${board.scrollHeight}`);
  const wire=(a,b,color,dashed=false)=>{const path=document.createElementNS('http://www.w3.org/2000/svg','path'),dx=(b.x-a.x)*.45;path.setAttribute('d',`M${a.x},${a.y} C${a.x+dx},${a.y} ${b.x-dx},${b.y} ${b.x},${b.y}`);path.setAttribute('stroke',color);path.setAttribute('fill','none');path.setAttribute('stroke-width','2');if(dashed)path.setAttribute('stroke-dasharray','5 4');svg.append(path);};
- for(const p of imMap.parameters){if(p.enabled===false||p.source!==imSource())continue;const a=imPortNode('input',p.id),b=imPortNode('output',p.channel);if(a&&b)wire(imPoint(a),imPoint(b),p.channel%6===3?'#fb4934':imColors[Math.floor(p.channel/6)%imColors.length]);}
+ for(const p of imMap.parameters){if(p.provider||p.source!==imSource()||(p.enabled===false&&p.points.length>=2))continue;const a=imPortNode('input',p.id),b=imPortNode('output',p.channel);if(a&&b)wire(imPoint(a),imPoint(b),p.channel%6===3?'#fb4934':imColors[Math.floor(p.channel/6)%imColors.length],p.enabled===false);}
  if(imDrag?.moved){const node=imPortNode(imDrag.side,imDrag.id);if(node){const rect=board.getBoundingClientRect();wire(imPoint(node),{x:imDrag.mx-rect.left,y:imDrag.my-rect.top},'#fabd2f',true);}}
 }
 function scheduleIMWires(){if(!imWireFrame)imWireFrame=requestAnimationFrame(()=>{imWireFrame=0;drawIMWires();});}
 function imMarkChanged(){imMapDirty=true;imTopology='';renderIMBoard();$('#imApply').disabled=!imData?.running;$('#imDirty').textContent='Есть изменения схемы';}
-function connectIM(a,b){if(a.side===b.side)return;const input=a.side==='input'?a:b,output=a.side==='output'?a:b,p=imMap.parameters.find(p=>p.id===input.id);if(!p)return;p.source=imSource();p.channel=Number(output.id);p.enabled=true;imSelection=null;imMarkChanged();}
-function unlinkIM(side,id){if(!imMap)return;for(const p of imMap.parameters)if(side==='input'?p.id===id:p.source===imSource()&&p.channel===Number(id))p.enabled=false;imSelection=null;imMarkChanged();}
+function connectIM(a,b){if(a.side===b.side)return;const input=a.side==='input'?a:b,output=a.side==='output'?a:b,p=imMap.parameters.find(p=>p.id===input.id);if(!p)return;p.source=imSource();p.channel=Number(output.id);p.enabled=p.points.length>=2;if(!p.enabled)imNote('Канал назначен. Задайте точки калибровки в настройке параметра.');imSelection=null;imMarkChanged();}
+function unlinkIM(side,id){if(!imMap)return;for(const p of imMap.parameters)if(side==='input'?p.id===id:p.source===imSource()&&p.channel===Number(id)){p.enabled=false;if(!p.points.length)p.source='unassigned';}imSelection=null;imMarkChanged();}
 function makeIMPort(side,id){
  const button=element('button','imPort');button.type='button';button.disabled=imBusy;button.setAttribute('aria-label',`${side==='input'?'Вход':'Выход'} ${id}`);button.dataset[side==='input'?'imInput':'imOutput']=String(id);if(imSelection?.side===side&&imSelection.id===id)button.classList.add('chosen');
  button.onclick=()=>{if(performance.now()<imIgnoreClick||imBusy)return;const selected={side,id};if(imSelection&&imSelection.side!==side)connectIM(imSelection,selected);else{imSelection=selected;$$('.imPort').forEach(e=>e.classList.remove('chosen'));button.classList.add('chosen');}};
@@ -53,7 +53,7 @@ function makeIMPort(side,id){
 }
 function renderIMBoard(){
  if(!imMap)return;const inputs=$('#imInputs'),devices=$('#imDevices');inputs.replaceChildren();devices.replaceChildren();
- const ordered=imMap.parameters.map((p,index)=>({p,index})).sort((a,b)=>Number(b.p.channel%6===3)-Number(a.p.channel%6===3));
+ const ordered=imMap.parameters.map((p,index)=>({p,index})).filter(({p})=>!p.provider).sort((a,b)=>Number(b.p.channel%6===3)-Number(a.p.channel%6===3));
  for(const {p,index} of ordered){const row=element('div','imInputRow'),text=element('div');text.append(element('span','',`#${String(index).padStart(2,'0')} · ${p.name}`),element('small','',p.enabled===false?'Не подключён':p.source===imSource()?imBindingLabel(p):`${p.source} · #${p.channel}`));row.append(text,makeIMPort('input',p.id));inputs.append(row);}
  if(!ordered.length)inputs.append(element('p','muted','Добавьте параметры на экране настройки.'));
  for(const m of imConfigured()){

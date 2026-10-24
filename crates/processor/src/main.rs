@@ -1,5 +1,5 @@
 //! Separate calculation process. Persisted inputs and revisions are the only source of results.
-use kern_engine::{calibration, state::Event};
+use kern_engine::{calibration, processing, state::Event};
 use kern_protocol::*;
 use std::{
     collections::BTreeMap,
@@ -63,9 +63,16 @@ fn run() -> io::Result<()> {
     });
     let mut maps = BTreeMap::new();
     maps.insert(0, CalibrationMap::default());
+    let mut orders = BTreeMap::new();
+    orders.insert(0, Vec::new());
     // Resume after the durable position; immutable historical maps are fetched on demand.
     let mut cursor = position;
     let mut position = position;
+    let Reply::ProcessingContext { mut context, .. } =
+        request(&e, Request::ProcessingContext { position })?
+    else {
+        return Err(io::Error::other("Processing context unavailable"));
+    };
     while !stop.load(Ordering::Acquire) {
         if matches!(
             request(
@@ -103,11 +110,14 @@ fn run() -> io::Result<()> {
             let event: Event = serde_json::from_value(record.data).map_err(io::Error::other)?;
             match event {
                 Event::CalibrationSaved { revision, map } => {
+                    calibration::validate(&map).map_err(io::Error::other)?;
+                    orders.insert(revision, processing::order(&map).map_err(io::Error::other)?);
                     maps.insert(revision, map);
                 }
                 Event::BatchStored {
                     batch,
                     calibration_revision,
+                    received_unix_ms,
                     ..
                 } if record.sequence > position => {
                     if let std::collections::btree_map::Entry::Vacant(entry) =
@@ -128,12 +138,30 @@ fn run() -> io::Result<()> {
                             ));
                         }
                         calibration::validate(&map).map_err(io::Error::other)?;
+                        orders.insert(revision, processing::order(&map).map_err(io::Error::other)?);
                         entry.insert(map);
                     }
                     let map = maps
                         .get(&calibration_revision)
                         .ok_or_else(|| io::Error::other("Historical map absent"))?;
-                    let values = calibration::convert(map, &batch);
+                    let values = processing::evaluate_ordered(
+                        map,
+                        &batch,
+                        received_unix_ms,
+                        &context,
+                        calibration_revision,
+                        &orders[&calibration_revision],
+                    );
+                    let committed = ParameterBatch {
+                        raw_event: record.sequence,
+                        revision: calibration_revision,
+                        source: batch.source.clone(),
+                        source_session: batch.session,
+                        source_sequence: batch.sequence,
+                        measured_unix_ms: batch.measured_unix_ms,
+                        received_unix_ms,
+                        values: values.clone(),
+                    };
                     match request(
                         &e,
                         Request::PublishParameters {
@@ -143,7 +171,10 @@ fn run() -> io::Result<()> {
                             values,
                         },
                     )? {
-                        Reply::Durable { .. } => position = record.sequence,
+                        Reply::Durable { .. } => {
+                            position = record.sequence;
+                            processing::advance(&mut context, map, &committed);
+                        }
                         other => {
                             return Err(io::Error::other(format!("Result rejected: {other:?}")));
                         }

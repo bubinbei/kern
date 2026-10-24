@@ -1,0 +1,2098 @@
+{
+  "schema": 1,
+  "entries": [
+    {
+      "group": "Технология",
+      "description": "",
+      "parameter": {
+        "id": "weight",
+        "name": "Вес на крюке",
+        "unit": "т",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 200,
+        "color": "#d3869b",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Технология",
+      "description": "",
+      "parameter": {
+        "id": "pressure",
+        "name": "Давление на входе",
+        "unit": "атм",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 400,
+        "color": "#fe8019",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Технология",
+      "description": "",
+      "parameter": {
+        "id": "torque",
+        "name": "Крутящий момент",
+        "unit": "кН·м",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 50,
+        "color": "#b8bb26",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Технология",
+      "description": "",
+      "parameter": {
+        "id": "rotation",
+        "name": "Обороты ротора",
+        "unit": "об/мин",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 250,
+        "color": "#83a598",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Технология",
+      "description": "",
+      "parameter": {
+        "id": "position",
+        "name": "Положение талевого блока",
+        "unit": "м",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 50,
+        "color": "#fabd2f",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Технология",
+      "description": "",
+      "parameter": {
+        "id": "pressure_annulus",
+        "name": "Давление в затрубье",
+        "unit": "атм",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#8ec07c",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Глубина и скорости",
+      "description": "",
+      "parameter": {
+        "id": "hole_depth",
+        "name": "Глубина забоя",
+        "unit": "м",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 10000,
+        "color": "#d3869b",
+        "extrapolate": false,
+        "enabled": true,
+        "provider": {
+          "kind": "manual",
+          "value": null
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Глубина и скорости",
+      "description": "",
+      "parameter": {
+        "id": "tool_depth",
+        "name": "Глубина инструмента",
+        "unit": "м",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 10000,
+        "color": "#fe8019",
+        "extrapolate": false,
+        "enabled": true,
+        "provider": {
+          "kind": "manual",
+          "value": null
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Технология",
+      "description": "",
+      "parameter": {
+        "id": "free_weight",
+        "name": "Свободный вес колонны",
+        "unit": "т",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 200,
+        "color": "#b8bb26",
+        "extrapolate": false,
+        "enabled": true,
+        "provider": {
+          "kind": "manual",
+          "value": null
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Глубина и скорости",
+      "description": "",
+      "parameter": {
+        "id": "off_bottom",
+        "name": "Высота над забоем",
+        "unit": "м",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": -10000,
+        "max": 10000,
+        "color": "#83a598",
+        "extrapolate": false,
+        "enabled": true,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "hole_depth",
+            "tool_depth"
+          ],
+          "operation": {
+            "op": "difference"
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Технология",
+      "description": "",
+      "parameter": {
+        "id": "load",
+        "name": "Нагрузка на долото",
+        "unit": "т",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": -50,
+        "max": 50,
+        "color": "#fabd2f",
+        "extrapolate": false,
+        "enabled": true,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "free_weight",
+            "weight",
+            "off_bottom"
+          ],
+          "operation": {
+            "op": "weight_on_bit",
+            "max_off_bottom": 0.5
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Глубина и скорости",
+      "description": "",
+      "parameter": {
+        "id": "drilling_rate",
+        "name": "Скорость углубления забоя",
+        "unit": "м/ч",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#8ec07c",
+        "extrapolate": false,
+        "enabled": true,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "hole_depth"
+          ],
+          "operation": {
+            "op": "rate",
+            "window_seconds": 60,
+            "per_hour": true,
+            "positive_only": true
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Глубина и скорости",
+      "description": "",
+      "parameter": {
+        "id": "tripping_rate",
+        "name": "Скорость перемещения блока",
+        "unit": "м/с",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": -5,
+        "max": 5,
+        "color": "#d3869b",
+        "extrapolate": false,
+        "enabled": true,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "position"
+          ],
+          "operation": {
+            "op": "rate",
+            "window_seconds": 5,
+            "per_hour": false,
+            "positive_only": false
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Насосы",
+      "description": "",
+      "parameter": {
+        "id": "pump_strokes_1",
+        "name": "Ходы насоса 1",
+        "unit": "ход/мин",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 200,
+        "color": "#fe8019",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Насосы",
+      "description": "",
+      "parameter": {
+        "id": "pump_flow_1",
+        "name": "Расход насоса 1",
+        "unit": "л/с",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 60,
+        "color": "#b8bb26",
+        "extrapolate": false,
+        "enabled": false,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "pump_strokes_1"
+          ],
+          "operation": {
+            "op": "pump_flow",
+            "liters_per_stroke": 1,
+            "efficiency": 1
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Насосы",
+      "description": "",
+      "parameter": {
+        "id": "pump_strokes_2",
+        "name": "Ходы насоса 2",
+        "unit": "ход/мин",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 200,
+        "color": "#83a598",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Насосы",
+      "description": "",
+      "parameter": {
+        "id": "pump_flow_2",
+        "name": "Расход насоса 2",
+        "unit": "л/с",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 60,
+        "color": "#fabd2f",
+        "extrapolate": false,
+        "enabled": false,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "pump_strokes_2"
+          ],
+          "operation": {
+            "op": "pump_flow",
+            "liters_per_stroke": 1,
+            "efficiency": 1
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Насосы",
+      "description": "",
+      "parameter": {
+        "id": "pump_strokes_3",
+        "name": "Ходы насоса 3",
+        "unit": "ход/мин",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 200,
+        "color": "#8ec07c",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Насосы",
+      "description": "",
+      "parameter": {
+        "id": "pump_flow_3",
+        "name": "Расход насоса 3",
+        "unit": "л/с",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 60,
+        "color": "#d3869b",
+        "extrapolate": false,
+        "enabled": false,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "pump_strokes_3"
+          ],
+          "operation": {
+            "op": "pump_flow",
+            "liters_per_stroke": 1,
+            "efficiency": 1
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Насосы",
+      "description": "",
+      "parameter": {
+        "id": "pump_strokes_total",
+        "name": "Сумма ходов насосов",
+        "unit": "ход/мин",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 600,
+        "color": "#fe8019",
+        "extrapolate": false,
+        "enabled": true,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "pump_strokes_1",
+            "pump_strokes_2",
+            "pump_strokes_3"
+          ],
+          "operation": {
+            "op": "sum"
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Раствор",
+      "description": "",
+      "parameter": {
+        "id": "flow",
+        "name": "Расход на входе",
+        "unit": "л/с",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#b8bb26",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Раствор",
+      "description": "",
+      "parameter": {
+        "id": "flow_out",
+        "name": "Расход на выходе",
+        "unit": "л/с",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#83a598",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Раствор",
+      "description": "",
+      "parameter": {
+        "id": "density_in",
+        "name": "Плотность на входе",
+        "unit": "г/см3",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 3,
+        "color": "#fabd2f",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Раствор",
+      "description": "",
+      "parameter": {
+        "id": "density_out",
+        "name": "Плотность на выходе",
+        "unit": "г/см3",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 3,
+        "color": "#8ec07c",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Раствор",
+      "description": "",
+      "parameter": {
+        "id": "density_difference",
+        "name": "Плотность · выход − вход",
+        "unit": "г/см3",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": -3,
+        "max": 3,
+        "color": "#d3869b",
+        "extrapolate": false,
+        "enabled": true,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "density_out",
+            "density_in"
+          ],
+          "operation": {
+            "op": "difference"
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Раствор",
+      "description": "",
+      "parameter": {
+        "id": "temperature_in",
+        "name": "Температура на входе",
+        "unit": "°C",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#fe8019",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Раствор",
+      "description": "",
+      "parameter": {
+        "id": "temperature_out",
+        "name": "Температура на выходе",
+        "unit": "°C",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#b8bb26",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Раствор",
+      "description": "",
+      "parameter": {
+        "id": "temperature_difference",
+        "name": "Температура · выход − вход",
+        "unit": "°C",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": -100,
+        "max": 100,
+        "color": "#83a598",
+        "extrapolate": false,
+        "enabled": true,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "temperature_out",
+            "temperature_in"
+          ],
+          "operation": {
+            "op": "difference"
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Раствор",
+      "description": "",
+      "parameter": {
+        "id": "conductivity_in",
+        "name": "Электропроводность на входе",
+        "unit": "См/м",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 20,
+        "color": "#fabd2f",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Раствор",
+      "description": "",
+      "parameter": {
+        "id": "conductivity_out",
+        "name": "Электропроводность на выходе",
+        "unit": "См/м",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 20,
+        "color": "#8ec07c",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Раствор",
+      "description": "",
+      "parameter": {
+        "id": "conductivity_difference",
+        "name": "Электропроводность · выход − вход",
+        "unit": "См/м",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": -20,
+        "max": 20,
+        "color": "#d3869b",
+        "extrapolate": false,
+        "enabled": true,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "conductivity_out",
+            "conductivity_in"
+          ],
+          "operation": {
+            "op": "difference"
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Раствор",
+      "description": "",
+      "parameter": {
+        "id": "flow_difference",
+        "name": "Разность расходов · выход − вход",
+        "unit": "л/с",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": -100,
+        "max": 100,
+        "color": "#fe8019",
+        "extrapolate": false,
+        "enabled": true,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "flow_out",
+            "flow"
+          ],
+          "operation": {
+            "op": "difference"
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "level",
+        "name": "Уровень в ёмкости 1",
+        "unit": "м",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 5,
+        "color": "#b8bb26",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "tank_volume_1",
+        "name": "Объём ёмкости 1",
+        "unit": "м3",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#83a598",
+        "extrapolate": false,
+        "enabled": false,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "level"
+          ],
+          "operation": {
+            "op": "lookup",
+            "points": []
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "level_2",
+        "name": "Уровень в ёмкости 2",
+        "unit": "м",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 5,
+        "color": "#fabd2f",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "tank_volume_2",
+        "name": "Объём ёмкости 2",
+        "unit": "м3",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#8ec07c",
+        "extrapolate": false,
+        "enabled": false,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "level_2"
+          ],
+          "operation": {
+            "op": "lookup",
+            "points": []
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "level_3",
+        "name": "Уровень в ёмкости 3",
+        "unit": "м",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 5,
+        "color": "#d3869b",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "tank_volume_3",
+        "name": "Объём ёмкости 3",
+        "unit": "м3",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#fe8019",
+        "extrapolate": false,
+        "enabled": false,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "level_3"
+          ],
+          "operation": {
+            "op": "lookup",
+            "points": []
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "level_4",
+        "name": "Уровень в ёмкости 4",
+        "unit": "м",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 5,
+        "color": "#b8bb26",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "tank_volume_4",
+        "name": "Объём ёмкости 4",
+        "unit": "м3",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#83a598",
+        "extrapolate": false,
+        "enabled": false,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "level_4"
+          ],
+          "operation": {
+            "op": "lookup",
+            "points": []
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "level_5",
+        "name": "Уровень в ёмкости 5",
+        "unit": "м",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 5,
+        "color": "#fabd2f",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "tank_volume_5",
+        "name": "Объём ёмкости 5",
+        "unit": "м3",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#8ec07c",
+        "extrapolate": false,
+        "enabled": false,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "level_5"
+          ],
+          "operation": {
+            "op": "lookup",
+            "points": []
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "level_6",
+        "name": "Уровень в ёмкости 6",
+        "unit": "м",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 5,
+        "color": "#d3869b",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "tank_volume_6",
+        "name": "Объём ёмкости 6",
+        "unit": "м3",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#fe8019",
+        "extrapolate": false,
+        "enabled": false,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "level_6"
+          ],
+          "operation": {
+            "op": "lookup",
+            "points": []
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "level_7",
+        "name": "Уровень в ёмкости 7",
+        "unit": "м",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 5,
+        "color": "#b8bb26",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "tank_volume_7",
+        "name": "Объём ёмкости 7",
+        "unit": "м3",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#83a598",
+        "extrapolate": false,
+        "enabled": false,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "level_7"
+          ],
+          "operation": {
+            "op": "lookup",
+            "points": []
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "level_8",
+        "name": "Уровень в ёмкости 8",
+        "unit": "м",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 5,
+        "color": "#fabd2f",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "tank_volume_8",
+        "name": "Объём ёмкости 8",
+        "unit": "м3",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#8ec07c",
+        "extrapolate": false,
+        "enabled": false,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "level_8"
+          ],
+          "operation": {
+            "op": "lookup",
+            "points": []
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "level_9",
+        "name": "Уровень в ёмкости 9",
+        "unit": "м",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 5,
+        "color": "#d3869b",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "tank_volume_9",
+        "name": "Объём ёмкости 9",
+        "unit": "м3",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#fe8019",
+        "extrapolate": false,
+        "enabled": false,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "level_9"
+          ],
+          "operation": {
+            "op": "lookup",
+            "points": []
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "level_10",
+        "name": "Уровень в ёмкости 10",
+        "unit": "м",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 5,
+        "color": "#b8bb26",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "tank_volume_10",
+        "name": "Объём ёмкости 10",
+        "unit": "м3",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#83a598",
+        "extrapolate": false,
+        "enabled": false,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "level_10"
+          ],
+          "operation": {
+            "op": "lookup",
+            "points": []
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "level_11",
+        "name": "Уровень в ёмкости 11",
+        "unit": "м",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 5,
+        "color": "#fabd2f",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "tank_volume_11",
+        "name": "Объём ёмкости 11",
+        "unit": "м3",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#8ec07c",
+        "extrapolate": false,
+        "enabled": false,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "level_11"
+          ],
+          "operation": {
+            "op": "lookup",
+            "points": []
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "level_12",
+        "name": "Уровень в ёмкости 12",
+        "unit": "м",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 5,
+        "color": "#d3869b",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "tank_volume_12",
+        "name": "Объём ёмкости 12",
+        "unit": "м3",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#fe8019",
+        "extrapolate": false,
+        "enabled": false,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "level_12"
+          ],
+          "operation": {
+            "op": "lookup",
+            "points": []
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "level_13",
+        "name": "Уровень в ёмкости 13",
+        "unit": "м",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 5,
+        "color": "#b8bb26",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "tank_volume_13",
+        "name": "Объём ёмкости 13",
+        "unit": "м3",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#83a598",
+        "extrapolate": false,
+        "enabled": false,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "level_13"
+          ],
+          "operation": {
+            "op": "lookup",
+            "points": []
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "level_14",
+        "name": "Уровень в ёмкости 14",
+        "unit": "м",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 5,
+        "color": "#fabd2f",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "tank_volume_14",
+        "name": "Объём ёмкости 14",
+        "unit": "м3",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#8ec07c",
+        "extrapolate": false,
+        "enabled": false,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "level_14"
+          ],
+          "operation": {
+            "op": "lookup",
+            "points": []
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "level_15",
+        "name": "Уровень в ёмкости 15",
+        "unit": "м",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 5,
+        "color": "#d3869b",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "tank_volume_15",
+        "name": "Объём ёмкости 15",
+        "unit": "м3",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#fe8019",
+        "extrapolate": false,
+        "enabled": false,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "level_15"
+          ],
+          "operation": {
+            "op": "lookup",
+            "points": []
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "level_16",
+        "name": "Уровень в ёмкости 16",
+        "unit": "м",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 5,
+        "color": "#b8bb26",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "tank_volume_16",
+        "name": "Объём ёмкости 16",
+        "unit": "м3",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#83a598",
+        "extrapolate": false,
+        "enabled": false,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "level_16"
+          ],
+          "operation": {
+            "op": "lookup",
+            "points": []
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Ёмкости",
+      "description": "",
+      "parameter": {
+        "id": "tank_volume_total",
+        "name": "Суммарный объём выбранных ёмкостей",
+        "unit": "м3",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 500,
+        "color": "#fabd2f",
+        "extrapolate": false,
+        "enabled": true,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "tank_volume_1",
+            "tank_volume_2",
+            "tank_volume_3",
+            "tank_volume_4",
+            "tank_volume_5"
+          ],
+          "operation": {
+            "op": "sum"
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Газ",
+      "description": "",
+      "parameter": {
+        "id": "gas_c1",
+        "name": "Компонент C1 · абсолютный",
+        "unit": "%",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#8ec07c",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Газ",
+      "description": "",
+      "parameter": {
+        "id": "gas_c2",
+        "name": "Компонент C2 · абсолютный",
+        "unit": "%",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#d3869b",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Газ",
+      "description": "",
+      "parameter": {
+        "id": "gas_c3",
+        "name": "Компонент C3 · абсолютный",
+        "unit": "%",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#fe8019",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Газ",
+      "description": "",
+      "parameter": {
+        "id": "gas_c4",
+        "name": "Компонент C4 · абсолютный",
+        "unit": "%",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#b8bb26",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Газ",
+      "description": "",
+      "parameter": {
+        "id": "gas_c5",
+        "name": "Компонент C5 · абсолютный",
+        "unit": "%",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#83a598",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Газ",
+      "description": "",
+      "parameter": {
+        "id": "gas_c6",
+        "name": "Компонент C6 · абсолютный",
+        "unit": "%",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#fabd2f",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Газ",
+      "description": "",
+      "parameter": {
+        "id": "gas_total",
+        "name": "Сумма компонентов C1–C6",
+        "unit": "%",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#8ec07c",
+        "extrapolate": false,
+        "enabled": true,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "gas_c1",
+            "gas_c2",
+            "gas_c3",
+            "gas_c4",
+            "gas_c5",
+            "gas_c6"
+          ],
+          "operation": {
+            "op": "sum"
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Газ",
+      "description": "",
+      "parameter": {
+        "id": "gas_c1_relative",
+        "name": "Компонент C1 · относительный",
+        "unit": "%",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#d3869b",
+        "extrapolate": false,
+        "enabled": true,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "gas_c1",
+            "gas_total"
+          ],
+          "operation": {
+            "op": "ratio",
+            "factor": 100
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Газ",
+      "description": "",
+      "parameter": {
+        "id": "gas_c2_relative",
+        "name": "Компонент C2 · относительный",
+        "unit": "%",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#fe8019",
+        "extrapolate": false,
+        "enabled": true,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "gas_c2",
+            "gas_total"
+          ],
+          "operation": {
+            "op": "ratio",
+            "factor": 100
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Газ",
+      "description": "",
+      "parameter": {
+        "id": "gas_c3_relative",
+        "name": "Компонент C3 · относительный",
+        "unit": "%",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#b8bb26",
+        "extrapolate": false,
+        "enabled": true,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "gas_c3",
+            "gas_total"
+          ],
+          "operation": {
+            "op": "ratio",
+            "factor": 100
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Газ",
+      "description": "",
+      "parameter": {
+        "id": "gas_c4_relative",
+        "name": "Компонент C4 · относительный",
+        "unit": "%",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#83a598",
+        "extrapolate": false,
+        "enabled": true,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "gas_c4",
+            "gas_total"
+          ],
+          "operation": {
+            "op": "ratio",
+            "factor": 100
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Газ",
+      "description": "",
+      "parameter": {
+        "id": "gas_c5_relative",
+        "name": "Компонент C5 · относительный",
+        "unit": "%",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#fabd2f",
+        "extrapolate": false,
+        "enabled": true,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "gas_c5",
+            "gas_total"
+          ],
+          "operation": {
+            "op": "ratio",
+            "factor": 100
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Газ",
+      "description": "",
+      "parameter": {
+        "id": "gas_c6_relative",
+        "name": "Компонент C6 · относительный",
+        "unit": "%",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#8ec07c",
+        "extrapolate": false,
+        "enabled": true,
+        "provider": {
+          "kind": "calculation",
+          "inputs": [
+            "gas_c6",
+            "gas_total"
+          ],
+          "operation": {
+            "op": "ratio",
+            "factor": 100
+          },
+          "max_age_ms": 5000
+        }
+      },
+      "supported": true
+    },
+    {
+      "group": "Газ",
+      "description": "",
+      "parameter": {
+        "id": "gas_detector",
+        "name": "Суммарный газ с датчика",
+        "unit": "%",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#d3869b",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Газ",
+      "description": "",
+      "parameter": {
+        "id": "h2s",
+        "name": "Сероводород",
+        "unit": "%",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#fe8019",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    },
+    {
+      "group": "Газ",
+      "description": "",
+      "parameter": {
+        "id": "co2",
+        "name": "Диоксид углерода",
+        "unit": "%",
+        "source": "unassigned",
+        "channel": 0,
+        "points": [],
+        "min": 0,
+        "max": 100,
+        "color": "#b8bb26",
+        "extrapolate": false,
+        "enabled": false
+      },
+      "supported": true
+    }
+  ],
+  "presets": [
+    {
+      "id": "drilling-basic",
+      "name": "Базовая технология",
+      "description": "Вес, давление, момент и обороты. Каналы и калибровки выбираются на станции.",
+      "version": 1,
+      "parameter_ids": [
+        "weight",
+        "pressure",
+        "torque",
+        "rotation"
+      ],
+      "sections": [
+        "parameters",
+        "calculations"
+      ]
+    },
+    {
+      "id": "depth-load",
+      "name": "Глубина, нагрузка и скорости",
+      "description": "Включает свободный вес и исходные глубины. Начальные значения оператор задаёт явно.",
+      "version": 1,
+      "parameter_ids": [
+        "position",
+        "hole_depth",
+        "tool_depth",
+        "free_weight",
+        "off_bottom",
+        "load",
+        "drilling_rate",
+        "tripping_rate",
+        "weight"
+      ],
+      "sections": [
+        "parameters",
+        "calculations"
+      ]
+    },
+    {
+      "id": "pumps",
+      "name": "Три насоса",
+      "description": "Ходы и индивидуальные расходы. Для расчёта нужно задать объём за ход и коэффициент подачи.",
+      "version": 1,
+      "parameter_ids": [
+        "pump_strokes_1",
+        "pump_strokes_2",
+        "pump_strokes_3",
+        "pump_flow_1",
+        "pump_flow_2",
+        "pump_flow_3",
+        "pump_strokes_total"
+      ],
+      "sections": [
+        "parameters",
+        "calculations"
+      ]
+    },
+    {
+      "id": "mud",
+      "name": "Контроль раствора",
+      "description": "Вход/выход и разности: расход, плотность, температура, электропроводность.",
+      "version": 1,
+      "parameter_ids": [
+        "flow",
+        "flow_out",
+        "flow_difference",
+        "density_in",
+        "density_out",
+        "density_difference",
+        "temperature_in",
+        "temperature_out",
+        "temperature_difference",
+        "conductivity_in",
+        "conductivity_out",
+        "conductivity_difference"
+      ],
+      "sections": [
+        "parameters",
+        "calculations"
+      ]
+    },
+    {
+      "id": "tanks-five",
+      "name": "Пять ёмкостей",
+      "description": "Уровни и объёмы пяти ёмкостей. Каждому объёму нужна своя таблица.",
+      "version": 1,
+      "parameter_ids": [
+        "level",
+        "tank_volume_1",
+        "level_2",
+        "tank_volume_2",
+        "level_3",
+        "tank_volume_3",
+        "level_4",
+        "tank_volume_4",
+        "level_5",
+        "tank_volume_5",
+        "tank_volume_total"
+      ],
+      "sections": [
+        "parameters",
+        "calculations"
+      ]
+    },
+    {
+      "id": "gas-six",
+      "name": "Газовый контроль C1–C6",
+      "description": "Абсолютные значения, сумма и относительные доли. Источник данных назначается отдельно.",
+      "version": 1,
+      "parameter_ids": [
+        "gas_c1",
+        "gas_c2",
+        "gas_c3",
+        "gas_c4",
+        "gas_c5",
+        "gas_c6",
+        "gas_total",
+        "gas_c1_relative",
+        "gas_c2_relative",
+        "gas_c3_relative",
+        "gas_c4_relative",
+        "gas_c5_relative",
+        "gas_c6_relative",
+        "gas_detector",
+        "h2s",
+        "co2"
+      ],
+      "sections": [
+        "parameters",
+        "calculations"
+      ]
+    },
+    {
+      "id": "full-logging",
+      "name": "Технология и раствор",
+      "description": "Все перечисленные группы одним набором. Состав полностью виден перед добавлением.",
+      "version": 1,
+      "parameter_ids": [
+        "weight",
+        "pressure",
+        "torque",
+        "rotation",
+        "position",
+        "pressure_annulus",
+        "hole_depth",
+        "tool_depth",
+        "free_weight",
+        "off_bottom",
+        "load",
+        "drilling_rate",
+        "tripping_rate",
+        "pump_strokes_1",
+        "pump_flow_1",
+        "pump_strokes_2",
+        "pump_flow_2",
+        "pump_strokes_3",
+        "pump_flow_3",
+        "pump_strokes_total",
+        "flow",
+        "flow_out",
+        "density_in",
+        "density_out",
+        "density_difference",
+        "temperature_in",
+        "temperature_out",
+        "temperature_difference",
+        "conductivity_in",
+        "conductivity_out",
+        "conductivity_difference",
+        "flow_difference",
+        "level",
+        "tank_volume_1",
+        "level_2",
+        "tank_volume_2",
+        "level_3",
+        "tank_volume_3",
+        "level_4",
+        "tank_volume_4",
+        "level_5",
+        "tank_volume_5",
+        "tank_volume_total",
+        "gas_c1",
+        "gas_c2",
+        "gas_c3",
+        "gas_c4",
+        "gas_c5",
+        "gas_c6",
+        "gas_total",
+        "gas_c1_relative",
+        "gas_c2_relative",
+        "gas_c3_relative",
+        "gas_c4_relative",
+        "gas_c5_relative",
+        "gas_c6_relative",
+        "gas_detector",
+        "h2s",
+        "co2"
+      ],
+      "sections": [
+        "parameters",
+        "calculations"
+      ]
+    }
+  ]
+}

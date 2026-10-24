@@ -27,7 +27,8 @@ function layout(){
   for(const id of ids){const p=definition(id),row=element('div');row.style.color=p.color;row.style.height='62px';const title=element('div','title');title.append(element('span','',p.name+' · '+p.unit),element('b','',fmt(current(id)?.value)));row.append(title);const scale=element('div','scale');for(let n=0;n<=4;n++)scale.append(element('span','',fmt(p.min+(p.max-p.min)*n/4)));row.append(scale);header.append(row);row.addEventListener('click',()=>{const index=parameterDraft.parameters.findIndex(p=>p.id===id);if(index>=0)edit(index);});}
   const area=element('div','plot'),pen=element('div','pen'),split=element('div','splitter');track.append(header,area,pen,split);$('#tracks').append(track);
   const p0=definition(ids[0]);const scales={x:{time:false,ori:1,dir:-1,auto:false}};for(const id of ids){const p=definition(id);scales[id]={ori:0,dir:1,auto:false,range:[p.min,p.max]};}
-  const item={track,header,area,pen,ids,from:0,to:1,points:{},flags:[],tooltip:null,cursor:[]};
+  const tileSeed=[...ids.join('|')].reduce((seed,c)=>Math.imul(seed^c.charCodeAt(0),16777619),2166136261);
+  const item={track,header,area,pen,ids,tileSeed,from:0,to:1,points:{},flags:[],tooltip:null,cursor:[]};
   const u=new uPlot({width:Math.max(100,area.clientWidth),height:Math.max(100,area.clientHeight),padding:[0,0,0,0],scales,series:[{},...ids.map(id=>({label:id,scale:id,stroke:definition(id).color,width:1.5,spanGaps:false,points:{show:false}}))],axes:[{show:false},...ids.map(id=>({scale:id,show:false}))],legend:{show:false},cursor:{show:false},select:{show:false},hooks:{drawClear:[u=>tileGrid(item,u)],draw:[u=>{item.u=u;placeFlags(item);placePens(item);}] }},[[],...ids.map(()=>[])],area);item.u=u;plots.push(item);
   area.addEventListener('dblclick',e=>flagAt(item,e));area.addEventListener('contextmenu',e=>{e.preventDefault();pickerTrack=index;const select=$('#curveChoice');select.replaceChildren();for(const p of map.parameters.filter(p=>!ids.includes(p.id)))select.append(new Option(p.name+' · '+p.unit,p.id));$('#curvePicker').showModal();});
   area.addEventListener('mousemove',e=>cursorAt(item,e));area.addEventListener('mouseleave',()=>clearCursor(item));area.addEventListener('wheel',e=>{e.preventDefault();const pixels=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?area.clientHeight:1);moveHistory(offsetTarget-pixels/Math.max(100,area.clientHeight)*Number($('#interval').value)*.65);}, {passive:false});
@@ -35,11 +36,18 @@ function layout(){
  });
  sizeDirty=true;
 }
+// Opaque shades: no blending, image allocation or random state during scrolling.
+const tileShades=['#1b1e1f','#1c1f20','#1d2021','#1e2122','#1f2223','#202324','#212425'];
+function tileShade(row,column,seed){
+ let h=Math.imul(row|0,0x9e3779b1)^Math.imul(Math.floor(row/4294967296),0x85ebca6b)^Math.imul(column+1,0xc2b2ae35)^seed;
+ h=Math.imul(h^(h>>>16),0x7feb352d);h=Math.imul(h^(h>>>15),0x846ca68b);
+ return tileShades[((h^(h>>>16))>>>0)%tileShades.length];
+}
 function tileGrid(item,u){
  const ctx=u.ctx,b=u.bbox,ratio=uPlot.pxRatio;ctx.save();ctx.beginPath();ctx.rect(b.left,b.top,b.width,b.height);ctx.clip();
  ctx.fillStyle='#1d2021';ctx.fillRect(b.left,b.top,b.width,b.height);
  const height=b.height/ratio,range=item.to-item.from,step=gridStep(range,height),minor=step/4,col=b.width/8;
- for(let t=Math.floor(item.from/minor)*minor;t<=item.to;t+=minor){const y=u.valToPos(t,'x',true),y2=u.valToPos(t+minor,'x',true);for(let n=0;n<8;n++){ctx.fillStyle=((Math.round(t/minor)+n)&1)?'#ffffff04':'#00000005';ctx.fillRect(b.left+n*col,Math.min(y,y2),col,Math.abs(y2-y));}}
+ for(let t=Math.floor(item.from/minor)*minor;t<=item.to;t+=minor){const y=u.valToPos(t,'x',true),y2=u.valToPos(t+minor,'x',true);for(let n=0;n<8;n++){ctx.fillStyle=tileShade(Math.round(t/minor),n,item.tileSeed);ctx.fillRect(b.left+n*col,Math.min(y,y2),col,Math.abs(y2-y));}}
  ctx.strokeStyle='#a899842b';ctx.lineWidth=ratio*.7;ctx.beginPath();for(let n=0;n<=4;n++){const x=b.left+n*b.width/4;ctx.moveTo(x,b.top);ctx.lineTo(x,b.top+b.height);}for(let t=Math.ceil(item.from/step)*step;t<=item.to;t+=step){const y=u.valToPos(t,'x',true);ctx.moveTo(b.left,y);ctx.lineTo(b.left+b.width,y);}ctx.stroke();ctx.restore();
 }
 function gridStep(range,height){return [1000,2000,5000,10000,15000,30000,60000,120000,300000,600000,1800000,3600000,7200000].find(s=>s/range*height>=70)||14400000;}
@@ -132,5 +140,6 @@ new ResizeObserver(()=>{sizeDirty=true;}).observe($('#tracks'));document.addEven
 setInterval(()=>{$('#clock').textContent=time(Date.now());if(!document.hidden)refresh();},1000);
 setInterval(()=>{if(sizeDirty&&!busy&&tab==='charts'&&!document.hidden)refresh();},200);
 setupParameterSettings();
+setupParameterLibrary();
 setupIM2480();
 refresh();

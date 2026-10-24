@@ -20,14 +20,14 @@
     "translation_sha256": "1610d37342bfb587e1e0ca2d42ee311462f4408409ba0186c271535ac2e263fa"
   },
   "docs/CORE_INTERNALS.md": {
-    "source_sha256": "fac50ae5689f260a2d18570c59c64a93422fa2f502a5dbc49169add2e7bc40b6",
+    "source_sha256": "043a5d47fd0950591e85b46a2d10720f2bdb0b45541c03689455e14f7d96880e",
     "translation": "docs/en/CORE_INTERNALS.md",
-    "translation_sha256": "eabc660ca6886c212e7bcf299df1d054c8024e7183c426c0ee9dfd9de29f9bf8"
+    "translation_sha256": "0b26f79e5401f166e913e4c81cf5653f1cfd3d33a19d3832b9049557b63ab9d0"
   },
   "docs/CORE_VALIDATION.md": {
-    "source_sha256": "1e8b01275947bd01a6ca2e8d6c1b3d0609891d6e376e36b20105a7b4bfa4e66a",
+    "source_sha256": "3b2a9cf7c2ac6f03686d317026ee638cc205ddcaed2bbee3a5d10872f4973d3c",
     "translation": "docs/en/CORE_VALIDATION.md",
-    "translation_sha256": "35edcb6fac99b47a77af6c9f52b957f2c00be83ff6aa4f98b7920d72ad014d08"
+    "translation_sha256": "762016a483b0b69a96064b9d98459e6b4f854579ee92f6314458bdcc278f8b1d"
   },
   "docs/DEPENDENCIES.md": {
     "source_sha256": "517321ad80253672ec478fa8098abb2159bb98e7d77f46f1a6297155a1d1640f",
@@ -49,20 +49,25 @@
     "translation": "docs/en/NETWORK_PLAN.md",
     "translation_sha256": "a205ddccfa63b5370f89be4eb411c2ee9e9db3d94db51a0b6b721ad9a8e9a5df"
   },
+  "docs/PARAMETERS.md": {
+    "source_sha256": "56c3b213cfef7a818fd660d1bfc6458823c184a5634ffdc68510839ffc991044",
+    "translation": "docs/en/PARAMETERS.md",
+    "translation_sha256": "16709bd4ef16316c1e2a6e41e5e8233a5fe2b271ab7a940548d8890bca4cad27"
+  },
   "docs/PARAMETER_PRESETS_PLAN.md": {
-    "source_sha256": "c3a44e9140109b1a909a7bb7462735f6afac53b8a6126dc122d29a4f89709198",
+    "source_sha256": "9cc4f7216aae251eaaa3ebf32abb77ae3c53bab1db8b6ff2f6c23c3b19e0657a",
     "translation": "docs/en/PARAMETER_PRESETS_PLAN.md",
-    "translation_sha256": "5d0a7eabc7bc06d607219efcd595d37dc47f18cf73fbd946f7afe9306a697cbc"
+    "translation_sha256": "2ee883303f2e01395604c3d6ac3ca0419e7f1dc2cefedd382df6a9ce4f0a8f4c"
   },
   "docs/PLUGINS.md": {
-    "source_sha256": "9b2cb731e0b6c5a83dda8ba522f2cb4b783c1ff106d726d14564cdf92112117c",
+    "source_sha256": "bc8934f29671368cb7ae900fc115eb1c36e565a2bf3fd33d6e8cee43a39400b0",
     "translation": "docs/en/PLUGINS.md",
-    "translation_sha256": "faa0a2027b41c64bb7bc5c45e887e219ee57d54a607fb07b4272fc13817c2c9b"
+    "translation_sha256": "ff8629127c7622771c3e3773aa723306655a5b9b17ea042212b3d0fcb417a795"
   },
   "docs/PROTOTYPE.md": {
-    "source_sha256": "c2a349211e21810175a4f2c243605d3b69dcb117e1bc9cb4c4798be0b881549d",
+    "source_sha256": "e945152b68c04f8aeb945eae51767858d7686e811b8335a32191356593b5ea9f",
     "translation": "docs/en/PROTOTYPE.md",
-    "translation_sha256": "347dd5dc9177c4a8a1d9c00cac2833c76cc46c988c1fd8d6b4e9dedfaea868c8"
+    "translation_sha256": "16f1191572fd048ec43f77cc686501d2bf9396ea13ec92a5401b9debaceda782"
   },
   "docs/ROADMAP.md": {
     "source_sha256": "5948037667e2613fcba5abf7984d40b9c441507e934cf720622ca261ccfc7c96",

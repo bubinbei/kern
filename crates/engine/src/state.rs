@@ -2,6 +2,7 @@ use kern_protocol::*;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::{BTreeMap, BTreeSet},
+    sync::Arc,
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 
@@ -100,15 +101,17 @@ struct Reading {
 #[derive(Debug, Default)]
 pub struct State {
     pub maps: BTreeMap<u64, CalibrationMap>,
+    processing_orders: BTreeMap<u64, Vec<usize>>,
     pub calibration_revision: u64,
     pub active_revision: u64,
     pub interpreter_generation: u64,
     pub interpreter_online: bool,
     interpreter_pulse: Option<Instant>,
     pub processor_position: u64,
+    pub processing_context: ProcessingContext,
     pub last_raw_event: u64,
     last_result: Option<ParameterBatch>,
-    parameters: BTreeMap<String, (ParameterSample, ParameterBatch)>,
+    parameters: BTreeMap<String, (ParameterSample, Arc<ParameterBatch>)>,
     sources: BTreeMap<String, Source>,
     boot_started_at: Option<Instant>,
     pub settings: Settings,
@@ -395,6 +398,8 @@ impl State {
                 if !self.stable_units(map) {
                     return Err("Parameter unit changed under an existing ID".into());
                 }
+                self.processing_orders
+                    .insert(*revision, crate::processing::order(map)?);
                 self.maps.insert(*revision, map.clone());
                 self.calibration_revision = *revision;
             }
@@ -425,11 +430,15 @@ impl State {
                 {
                     return Err("Invalid parameter position/map".into());
                 }
+                if let Some(map) = self.maps.get(&batch.revision) {
+                    crate::processing::advance(&mut self.processing_context, map, batch);
+                }
                 self.processor_position = batch.raw_event;
                 self.last_result = Some(batch.clone());
+                let shared = Arc::new(batch.clone());
                 for value in &batch.values {
                     self.parameters
-                        .insert(value.id.clone(), (value.clone(), batch.clone()));
+                        .insert(value.id.clone(), (value.clone(), shared.clone()));
                 }
             }
             Event::SettingsBaseline { settings } => {
@@ -633,12 +642,8 @@ impl State {
         if revision != *calibration_revision {
             return Prepared::Immediate(invalid("Result revision does not match input activation"));
         }
-        let map = self.maps.get(&revision).cloned().unwrap_or_default();
-        if values != crate::calibration::convert(&map, batch) {
-            return Prepared::Immediate(invalid(
-                "Result does not match the declared linear algorithm and input",
-            ));
-        }
+        let empty_map = CalibrationMap::default();
+        let map = self.maps.get(&revision).unwrap_or(&empty_map);
         let result = ParameterBatch {
             raw_event,
             revision,
@@ -655,6 +660,23 @@ impl State {
                 duplicate: true,
             });
         }
+        if result.values
+            != crate::processing::evaluate_ordered(
+                map,
+                batch,
+                *received_unix_ms,
+                &self.processing_context,
+                revision,
+                self.processing_orders
+                    .get(&revision)
+                    .map(Vec::as_slice)
+                    .unwrap_or(&[]),
+            )
+        {
+            return Prepared::Immediate(invalid(
+                "Result does not match the declared algorithm, inputs and context",
+            ));
+        }
         if raw_event <= self.processor_position
             || next != Some(raw_event)
             || raw_event > self.event_sequence
@@ -663,21 +685,84 @@ impl State {
         }
         Prepared::Write(Event::ParametersStored { batch: result })
     }
+    fn parameter_quality(
+        &self,
+        id: &str,
+        sources: &[SourceView],
+        depth: usize,
+        cache: &mut BTreeMap<String, String>,
+    ) -> String {
+        if let Some(q) = cache.get(id) {
+            return q.clone();
+        }
+        let quality = self.parameter_quality_uncached(id, sources, depth, cache);
+        cache.insert(id.into(), quality.clone());
+        quality
+    }
+    fn parameter_quality_uncached(
+        &self,
+        id: &str,
+        sources: &[SourceView],
+        depth: usize,
+        cache: &mut BTreeMap<String, String>,
+    ) -> String {
+        if depth > 128 {
+            return "bad".into();
+        }
+        let Some(def) = self
+            .maps
+            .get(&self.active_revision)
+            .and_then(|m| m.parameters.iter().find(|p| p.id == id))
+        else {
+            return "missing".into();
+        };
+        if !def.enabled {
+            return "disabled".into();
+        }
+        let Some((value, batch)) = self.parameters.get(id) else {
+            return "missing".into();
+        };
+        if batch.revision != self.active_revision {
+            return "processing_lag".into();
+        }
+        let quality = match value.quality {
+            Quality::Good => "good",
+            Quality::Bad => "bad",
+            Quality::Missing => "missing",
+        };
+        if let Some(provider) = &def.provider {
+            if !self.interpreter_live() {
+                return "processing_lag".into();
+            }
+            if let Provider::Calculation { inputs, .. } = provider {
+                for input in inputs {
+                    let q = self.parameter_quality(input, sources, depth + 1, cache);
+                    if q != "good" {
+                        return q;
+                    }
+                }
+            }
+            return quality.into();
+        }
+        let source = sources.iter().find(|s| s.id == def.source);
+        let channel = source.and_then(|s| s.channels.iter().find(|c| c.id == def.channel));
+        let q = channel.map(|c| c.quality.as_str()).unwrap_or("missing");
+        if q != "good" {
+            return q.into();
+        }
+        if source.is_some_and(|s| s.session != batch.source_session)
+            || channel.is_some_and(|c| c.sequence.is_some_and(|n| n > batch.source_sequence))
+        {
+            return "processing_lag".into();
+        }
+        quality.into()
+    }
     pub fn parameter_snapshot(&self) -> Vec<serde_json::Value> {
         let sources = self.snapshot();
+        let mut cache = BTreeMap::new();
         self.parameters.iter().filter(|(id,_)|self.maps.get(&self.active_revision).is_some_and(|m|m.parameters.iter().any(|p|p.id==**id))).map(|(id,(value,batch))|{
-            if self.maps.get(&self.active_revision).is_some_and(|m|m.parameters.iter().any(|p|p.id==*id&&!p.enabled)) {
-                return serde_json::json!({"id":id,"value":null,"quality":"disabled","revision":self.active_revision,"raw_event":batch.raw_event.to_string(),"received_unix_ms":batch.received_unix_ms});
-            }
-            let quality=sources.iter().find(|s|s.id==batch.source).and_then(|s|{
-                let def=self.maps.get(&batch.revision)?.parameters.iter().find(|p|p.id==*id)?;
-                s.channels.iter().find(|c|c.id==def.channel).map(|c|c.quality.as_str())
-            }).unwrap_or("recovered");
-            let def=self.maps.get(&batch.revision).and_then(|m|m.parameters.iter().find(|p|p.id==*id));
-            let current_source=sources.iter().find(|s|s.id==batch.source);
-            let current=current_source.and_then(|s|s.channels.iter().find(|c|def.is_some_and(|d|d.channel==c.id)));
-            let quality=if quality=="good" && (batch.revision!=self.active_revision||current_source.is_some_and(|s|s.session!=batch.source_session)||current.is_some_and(|c|c.sequence.is_some_and(|n|n>batch.source_sequence))){"processing_lag"}else if quality=="good" {match value.quality{Quality::Good=>"good",Quality::Bad=>"bad",Quality::Missing=>"missing"}}else{quality};
-            serde_json::json!({"id":id,"value":value.value,"quality":quality,"revision":batch.revision,"raw_event":batch.raw_event.to_string(),"received_unix_ms":batch.received_unix_ms})
+            let quality=self.parameter_quality(id,&sources,0,&mut cache);
+            serde_json::json!({"id":id,"value":if quality=="disabled"{None}else{value.value},"quality":quality,"reason":value.reason,"revision":batch.revision,"raw_event":batch.raw_event.to_string(),"received_unix_ms":batch.received_unix_ms})
         }).collect()
     }
     pub fn success(&self, event: &Event) -> Reply {
@@ -803,6 +888,7 @@ mod tests {
                 color: "#fabd2f".into(),
                 extrapolate: false,
                 enabled: true,
+                provider: None,
             }],
             ..Default::default()
         };

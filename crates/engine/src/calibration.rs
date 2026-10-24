@@ -3,11 +3,13 @@ use kern_protocol::*;
 use std::collections::BTreeSet;
 
 pub fn validate(map: &CalibrationMap) -> Result<(), String> {
-    if map.algorithm != "linear-v1" {
-        return Err("Only the versioned linear-v1 algorithm is supported".into());
+    if !matches!(map.algorithm.as_str(), "linear-v1" | "graph-v1") {
+        return Err("Unsupported calculation algorithm version".into());
     }
-    if map.parameters.len() > 32 {
-        return Err("At most 32 parameters in this prototype".into());
+    if map.parameters.len() > 128
+        || serde_json::to_vec(map).map_err(|e| e.to_string())?.len() > 48 * 1024
+    {
+        return Err("At most 128 parameters and 48 KiB per map".into());
     }
     let mut ids = BTreeSet::new();
     for p in &map.parameters {
@@ -31,7 +33,9 @@ pub fn validate(map: &CalibrationMap) -> Result<(), String> {
             || p.color.len() != 7
             || !p.color.starts_with('#')
             || !p.color[1..].bytes().all(|b| b.is_ascii_hexdigit())
-            || !(2..=32).contains(&p.points.len())
+            || (p.provider.is_none()
+                && (p.enabled || !p.points.is_empty())
+                && !(2..=32).contains(&p.points.len()))
             || p.points
                 .iter()
                 .any(|v| !v.raw.is_finite() || !v.value.is_finite())
@@ -40,11 +44,13 @@ pub fn validate(map: &CalibrationMap) -> Result<(), String> {
             return Err(format!("Invalid parameter/map: {}", p.id));
         }
     }
+    crate::processing::validate(map)?;
     Ok(())
 }
 pub fn convert(map: &CalibrationMap, batch: &Batch) -> Vec<ParameterSample> {
     map.parameters
         .iter()
+        .filter(|p| p.provider.is_none())
         .filter(|p| p.source == batch.source)
         .filter_map(|p| {
             let sample = batch.samples.iter().find(|s| s.channel == p.channel)?;
@@ -77,6 +83,8 @@ pub fn convert(map: &CalibrationMap, batch: &Batch) -> Vec<ParameterSample> {
                 });
             Some(ParameterSample {
                 id: p.id.clone(),
+                reason: None,
+                input_time_ms: None,
                 value,
                 quality: if value.is_some() {
                     Quality::Good
@@ -117,6 +125,7 @@ mod tests {
                 color: "#fabd2f".into(),
                 extrapolate: false,
                 enabled: true,
+                provider: None,
             }],
         }
     }

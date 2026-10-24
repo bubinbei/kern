@@ -149,6 +149,9 @@ pub enum Request {
         revision: u64,
         values: Vec<ParameterSample>,
     },
+    ProcessingContext {
+        position: u64,
+    },
     Status,
     Snapshot,
     Plugins,
@@ -192,6 +195,10 @@ pub struct Envelope {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "result", rename_all = "snake_case")]
 pub enum Reply {
+    ProcessingContext {
+        position: u64,
+        context: ProcessingContext,
+    },
     History {
         events: Vec<HistoryEvent>,
         next: u64,
@@ -288,6 +295,66 @@ pub struct ParameterDef {
     pub extrapolate: bool,
     #[serde(default = "enabled_parameter", skip_serializing_if = "is_enabled")]
     pub enabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub provider: Option<Provider>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
+pub enum Provider {
+    Manual {
+        value: Option<f64>,
+    },
+    Calculation {
+        inputs: Vec<String>,
+        operation: Operation,
+        max_age_ms: u64,
+    },
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "op", rename_all = "snake_case", deny_unknown_fields)]
+pub enum Operation {
+    Sum,
+    Difference,
+    Ratio {
+        factor: f64,
+    },
+    Scale {
+        factor: f64,
+        offset: f64,
+    },
+    PumpFlow {
+        liters_per_stroke: f64,
+        efficiency: f64,
+    },
+    Lookup {
+        points: Vec<CalibrationPoint>,
+    },
+    WeightOnBit {
+        max_off_bottom: f64,
+    },
+    Rate {
+        window_seconds: u16,
+        per_hour: bool,
+        positive_only: bool,
+    },
+}
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct ProcessingContext {
+    pub revision: u64,
+    pub values: std::collections::BTreeMap<String, ContextValue>,
+    pub history: std::collections::BTreeMap<String, Vec<HistoryPoint>>,
+    pub source_sessions: std::collections::BTreeMap<String, u64>,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ContextValue {
+    pub sample: ParameterSample,
+    pub received_unix_ms: i64,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct HistoryPoint {
+    pub time_ms: i64,
+    pub value: f64,
 }
 fn enabled_parameter() -> bool {
     true
@@ -301,6 +368,10 @@ pub struct ParameterSample {
     pub id: String,
     pub value: Option<f64>,
     pub quality: Quality,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub input_time_ms: Option<i64>,
 }
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -533,6 +604,8 @@ mod tests {
         for raw in 0..65536 {
             let value = (f64::from(raw) - 100.0) / 300.0 * 40.0;
             let sample = ParameterSample {
+                reason: None,
+                input_time_ms: None,
                 id: "weight".into(),
                 value: Some(value),
                 quality: Quality::Good,

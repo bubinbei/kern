@@ -1,6 +1,6 @@
 # Plugins and the required shell
 
-Proposed next configuration stage: [parameter catalog, presets and calculations](PARAMETER_PRESETS_PLAN.md). Presets are declarative data with preview/comparison; the core owns working versions and the interpreter owns algorithms. Catalogs/presets/dependency graphs are not implemented yet.
+The first [parameter catalog, presets and calculations](PARAMETERS.md) slice is implemented: processor definitions, preview/comparison and custom presets, manual values and predefined graph-v1 operations. The core owns working versions and the Rust interpreter executes them; UI is embedded in the current host, with a general SDK still future work. Further design: [plan](PARAMETER_PRESETS_PLAN.md).
 
 The im2480 package now contributes a Modules tab to the shared host: this is a specific built-in extension gated by the core package registry, not a general web plugin loader. COM stays in a separate Rust process, which alone consumes a bounded local command mailbox. Parameter bindings are versioned core maps; line configuration currently has separate local history. Full contract: [IM2480](IM2480.md).
 
