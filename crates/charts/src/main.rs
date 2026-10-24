@@ -1,6 +1,7 @@
 //! Local-only, capability-limited web presentation host. Never serves core IPC tokens.
 mod im2480_web;
 mod parameter_library;
+mod presentation_settings;
 use kern_protocol::*;
 use std::{
     fs::{self, OpenOptions},
@@ -18,6 +19,7 @@ const HTML: &[u8] = include_bytes!("../web/index.html");
 const JS: &[u8] = include_bytes!("../web/app.js");
 const PARAMETER_SETTINGS: &[u8] = include_bytes!("../web/parameter-settings.js");
 const PARAMETER_LIBRARY: &[u8] = include_bytes!("../web/parameter-library.js");
+const APP_SETTINGS: &[u8] = include_bytes!("../web/app-settings.js");
 const IM2480_UI: &[u8] = include_bytes!("../web/im2480.js");
 const CSS: &[u8] = include_bytes!("../web/app.css");
 const UPLOT: &[u8] = include_bytes!("../../../third_party/uplot-1.6.32/uPlot.iife.min.js");
@@ -95,6 +97,7 @@ fn handle(
             "/parameter-settings.js" => {
                 Some(("text/javascript; charset=utf-8", PARAMETER_SETTINGS))
             }
+            "/app-settings.js" => Some(("text/javascript; charset=utf-8", APP_SETTINGS)),
             "/parameter-library.js" => Some(("text/javascript; charset=utf-8", PARAMETER_LIBRARY)),
             "/app.css" => Some(("text/css", CSS)),
             "/uplot.js" => Some(("text/javascript", UPLOT)),
@@ -123,6 +126,20 @@ fn handle(
         );
     }
 
+    if path == "/api/presentation-settings" && matches!(method, "GET" | "POST") {
+        let result = if method == "GET" {
+            presentation_settings::get(profile)
+        } else {
+            presentation_settings::save(profile, &body)
+        };
+        let value = result.unwrap_or_else(|e| serde_json::json!({"result":"error","code":"presentation_settings","message":e.to_string()}));
+        return respond(
+            s,
+            "200 OK",
+            "application/json; charset=utf-8",
+            &serde_json::to_vec(&value)?,
+        );
+    }
     if (method == "GET" && path == "/api/parameter-library")
         || (method == "POST" && path == "/api/parameter-presets")
     {

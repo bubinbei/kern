@@ -1,0 +1,126 @@
+{
+  "schema": 1,
+  "passed": true,
+  "date": "2026-10-24T14:36:08.745483+00:00",
+  "platform": "Windows 11; synthetic core/browser and read-only live emulator",
+  "runtime_source_sha256": "075e949aa5b2c60ebe9e8473b0d284c31ee6fd5b21d971b2e5fe74a62d5f49ce",
+  "runtime_hash_scope": "Sorted POSIX paths; path UTF-8 + NUL + UTF-8 content normalized to LF. crates/**/*.{rs,toml,js,css,html}, Cargo.toml, Cargo.lock, plugins/calibration.example.json, plugins/*/plugin.json, crates/processor/parameter-library.json.",
+  "binary_sha256": "2229e3255d6a27b99879ccc1c7aefd25293a6269518837d1b4448fe57227efb5",
+  "build_checks": {
+    "rust_tests": 47,
+    "python_tool_tests": 13,
+    "fmt": true,
+    "clippy_all_targets_deny_warnings": true,
+    "release_locked": true
+  },
+  "editor_and_settings": {
+    "passed": true,
+    "date": "2026-10-24T14:34:36.603941+00:00",
+    "binary_sha256": "2229e3255d6a27b99879ccc1c7aefd25293a6269518837d1b4448fe57227efb5",
+    "browser": {
+      "passed": true,
+      "tile_rendering": {
+        "colors": 7,
+        "overlap": 168,
+        "opaque": true,
+        "hundred_draws_ms": 4.799999982118607,
+        "cached_gradients_during_scroll": 7,
+        "resize_rebuilds_cache": true,
+        "dash_css_pixels": [
+          5,
+          5
+        ],
+        "adjacent_track_pixel_contrasts": [
+          9,
+          14,
+          13,
+          15,
+          10
+        ]
+      },
+      "tests": [
+        "global settings sections and chart gear shortcut",
+        "three sliders preview and cancel without saving",
+        "profile preferences save and survive page reload",
+        "appearance API authentication and invalid bounds",
+        "concurrent preference update refuses stale overwrite and preserves draft",
+        "1280x720 settings controls fit",
+        "defaults persist without changing core calibration",
+        "stable pseudorandom tile gradients, visible adjacent-track contrast, dashed grid and cached resize/scroll rendering",
+        "reversed wheel direction",
+        "switching tabs during return to live clears history anchor",
+        "multiple intermediate scroll positions; settled target; bounded plot requests",
+        "parameter selection and separate calibration window",
+        "calibration zoom in/out changes both axes reversibly",
+        "calibration background pan preserves points, draft and core map",
+        "grid strokes and equal-valued ticks follow both pan axes",
+        "fit and signal-unit changes reset viewport",
+        "pointer cancellation releases calibration pan",
+        "voltage/raw view roundtrip without changing points",
+        "duplicate signal rejected",
+        "draft then save/activate",
+        "voltage points reopen correctly",
+        "1280x720 modal controls fit",
+        "point export/import with unit validation",
+        "coefficient edits isolated by cancel",
+        "external map revision preserves open editor; cancel reloads it",
+        "counter/frequency units preserved",
+        "parameter metadata edit and undo",
+        "no browser errors"
+      ],
+      "scroll_positions": 8
+    },
+    "previous_chart_interactions": {
+      "passed": true,
+      "columns": 6,
+      "initialPoints": 14,
+      "tests": [
+        "uPlot vertical tracks",
+        "single click inert",
+        "double click flag add/remove",
+        "outline cursor markers",
+        "right click add curve",
+        "30s/5min history",
+        "three parameter-panel modes",
+        "edit/save/activate calibration",
+        "no browser page errors"
+      ]
+    },
+    "independent_checks": [
+      "voltage points persisted as exact raw codes",
+      "interpreter result checked against independent formula",
+      "continuous synthetic ingestion; no COM access"
+    ]
+  },
+  "controlled_charts_replacement": {
+    "passed": true,
+    "only_charts_replaced": true,
+    "other_pids_preserved": true,
+    "core_endpoint_preserved": true,
+    "map_and_config_preserved": true,
+    "raw_intake_advanced": true,
+    "binary_sha256": "2229e3255d6a27b99879ccc1c7aefd25293a6269518837d1b4448fe57227efb5"
+  },
+  "live_read_only": {
+    "passed": true,
+    "plugin_sections": 6,
+    "plugin_gears": 6,
+    "general_section": true,
+    "gear_destinations_checked": true,
+    "im2480_existing_settings_link": true,
+    "preview_cancel_preserves_preferences": true,
+    "map_preserved": true,
+    "modules": 5,
+    "channels": 30,
+    "acquisition_advances": true,
+    "read_only": true,
+    "browser_errors": []
+  },
+  "limits": [
+    "Settings sections/forms are currently built into the charts host, not a third-party form/plugin SDK.",
+    "Only charts appearance gains editable settings here; other plugin sections link to implemented screens or show existing capabilities.",
+    "Appearance preferences are local profile data, separate from core calibration and acquisition; not yet included in JSONL backup/core settings journal.",
+    "Profile persistence checked via file re-read and browser reload; no power-loss or long-duration acceptance.",
+    "Preview is coalesced to one delayed redraw per 32 ms; this is not a measured weak-machine/GPU performance guarantee."
+  ]
+}

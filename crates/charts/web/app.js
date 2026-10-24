@@ -45,9 +45,10 @@ function tileShade(row,column,seed){
 }
 function tilePalette(item,u){
  const {ctx,bbox:b}=u,old=item.tilePalette;
- if(old&&old.ctx===ctx&&old.left===b.left&&old.width===b.width)return old.colors;
- const colors=new Map(tileShades.map(shade=>{const gradient=ctx.createLinearGradient(b.left,0,b.left+b.width,0),right='#'+shade.slice(1).match(/../g).map(v=>(parseInt(v,16)+14).toString(16).padStart(2,'0')).join('');gradient.addColorStop(0,shade);gradient.addColorStop(1,right);return [shade,gradient];}));
- item.tilePalette={ctx,left:b.left,width:b.width,colors};return colors;
+ if(old&&old.ctx===ctx&&old.left===b.left&&old.width===b.width&&old.appearance===JSON.stringify(chartAppearance))return old.colors;
+ const strength=chartAppearance.tile_overall/100,shadeColor=(shade,edge)=>'#'+shade.slice(1).match(/../g).map((v,i)=>Math.round([30,33,34][i]+(parseInt(v,16)-[30,33,34][i]+edge*.4)*strength).toString(16).padStart(2,'0')).join('');
+ const colors=new Map(tileShades.map(shade=>{const gradient=ctx.createLinearGradient(b.left,0,b.left+b.width,0);gradient.addColorStop(0,shadeColor(shade,chartAppearance.tile_left));gradient.addColorStop(1,shadeColor(shade,chartAppearance.tile_right));return [shade,gradient];}));
+ item.tilePalette={ctx,left:b.left,width:b.width,appearance:JSON.stringify(chartAppearance),colors};return colors;
 }
 function tileGrid(item,u){
  const ctx=u.ctx,b=u.bbox,ratio=uPlot.pxRatio;ctx.save();ctx.beginPath();ctx.rect(b.left,b.top,b.width,b.height);ctx.clip();
@@ -136,7 +137,7 @@ async function refresh(){if(busy)return;busy=true;try{
  updateMapState();updateParameterLive();values();if(tab==='modules')await refreshIM2480();
  if(tab==='charts')await draw();
  }catch(e){$('#connection').textContent='● Нет связи';$('#connection').className='error';note(e.message);}finally{busy=false;}}
-async function plugins(){try{const r=await api('plugins');$('#imTab').classList.toggle('hidden',!r.plugins.some(p=>p.id==='im2480'));const root=$('#pluginRows');root.replaceChildren();for(const p of r.plugins){const a=element('article'),name=element('div');name.append(element('strong','',p.name),element('small','',p.id+' · '+p.version));a.append(name,element('span','',p.state),element('span','spacer'));if(['im2480','processor','csv','backup'].includes(p.id)){const b=element('button','',p.state==='running'?'Остановить':'Запустить');b.onclick=async()=>{try{await api('control',{id:p.id,action:p.state==='running'?'stop':'start'});setTimeout(plugins,300);}catch(e){note(e.message);}};a.append(b);}a.append(element('small','',p.detail));root.append(a);}}catch(e){note(e.message);}}
+async function plugins(){try{const r=await api('plugins');$('#imTab').classList.toggle('hidden',!r.plugins.some(p=>p.id==='im2480'));const root=$('#pluginRows');root.replaceChildren();for(const p of r.plugins){const a=element('article'),name=element('div');name.append(element('strong','',p.name),element('small','',p.id+' · '+p.version));a.append(name,element('span','',p.state),element('span','spacer'));if(['im2480','processor','csv','backup'].includes(p.id)){const b=element('button','',p.state==='running'?'Остановить':'Запустить');b.onclick=async()=>{try{await api('control',{id:p.id,action:p.state==='running'?'stop':'start'});setTimeout(plugins,300);}catch(e){note(e.message);}};a.append(b);}a.append(pluginSettingsButton(p.id),element('small','',p.detail));root.append(a);}}catch(e){note(e.message);}}
 $$('nav [data-tab]').forEach(button=>button.onclick=()=>{tab=button.dataset.tab;$$('main>.screen').forEach(s=>s.classList.toggle('hidden',s.id!==tab));$$('nav [data-tab]').forEach(b=>b.classList.toggle('active',b===button));if(tab==='plugins')plugins();if(tab==='calibration')updateParameterLive();if(tab==='modules')refreshIM2480();if(tab==='charts'){sizeDirty=true;refresh();}});
 $('#autoScale').onclick=()=>{autoScale=!autoScale;$('#autoScale').classList.toggle('active',autoScale);refresh();};
 $('#refreshPlugins').onclick=plugins;$('#interval').onchange=()=>{offsetTarget=Math.min(offsetTarget,86400-Number($('#interval').value));offset=offsetTarget;sizeDirty=true;refresh();};$('#live').onclick=()=>moveHistory(0);$('#earlier').onclick=()=>moveHistory(offsetTarget+Number($('#interval').value)/2);$('#later').onclick=()=>moveHistory(offsetTarget-Number($('#interval').value)/2);$('#history').oninput=e=>moveHistory(86400-Number(e.target.value));$('#history').onchange=requestHistoryData;
@@ -148,4 +149,5 @@ setInterval(()=>{if(sizeDirty&&!busy&&tab==='charts'&&!document.hidden)refresh()
 setupParameterSettings();
 setupParameterLibrary();
 setupIM2480();
+setupAppSettings();
 refresh();
