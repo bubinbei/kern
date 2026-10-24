@@ -22,3 +22,5 @@ CSV/backup отдельны,CRC/позиции; restore в новый профи
 Контракт/приёмка: docs/IM2480.md,PROTOTYPE.md,CORE_VALIDATION.md. dist/Kern-Prototype-0.1.0/Start-Kern.cmd; карты ТЕСТОВЫЕ. 38Rust/13Python;17COM/9management/13UI,18core/6pipeline/20editor/9charts. Стенд обновлён с checkpoint/drain,карты/конфиг/история сохранены;5модулей/30свежих каналов.
 
 Не приняты: физика/шкалаАЦП,Win10/слабыеПК/macOS/GPU/24–72ч/power-loss. Далее: общий журнал config/replay/drain,отказы,периоды,экземпляры источников. Пути ASCII; публичная граница — AGENTS/docs/MATERIALS.
+
+План каталога/наборов/расчётов: docs/PARAMETER_PRESETS_PLAN.md; ещё не реализация.

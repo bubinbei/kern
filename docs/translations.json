@@ -49,10 +49,15 @@
     "translation": "docs/en/NETWORK_PLAN.md",
     "translation_sha256": "a205ddccfa63b5370f89be4eb411c2ee9e9db3d94db51a0b6b721ad9a8e9a5df"
   },
+  "docs/PARAMETER_PRESETS_PLAN.md": {
+    "source_sha256": "c3a44e9140109b1a909a7bb7462735f6afac53b8a6126dc122d29a4f89709198",
+    "translation": "docs/en/PARAMETER_PRESETS_PLAN.md",
+    "translation_sha256": "5d0a7eabc7bc06d607219efcd595d37dc47f18cf73fbd946f7afe9306a697cbc"
+  },
   "docs/PLUGINS.md": {
-    "source_sha256": "d0f22562233ac7a7db03a0589634b7e40e5cedfd7bcc719a5c8cd9c752104f26",
+    "source_sha256": "9b2cb731e0b6c5a83dda8ba522f2cb4b783c1ff106d726d14564cdf92112117c",
     "translation": "docs/en/PLUGINS.md",
-    "translation_sha256": "6a16de8c61435d2a352cff0819be23ef503d1ed4c1d5084e88c9bd3b47878267"
+    "translation_sha256": "faa0a2027b41c64bb7bc5c45e887e219ee57d54a607fb07b4272fc13817c2c9b"
   },
   "docs/PROTOTYPE.md": {
     "source_sha256": "c2a349211e21810175a4f2c243605d3b69dcb117e1bc9cb4c4798be0b881549d",

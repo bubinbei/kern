@@ -1,5 +1,7 @@
 # Plugins and the required shell
 
+Proposed next configuration stage: [parameter catalog, presets and calculations](PARAMETER_PRESETS_PLAN.md). Presets are declarative data with preview/comparison; the core owns working versions and the interpreter owns algorithms. Catalogs/presets/dependency graphs are not implemented yet.
+
 The im2480 package now contributes a Modules tab to the shared host: this is a specific built-in extension gated by the core package registry, not a general web plugin loader. COM stays in a separate Rust process, which alone consumes a bounded local command mailbox. Parameter bindings are versioned core maps; line configuration currently has separate local history. Full contract: [IM2480](IM2480.md).
 
 The first native Windows desktop slice is implemented: a separate `kern-shell` process, menus, core status, freshness setting, and listing/starting/stopping optional processes. Acquisition, tables and the mandatory journal remain in the core. A separate end-to-end prototype adds a Rust interpreter, uPlot host, CSV and backup; launch and limits: [PROTOTYPE](PROTOTYPE.md). The first COM source [im2480](IM2480.md) is a separate package; physical hardware is not accepted yet.
