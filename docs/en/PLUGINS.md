@@ -4,6 +4,8 @@ The first native Windows desktop slice is implemented: a separate `kern-shell` p
 
 Approved: redb is an internal core dependency; uPlot is a library in a separate charts package with a Rust host. uPlot is embedded in the native `charts` package: a separate Rust host with a restricted local HTTP bridge. Its window uses installed Edge/Chrome application mode; the final WebView and general web SDK remain undecided. Interpreter, working writers and independent backup are separate processes; the database is accessible only through the core. Three-dataset/history/recovery plan: [STORAGE_CHARTS_PLAN](STORAGE_CHARTS_PLAN.md).
 
+The target boundary for Parameter settings is a separate parameter/map editing plugin. It is currently a separate parameter-settings.js web module inside the charts process/package, not a separately installable package. The table, dependency graph, panning and zoom belong to this module; map validation/versioning and persistence remain with the core. Pan/zoom is local view state, not a calibration change.
+
 Future network workstations reuse web screens: a browser or KERN client without sources/local authoritative calculation. A separate web gateway exposes a restricted API; it neither replaces the required system shell nor bypasses the core. Viewing and office service have different permissions; plugin installation is a separate permission. The current loader/IPC do not support these modes yet. Stages and boundaries: [NETWORK_PLAN](NETWORK_PLAN.md).
 
 ## Package installation
@@ -40,7 +42,7 @@ Management IPC: `plugins` returns a list and diagnostics; `plugin_control {id, a
 
 ## Separate future direction: operator web environment
 
-The goal is for a GTI operator without programming knowledge to assemble widgets and screens, with AI assistance when useful. Start with declarative descriptions: parameter, label, unit, range, and a formula from a restricted set; then an editor/templates and web components. This is planned work; KERN currently contains no browser or builder.
+The goal is for a GTI operator without programming knowledge to assemble widgets and screens, with AI assistance when useful. Start with declarative descriptions: parameter, label, unit, range, and a formula from a restricted set; then an editor/templates and web components. This is planned work; the prototype already has local screens, while the operator builder and general web packages are not implemented yet.
 
 Critical components—device acquisition, the main interpreter, mandatory journal and working-file writers—remain Rust processes. Web shell/widgets receive data through a versioned, bounded API; no internal-memory references or bypassing the core. Screen failure cannot stop acquisition. Settings undergo the same revision checks and core acknowledgement. JavaScript needs a contract that preserves u64 precision.
 

@@ -1,6 +1,7 @@
 'use strict';
 // Presentation only: persisted calibration points always retain raw input codes.
 let parameterDraft={parameters:[]}, selectedParameter=-1, parameterUndo=[], calibrationDraft=null, selectedPoint=0, applyingParameters=false;
+let calibrationGeometry=null, calibrationPan=null, calibrationFrame=0;
 const cloneMap=value=>JSON.parse(JSON.stringify(value));
 function numberInput(text){const value=String(text).trim().replace(',','.');if(!value||!Number.isFinite(Number(value)))throw Error('Введите число');return Number(value);}
 function inputChannel(p){return snapshot.sources.find(s=>s.id===p.source)?.channels.find(c=>c.id===p.channel);}
@@ -66,7 +67,7 @@ function validatePoints(points,kind){
 }
 function calibrationPoints(){
  const p=parameterDraft.parameters[selectedParameter];if(!p)return;
- calibrationDraft={parameter:cloneMap(p),points:cloneMap(p.points),kind:signalKind(p)};selectedPoint=0;
+ calibrationDraft={parameter:cloneMap(p),points:cloneMap(p.points),kind:signalKind(p),view:null};selectedPoint=0;
  $('#calibrationTitle').textContent='Точки калибровки · '+p.name;$('#parameterColumn').textContent='Значение, '+p.unit;
  const select=$('#signalView');select.replaceChildren();const kind=calibrationDraft.kind;
  select.append(new Option(signalUnit(kind),kind));if(kind==='volts')select.append(new Option('Сырой код','raw'));
@@ -84,15 +85,56 @@ function renderPoints(){
   }root.append(tr);
  });$('#removePoint').disabled=points.length<=2;$('#addPoint').disabled=points.length>=32;drawCalibration();
 }
+function calibrationExtent(){
+ const {kind,points}=calibrationDraft;
+ const bounds=values=>{const min=Math.min(...values,0),max=Math.max(...values,1),pad=(max-min)*.08;return [min-pad,max+pad];};
+ const finite=points.filter(p=>Number.isFinite(p.raw)&&Number.isFinite(p.value));
+ const [x0,x1]=bounds(finite.map(p=>p.value)),[y0,y1]=bounds(finite.map(p=>signalValue(p.raw,kind)));
+ return {x0,x1,y0,y1};
+}
+function setCalibrationView(view){
+ if(!calibrationDraft||!Object.values(view).every(Number.isFinite)||view.x1<=view.x0||view.y1<=view.y0)return;
+ calibrationDraft.view=view;
+ if(!calibrationFrame)calibrationFrame=requestAnimationFrame(()=>{calibrationFrame=0;drawCalibration();});
+}
+function zoomCalibration(factor){
+ if(!calibrationDraft)return;const view=calibrationDraft.view||calibrationExtent(),fit=calibrationExtent();
+ const span=(axis)=>Math.max((fit[axis+'1']-fit[axis+'0'])/1000,Math.min((fit[axis+'1']-fit[axis+'0'])*1000,(view[axis+'1']-view[axis+'0'])*factor));
+ const sx=span('x'),sy=span('y'),cx=view.x0+(view.x1-view.x0)/2,cy=view.y0+(view.y1-view.y0)/2;
+ setCalibrationView({x0:cx-sx/2,x1:cx+sx/2,y0:cy-sy/2,y1:cy+sy/2});
+}
+function endCalibrationPan(){
+ const canvas=$('#calibrationCanvas'),pan=calibrationPan;calibrationPan=null;canvas.classList.remove('panning');
+ if(pan&&canvas.hasPointerCapture(pan.id))canvas.releasePointerCapture(pan.id);
+}
+function setupCalibrationNavigation(){
+ const canvas=$('#calibrationCanvas');
+ $('#calibrationZoomIn').onclick=()=>zoomCalibration(.8);$('#calibrationZoomOut').onclick=()=>zoomCalibration(1.25);
+ $('#calibrationFit').onclick=()=>{endCalibrationPan();if(calibrationDraft){calibrationDraft.view=null;drawCalibration();}};
+ canvas.addEventListener('pointerdown',e=>{
+  if(e.button!==0||!e.isPrimary||!calibrationDraft||!calibrationGeometry)return;
+  const rect=canvas.getBoundingClientRect(),g=calibrationGeometry,x=e.clientX-rect.left,y=e.clientY-rect.top;
+  if(x<g.x||x>g.x+g.w||y<g.y||y>g.y+g.h)return;
+  e.preventDefault();calibrationPan={id:e.pointerId,x:e.clientX,y:e.clientY,geometry:{...g}};
+  canvas.setPointerCapture(e.pointerId);canvas.classList.add('panning');
+ });
+ canvas.addEventListener('pointermove',e=>{
+  if(!calibrationPan||e.pointerId!==calibrationPan.id)return;
+  const g=calibrationPan.geometry,dx=(e.clientX-calibrationPan.x)/g.w*(g.x1-g.x0),dy=(e.clientY-calibrationPan.y)/g.h*(g.y1-g.y0);
+  setCalibrationView({x0:g.x0-dx,x1:g.x1-dx,y0:g.y0+dy,y1:g.y1+dy});
+ });
+ for(const name of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(name,e=>{if(calibrationPan?.id===e.pointerId)endCalibrationPan();});
+}
 function drawCalibration(){
  if(!calibrationDraft)return;
  const canvas=$('#calibrationCanvas'),rect=canvas.getBoundingClientRect();if(rect.width<1||rect.height<1)return;
- const ratio=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(rect.width*ratio);canvas.height=Math.round(rect.height*ratio);
- const ctx=canvas.getContext('2d');ctx.scale(ratio,ratio);const w=rect.width,h=rect.height,b={x:65,y:24,w:w-88,h:h-78};
+ const ratio=Math.min(devicePixelRatio||1,2),pixelWidth=Math.round(rect.width*ratio),pixelHeight=Math.round(rect.height*ratio);
+ if(canvas.width!==pixelWidth||canvas.height!==pixelHeight){canvas.width=pixelWidth;canvas.height=pixelHeight;}
+ const ctx=canvas.getContext('2d');ctx.setTransform(ratio,0,0,ratio,0,0);const w=rect.width,h=rect.height,b={x:65,y:24,w:w-88,h:h-78};
  ctx.fillStyle='#1d2021';ctx.fillRect(0,0,w,h);ctx.font='14px Segoe UI';
  const {parameter,kind,points}=calibrationDraft,valid=points.map((p,index)=>({x:p.value,y:signalValue(p.raw,kind),index})).filter(p=>Number.isFinite(p.x)&&Number.isFinite(p.y));
- const bounds=axis=>{const values=valid.map(p=>p[axis]);let min=Math.min(...values,0),max=Math.max(...values,1);const pad=(max-min)*.08;return [min-pad,max+pad];};
- const [x0,x1]=bounds('x'),[y0,y1]=bounds('y'),x=v=>b.x+(v-x0)/(x1-x0)*b.w,y=v=>b.y+b.h-(v-y0)/(y1-y0)*b.h;
+ const {x0,x1,y0,y1}=calibrationDraft.view||calibrationExtent(),x=v=>b.x+(v-x0)/(x1-x0)*b.w,y=v=>b.y+b.h-(v-y0)/(y1-y0)*b.h;
+ calibrationGeometry={...b,x0,x1,y0,y1};
  ctx.strokeStyle='#a8998438';ctx.lineWidth=1;ctx.setLineDash([3,4]);
  for(let n=0;n<=5;n++){const px=b.x+b.w*n/5,py=b.y+b.h*n/5;ctx.beginPath();ctx.moveTo(px,b.y);ctx.lineTo(px,b.y+b.h);ctx.moveTo(b.x,py);ctx.lineTo(b.x+b.w,py);ctx.stroke();ctx.fillStyle='#bdae93';ctx.textAlign='center';ctx.fillText(fmt(x0+(x1-x0)*n/5),px,b.y+b.h+22);ctx.textAlign='right';ctx.fillText(fmt(y1-(y1-y0)*n/5),b.x-10,py+5);}
  ctx.setLineDash([]);ctx.strokeStyle='#a89984';ctx.strokeRect(b.x,b.y,b.w,b.h);ctx.fillStyle='#ebdbb2';ctx.textAlign='center';ctx.fillText('Значение параметра, '+parameter.unit,b.x+b.w/2,h-8);
@@ -107,8 +149,8 @@ function setupParameterSettings(){
  $('#calibrateParam').onclick=calibrationPoints;
  $('#reloadMap').onclick=async()=>{try{const c=await api('calibration');map=c.map;revision=c.revision;activeRevision=c.active_revision;dirty=false;resetParameterDraft();layout();updateMapState();}catch(e){note(e.message);}};
  $('#saveMap').onclick=async()=>{if(applyingParameters)return;applyingParameters=true;const button=$('#saveMap');button.disabled=true;$('.parameterWorkspace').inert=true;$('#reloadMap').disabled=true;try{const submitted=cloneMap(parameterDraft);await api('calibration',{expected_revision:revision,map:submitted});dirty=false;revision=-1;note('Карты сохранены; ожидается применение интерпретатором');await refresh();}catch(e){note(e.message);}finally{applyingParameters=false;$('.parameterWorkspace').inert=false;$('#reloadMap').disabled=false;updateMapState();}};
- const close=()=>$('#calibrationDialog').close();$('#closeCalibration').onclick=close;$('#cancelCalibration').onclick=close;$('#calibrationDialog').addEventListener('close',()=>{calibrationDraft=null;});
- $('#signalView').onchange=e=>{calibrationDraft.kind=e.target.value;renderPoints();updateParameterLive();};
+ const close=()=>$('#calibrationDialog').close();$('#closeCalibration').onclick=close;$('#cancelCalibration').onclick=close;$('#calibrationDialog').addEventListener('close',()=>{endCalibrationPan();cancelAnimationFrame(calibrationFrame);calibrationFrame=0;calibrationGeometry=null;calibrationDraft=null;});
+ $('#signalView').onchange=e=>{endCalibrationPan();calibrationDraft.kind=e.target.value;calibrationDraft.view=null;renderPoints();updateParameterLive();};
  $('#addPoint').onclick=()=>{const points=calibrationDraft.points;if(points.length>=32)return;const sorted=points.filter(p=>Number.isFinite(p.raw)).slice().sort((a,b)=>a.raw-b.raw);let raw=0,value=0;
   if(sorted.length>1){let a=sorted[0],b=sorted[1];for(let n=1;n<sorted.length;n++)if(sorted[n].raw-sorted[n-1].raw>b.raw-a.raw){a=sorted[n-1];b=sorted[n];}raw=(a.raw+b.raw)/2;value=(a.value+b.value)/2;}else if(sorted.length){raw=sorted[0].raw+1;value=sorted[0].value;}
   points.push({raw,value});selectedPoint=points.length-1;renderPoints();$('#pointRows tr:last-child input').focus();};
@@ -120,4 +162,5 @@ function setupParameterSettings(){
  $('#importPoints').onclick=()=>{$('#pointsFile').value='';$('#pointsFile').click();};
  $('#pointsFile').onchange=async e=>{try{const file=e.target.files[0];if(!file)return;if(file.size>65536)throw Error('Файл больше 64 КиБ');const v=JSON.parse(await file.text());if(v.format!=='kern-calibration-points-v1'||v.unit!==calibrationDraft.parameter.unit||!Array.isArray(v.points)||typeof v.extrapolate!=='boolean')throw Error('Неверный формат или единица параметра');calibrationDraft.points=validatePoints(v.points,signalKind(calibrationDraft.parameter));$('#calibrationExtrapolate').checked=v.extrapolate;selectedPoint=0;$('#calibrationError').textContent='';renderPoints();}catch(error){$('#calibrationError').textContent=error.message;}};
  new ResizeObserver(()=>{if(calibrationDraft)drawCalibration();}).observe($('#calibrationCanvas'));
+ setupCalibrationNavigation();
 }
