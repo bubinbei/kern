@@ -20,6 +20,41 @@ use windows_sys::Win32::{
 };
 
 const REFRESH: u16 = 101;
+fn pick_folder() -> io::Result<Option<String>> {
+    use windows_sys::Win32::System::Com::*;
+    // SAFETY: this short-lived helper owns its STA, PIDL and UTF-16 buffers. The
+    // blocking dialog never runs on the mandatory shell or acquisition threads.
+    unsafe {
+        let hr = CoInitializeEx(null(), COINIT_APARTMENTTHREADED as u32);
+        if hr < 0 {
+            return Err(io::Error::other(format!("Folder dialog COM error {hr}")));
+        }
+        let title = wide("KERN — папка восстановительного резерва");
+        let mut display = [0u16; 260];
+        let mut info: BROWSEINFOW = std::mem::zeroed();
+        info.pszDisplayName = display.as_mut_ptr();
+        info.lpszTitle = title.as_ptr();
+        info.ulFlags = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE | BIF_EDITBOX;
+        let pidl = SHBrowseForFolderW(&info);
+        let result = if pidl.is_null() {
+            Ok(None)
+        } else {
+            let mut path = vec![0u16; 32768];
+            let ok = SHGetPathFromIDListEx(pidl, path.as_mut_ptr(), path.len() as u32, 0);
+            CoTaskMemFree(pidl.cast());
+            if ok == 0 {
+                Err(io::Error::other("Choose a filesystem folder"))
+            } else {
+                let len = path.iter().position(|v| *v == 0).unwrap_or(path.len());
+                String::from_utf16(&path[..len])
+                    .map(Some)
+                    .map_err(io::Error::other)
+            }
+        };
+        CoUninitialize();
+        result
+    }
+}
 const START: u16 = 102;
 const STOP: u16 = 103;
 const SAVE: u16 = 104;
@@ -333,7 +368,25 @@ fn meter(profile: PathBuf, tx: SyncSender<(std::time::Instant, DiskUsage)>) {
                 null_mut(),
             )
         };
-        let disk = DiskUsage::read(&profile, if available != 0 { Some(free) } else { None });
+        let mut disk = DiskUsage::read(&profile, if available != 0 { Some(free) } else { None });
+        if disk.backup_external
+            && let Ok(path) = kern_backup::active_path(&profile)
+            && let Some(folder) = path.parent()
+        {
+            let mut value = 0u64;
+            // SAFETY: synchronous filesystem query with live buffers.
+            if unsafe {
+                GetDiskFreeSpaceExW(
+                    wide(&format!("{}\\", folder.display())).as_ptr(),
+                    &mut value,
+                    null_mut(),
+                    null_mut(),
+                )
+            } != 0
+            {
+                disk.backup_free = Some(value);
+            }
+        }
         if let Err(mpsc::TrySendError::Disconnected(_)) =
             tx.try_send((std::time::Instant::now(), disk))
         {
@@ -764,6 +817,14 @@ pub fn error(message: &str) {
 }
 pub fn run() -> io::Result<()> {
     let args: Vec<String> = std::env::args().skip(1).collect();
+    if args == ["--pick-folder", "1"] {
+        let value = match pick_folder() {
+            Ok(folder) => serde_json::json!({"folder":folder}),
+            Err(e) => serde_json::json!({"error":e.to_string()}),
+        };
+        println!("{value}");
+        return Ok(());
+    }
     validate_options(&args, &["--profile", "--session"])?;
     let argument = |name: &str| {
         args.windows(2)

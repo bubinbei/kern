@@ -9,6 +9,11 @@
     "translation": "docs/en/ARCHITECTURE.md",
     "translation_sha256": "cb590d0a072c8752937ca621e4b77ff2f7193a4d994ff34b60b01cbbf9981d61"
   },
+  "docs/BACKUP.md": {
+    "source_sha256": "d36e06749a6af9ac6d8e7f28f74c245215c6be85cc2f5427b8add71ba18f3dfb",
+    "translation": "docs/en/BACKUP.md",
+    "translation_sha256": "3a81843c1e1eebe6fdd11a3c4cf7f7b9ea0c8967f437f51db8610a13465dce47"
+  },
   "docs/BRANDING.md": {
     "source_sha256": "e615cf60939c23b7f4b8d34d8fac982c4dc1b65fdc7155fbc68930f65246b89c",
     "translation": "docs/en/BRANDING.md",
@@ -25,9 +30,9 @@
     "translation_sha256": "0b26f79e5401f166e913e4c81cf5653f1cfd3d33a19d3832b9049557b63ab9d0"
   },
   "docs/CORE_VALIDATION.md": {
-    "source_sha256": "8d3cbf9eb74434eb54abe1ed408cd0ac79e959be152292fdb57ed743412689c7",
+    "source_sha256": "35f4f0d2f6c7db2430bee6878297f3e965df6209c65963b6ef8f17595043e714",
     "translation": "docs/en/CORE_VALIDATION.md",
-    "translation_sha256": "b24dfd76cfb7e2950baec0bef8b1a6843fd3e01bd581429f5fb64b35b55cd596"
+    "translation_sha256": "4f6451132029b39d20e19a3877979eb049e17f3859b5ec0ea7fd0b80240dc554"
   },
   "docs/DEPENDENCIES.md": {
     "source_sha256": "517321ad80253672ec478fa8098abb2159bb98e7d77f46f1a6297155a1d1640f",
@@ -60,14 +65,14 @@
     "translation_sha256": "2ee883303f2e01395604c3d6ac3ca0419e7f1dc2cefedd382df6a9ce4f0a8f4c"
   },
   "docs/PLUGINS.md": {
-    "source_sha256": "011d4b77068a3a1128f38b22dc290546249792275d004784f447b0ac954a8380",
+    "source_sha256": "c251011d8232fd746b2ce94384a020a676555b3b339fea5d4add053488c66ebd",
     "translation": "docs/en/PLUGINS.md",
-    "translation_sha256": "2612a1b4e37d902c3bba205d23a2a1aae4aa107c64c54431993a6f854a96a52f"
+    "translation_sha256": "894dd49ad414fec6547380d4e4f10935161ea7f7fb7cd6402c2b7296c64d995f"
   },
   "docs/PROTOTYPE.md": {
-    "source_sha256": "260bf3179d70b0c6d1fc160a8ca95b7922caf1ba2c243425119cdfbd86d8ed0d",
+    "source_sha256": "2cf89907fcc4487d2f92423c13adc82a75869ee99948f2fd2f7bf49b36743ee4",
     "translation": "docs/en/PROTOTYPE.md",
-    "translation_sha256": "925ca0439530db2c107a47a4b4b2f329c535138c994a0b1742e7d9d68bd87a04"
+    "translation_sha256": "01a96f974f51376795ac5b57e6b421ef6a440cabd17a0c3c759c35ce15c80a9b"
   },
   "docs/ROADMAP.md": {
     "source_sha256": "5948037667e2613fcba5abf7984d40b9c441507e934cf720622ca261ccfc7c96",
@@ -80,8 +85,8 @@
     "translation_sha256": "4dea9c75c7f9a7c88d0159fda785b3f9b03df202a551182c635c22123d7999b7"
   },
   "docs/TRAY.md": {
-    "source_sha256": "d7bec45b118fe150dba2698963247d56fdf6b6d10848c2d3a48cd891035e3712",
+    "source_sha256": "794ddf6fb48bcdcb8751ed623039f746d9d7be52e09206b684ecc7d0689ea58f",
     "translation": "docs/en/TRAY.md",
-    "translation_sha256": "b80d66330e6001412f7c4df987631b492ca98eac1840c937c02af791cda305b9"
+    "translation_sha256": "45071401b04beb53fffa97cd69c5259f6e670bf1cd81450dbcaa6968fa638404"
   }
 }

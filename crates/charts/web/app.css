@@ -21,3 +21,4 @@ body{font-size:14px}button,input,select{font-size:14px}button{padding:3px 8px;mi
 #values small{line-height:16px}#values b{display:block;line-height:24px}
 
 #values small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#parameterTable th:nth-child(3){width:7%}#parameterTable th:nth-child(4){width:19%}
+.backupLabel{display:block;margin:12px 0 6px}.backupLabel select{display:block;width:100%;margin-top:5px}.backupFolderRow{display:flex;gap:5px;margin-top:5px;flex-wrap:wrap}.backupFolderRow input{flex:1;min-width:180px}.backupFolderRow button{white-space:nowrap}.backupPath{font-family:monospace;font-size:13px;overflow-wrap:anywhere;padding:6px;background:var(--panel);border:1px solid var(--edge)}

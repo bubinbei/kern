@@ -1,5 +1,16 @@
 [
   {
+    "name": "cc",
+    "version": "1.10.0",
+    "license": "MIT OR Apache-2.0",
+    "selected": "MIT",
+    "source": "https://crates.io/crates/cc/1.10.0",
+    "notices": [
+      "third_party/licenses/cc-1.10.0/LICENSE-APACHE",
+      "third_party/licenses/cc-1.10.0/LICENSE-MIT"
+    ]
+  },
+  {
     "name": "cfg-if",
     "version": "1.0.5",
     "license": "MIT OR Apache-2.0",
@@ -19,6 +30,17 @@
     "notices": [
       "third_party/licenses/crc32fast-1.5.3/LICENSE-APACHE",
       "third_party/licenses/crc32fast-1.5.3/LICENSE-MIT"
+    ]
+  },
+  {
+    "name": "find-msvc-tools",
+    "version": "0.1.15",
+    "license": "MIT OR Apache-2.0",
+    "selected": "MIT",
+    "source": "https://crates.io/crates/find-msvc-tools/0.1.15",
+    "notices": [
+      "third_party/licenses/find-msvc-tools-0.1.15/LICENSE-APACHE",
+      "third_party/licenses/find-msvc-tools-0.1.15/LICENSE-MIT"
     ]
   },
   {
@@ -44,6 +66,17 @@
     ]
   },
   {
+    "name": "jobserver",
+    "version": "0.1.35",
+    "license": "MIT OR Apache-2.0",
+    "selected": "MIT",
+    "source": "https://crates.io/crates/jobserver/0.1.35",
+    "notices": [
+      "third_party/licenses/jobserver-0.1.35/LICENSE-APACHE",
+      "third_party/licenses/jobserver-0.1.35/LICENSE-MIT"
+    ]
+  },
+  {
     "name": "libc",
     "version": "0.2.191",
     "license": "MIT OR Apache-2.0",
@@ -63,6 +96,17 @@
     "notices": [
       "third_party/licenses/memchr-2.8.3/COPYING",
       "third_party/licenses/memchr-2.8.3/LICENSE-MIT"
+    ]
+  },
+  {
+    "name": "pkg-config",
+    "version": "0.3.34",
+    "license": "MIT OR Apache-2.0",
+    "selected": "MIT",
+    "source": "https://crates.io/crates/pkg-config/0.3.34",
+    "notices": [
+      "third_party/licenses/pkg-config-0.3.34/LICENSE-APACHE",
+      "third_party/licenses/pkg-config-0.3.34/LICENSE-MIT"
     ]
   },
   {
@@ -153,6 +197,17 @@
     ]
   },
   {
+    "name": "shlex",
+    "version": "2.0.1",
+    "license": "MIT OR Apache-2.0",
+    "selected": "MIT",
+    "source": "https://crates.io/crates/shlex/2.0.1",
+    "notices": [
+      "third_party/licenses/shlex-2.0.1/LICENSE-APACHE",
+      "third_party/licenses/shlex-2.0.1/LICENSE-MIT"
+    ]
+  },
+  {
     "name": "syn",
     "version": "3.0.9",
     "license": "MIT OR Apache-2.0",
@@ -205,6 +260,38 @@
     "source": "https://crates.io/crates/zmij/1.0.23",
     "notices": [
       "third_party/licenses/zmij-1.0.23/LICENSE-MIT"
+    ]
+  },
+  {
+    "name": "zstd",
+    "version": "0.13.3",
+    "license": "MIT",
+    "selected": "MIT",
+    "source": "https://crates.io/crates/zstd/0.13.3",
+    "notices": [
+      "third_party/licenses/zstd-0.13.3/LICENSE"
+    ]
+  },
+  {
+    "name": "zstd-safe",
+    "version": "7.3.0",
+    "license": "BSD-3-Clause",
+    "selected": "BSD-3-Clause",
+    "source": "https://crates.io/crates/zstd-safe/7.3.0",
+    "notices": [
+      "third_party/licenses/zstd-safe-7.3.0/LICENSE"
+    ]
+  },
+  {
+    "name": "zstd-sys",
+    "version": "2.1.2+zstd.1.5.7",
+    "license": "BSD-3-Clause",
+    "selected": "BSD-3-Clause",
+    "source": "https://crates.io/crates/zstd-sys/2.1.2+zstd.1.5.7",
+    "notices": [
+      "third_party/licenses/zstd-sys-2.1.2+zstd.1.5.7/LICENSE",
+      "third_party/licenses/zstd-sys-2.1.2+zstd.1.5.7/LICENSE.BSD-3-Clause",
+      "third_party/licenses/zstd-sys-2.1.2+zstd.1.5.7/LICENSE-ZSTD"
     ]
   }
 ]

@@ -59,3 +59,5 @@ IPC управления: `plugins` → список и диагностичес
 ## Проверка этого среза
 
 `cargo test --workspace --locked`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo build --workspace --release --locked`; затем `python tools/validate_core.py` и на Windows `python tools/validate_desktop.py`. Последний проверяет реальные нативные контролы, сохранение настройки, запуск/кооперативную остановку пакета, падение и приостановку UI-потока, бюджет restart, штатное закрытие и независимое чтение журнала. Только новые синтетические профили `target/qa`, без приборов. [Отчёт desktop](validation/desktop-0.1.0.json). Длительная/аппаратная приёмка, power-loss и общий надзор плагинов не завершены.
+
+Встроенная форма плагина backup теперь задаёт папку и профиль сжатия с проверкой revision; это отдельные настройки профиля, не калибровки. Контракт: [BACKUP](BACKUP.md).

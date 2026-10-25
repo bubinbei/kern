@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/protocol", "crates/engine", "crates/core", "crates/demo", "crates/plugins", "crates/shell", "crates/im2480", "crates/processor", "crates/charts", "crates/recorder", "crates/launch"]
+members = ["crates/protocol", "crates/engine", "crates/core", "crates/demo", "crates/plugins", "crates/shell", "crates/im2480", "crates/processor", "crates/charts", "crates/recorder", "crates/launch", "crates/backup"]
 resolver = "3"
 
 [workspace.package]
@@ -15,6 +15,7 @@ crc32fast = "1.5"
 getrandom = "0.4"
 kern-protocol = { path = "crates/protocol" }
 kern-engine = { path = "crates/engine" }
+kern-backup = { path = "crates/backup" }
 
 [profile.release]
 lto = "thin"

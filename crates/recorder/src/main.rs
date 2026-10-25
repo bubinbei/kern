@@ -1,5 +1,6 @@
 //! Independent CSV/backup consumers with CRC commit markers for recovery.
 use kern_protocol::*;
+mod backup;
 use std::{
     fs::{self, File, OpenOptions},
     io::{self, BufRead, BufReader, Read, Seek, Write},
@@ -24,6 +25,9 @@ fn run() -> io::Result<()> {
     let mode = arg("--mode")?;
     if !matches!(mode.as_str(), "csv" | "backup") {
         return Err(io::Error::other("mode must be csv or backup"));
+    }
+    if mode == "backup" {
+        return backup::run(&profile);
     }
     let folder = profile.join(if mode == "csv" { "exports" } else { "backup" });
     fs::create_dir_all(&folder)?;

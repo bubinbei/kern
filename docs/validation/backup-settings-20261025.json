@@ -1,0 +1,265 @@
+{
+  "schema": 1,
+  "passed": true,
+  "date": "2026-10-25T14:54:31.848055+04:00",
+  "platform": "Windows 11; owned synthetic archive/process/browser/native UI checks and virtual live runtime",
+  "runtime_source_sha256": "18e031ef9305e6a5bb78ca3b185d524f0dda8c6cf8ab158b74df1e193db765b4",
+  "runtime_hash_scope": "Sorted POSIX paths; path UTF-8 + NUL + UTF-8 content normalized to LF. crates/**/*.{rs,toml,js,css,html}, Cargo.toml, Cargo.lock, plugins/calibration.example.json, plugins/*/plugin.json, crates/processor/parameter-library.json.",
+  "binaries": {
+    "kern-core.exe": {
+      "bytes": 3698688,
+      "sha256": "d5081227e953ca1f4ffd2919bc0f96b9a7bace82dead5ae117331da8e314a15f"
+    },
+    "kern-shell.exe": {
+      "bytes": 1025024,
+      "sha256": "ccc9d1e3aed42a7d546e5a843bb92a49f6a7f63ade8cc63fe050fdcda281c1f4"
+    },
+    "kern-charts.exe": {
+      "bytes": 1809408,
+      "sha256": "ab0693f23e01a6c0f13667422bf29743bcf5ce58fd4fa824d1d5cfc335c84050"
+    },
+    "kern-recorder.exe": {
+      "bytes": 1491968,
+      "sha256": "c7537dcc8e472a3845ff16f900a4f7bb7c9c7d89154a69cdb5cbfa2a93d7d2c7"
+    }
+  },
+  "build_checks": {
+    "rust_tests": 56,
+    "python_tool_tests": 13,
+    "fmt": true,
+    "clippy_all_targets_deny_warnings": true,
+    "release_locked": true
+  },
+  "backup": {
+    "passed": true,
+    "checks": [
+      "Four profiles apply without stopping intake; destinations catch up; previous file unchanged",
+      "Uncompressed/compressed transitions in the same folder catch up without lock contention",
+      "Level change appends same archive; restart no duplicate; stale/bad settings rejected; unavailable target preserves prior writer",
+      "Browser: four profiles, Save/Cancel/reload/stale conflict, picker result/cancel, active path and 1280x720 layout",
+      "Native filesystem folder picker choose/cancel; separate helper process",
+      "Authenticated picker single-instance; intake advances while dialog open; host stop cancels its helper",
+      "Legacy and three compressed destinations restore every event exactly to independent new redb profiles",
+      "Torn final block reports excluded tail; complete CRC damage refuses successful restore"
+    ],
+    "browser": {
+      "checks": [
+        "Browser: four profiles, Save/Cancel/reload/stale conflict, picker result/cancel, active path and 1280x720 layout"
+      ],
+      "page_errors": []
+    },
+    "hardware_ports_used": false,
+    "weak_hardware_benchmark": false
+  },
+  "native": {
+    "schema": 1,
+    "rust_source_sha256": "aae7ca52504b831d3bcd21442690d51383a810e4313603fb39eb752d765150d0",
+    "ui_confirmation_over_hang_timeout": true,
+    "checks": [
+      "native_shell_connected",
+      "native_tray_registered_and_storage_sizes_visible",
+      "discovery_does_not_execute",
+      "gui_settings_durable",
+      "stale_settings_revision_rejected",
+      "required_shell_cannot_be_disabled",
+      "gui_starts_synthetic_package",
+      "confirmed_raw_changes_cached_icon_frames_without_gdi_growth",
+      "tray_context_menu_shows_components_and_keeps_heartbeat_over_watchdog_timeout",
+      "taskbar_restart_notification_recreates_owned_icon",
+      "cooperative_stop_closes_source",
+      "package_restarts_with_new_source_session",
+      "shell_crash_restarts_without_stopping_raw",
+      "hung_ui_thread_restarts_while_recording_continues",
+      "normal_window_close_hides_to_tray_and_keeps_shell_and_recording_alive",
+      "tray_selection_reopens_same_shell",
+      "restart_budget_enters_safe_mode_without_losing_acquisition",
+      "independent_journal_count_matches_live_after_ui_failures"
+    ],
+    "tray_cached_frames_observed": 3,
+    "gui_resources_before_after": [
+      [
+        44,
+        38
+      ],
+      [
+        44,
+        38
+      ]
+    ],
+    "raw_batches": 308,
+    "raw_samples": 1848,
+    "binaries": {
+      "kern-core.exe": {
+        "bytes": 3698688,
+        "sha256": "d5081227e953ca1f4ffd2919bc0f96b9a7bace82dead5ae117331da8e314a15f"
+      },
+      "kern-shell.exe": {
+        "bytes": 1025024,
+        "sha256": "ccc9d1e3aed42a7d546e5a843bb92a49f6a7f63ade8cc63fe050fdcda281c1f4"
+      }
+    },
+    "platform": "Windows 11; automated native UI, synthetic profile only",
+    "limits": [
+      "No Windows 10/weak-hardware/long-duration acceptance",
+      "Native plugins are trusted local processes, not a sandbox",
+      "Synthetic source only; physical devices, consumer file-fsync telemetry and weak-machine resources not accepted"
+    ]
+  },
+  "pipeline": {
+    "schema": 1,
+    "passed": true,
+    "tests": [
+      "raw -> historical map -> independently verified 0/0.5/1; duplicate input",
+      "backlog uses historical revision; activation boundary; stale map/tampered result rejected",
+      "uPlot bridge history; no key/cross-origin rejection; screen stop leaves ingestion",
+      "independent CSV/backup CRC readers; consumer restart without duplicate rows",
+      "forced core termination preserves confirmed prefix; recovered values are not fresh",
+      "restore into empty profile solely from backup; exact independent event comparison"
+    ],
+    "live": null,
+    "events": 23,
+    "csv_rows": 6,
+    "backup_events": 21,
+    "database_bytes": 548864,
+    "not_checked": [
+      "Physical modules",
+      "Windows10",
+      "Low-end hardware",
+      "GPU",
+      "Power loss",
+      "24-72h endurance"
+    ]
+  },
+  "parameter_settings": {
+    "passed": true,
+    "date": "2026-10-25T10:45:11.004924+00:00",
+    "binary_sha256": "6f51a0a9c557fcbd5db110fbf5d9e9eec685e8148280a872629a428086a2997a",
+    "browser": {
+      "passed": true,
+      "tile_rendering": {
+        "colors": 7,
+        "overlap": 168,
+        "opaque": true,
+        "hundred_draws_ms": 5.0999999940395355,
+        "cached_gradients_during_scroll": 7,
+        "resize_rebuilds_cache": true,
+        "dash_css_pixels": [
+          5,
+          5
+        ],
+        "adjacent_track_pixel_contrasts": [
+          9,
+          14,
+          13,
+          15,
+          10
+        ]
+      },
+      "tests": [
+        "one contextual settings entry opens charts",
+        "three sliders preview and cancel without saving",
+        "profile preferences save and survive page reload",
+        "appearance API authentication and invalid bounds",
+        "concurrent preference update refuses stale overwrite and preserves draft",
+        "1280x720 settings controls fit",
+        "defaults persist without changing core calibration",
+        "stable pseudorandom tile gradients, visible adjacent-track contrast, dashed grid and cached resize/scroll rendering",
+        "reversed wheel direction",
+        "switching tabs during return to live clears history anchor",
+        "multiple intermediate scroll positions; settled target; bounded plot requests",
+        "parameter selection and separate calibration window",
+        "calibration zoom in/out changes both axes reversibly",
+        "calibration background pan preserves points, draft and core map",
+        "grid strokes and equal-valued ticks follow both pan axes",
+        "fit and signal-unit changes reset viewport",
+        "pointer cancellation releases calibration pan",
+        "voltage/raw view roundtrip without changing points",
+        "duplicate signal rejected",
+        "draft then save/activate",
+        "voltage points reopen correctly",
+        "1280x720 modal controls fit",
+        "point export/import with unit validation",
+        "coefficient edits isolated by cancel",
+        "external map revision preserves open editor; cancel reloads it",
+        "counter/frequency units preserved",
+        "parameter metadata edit and undo",
+        "no browser errors"
+      ],
+      "scroll_positions": 8
+    },
+    "previous_chart_interactions": {
+      "passed": true,
+      "columns": 6,
+      "initialPoints": 13,
+      "tests": [
+        "uPlot vertical tracks",
+        "single click inert",
+        "double click flag add/remove",
+        "outline cursor markers",
+        "right click add curve",
+        "30s/5min history",
+        "three parameter-panel modes",
+        "edit/save/activate calibration",
+        "no browser page errors"
+      ]
+    },
+    "independent_checks": [
+      "voltage points persisted as exact raw codes",
+      "interpreter result checked against independent formula",
+      "continuous synthetic ingestion; no COM access"
+    ]
+  },
+  "initial_upgrade": {
+    "passed": true,
+    "offline_checkpoint": true,
+    "recorder_prefixes_drained": true,
+    "working_config_and_calibration_unchanged": true,
+    "old_raw_prefix_preserved": true,
+    "intake_resumed": true,
+    "processor_caught_up": true,
+    "core_boot_seconds": 12.516,
+    "events_before_upgrade": 1300913,
+    "raw_before_upgrade": 650440,
+    "raw_after_upgrade": 650445,
+    "database_bytes": 3066871808
+  },
+  "final_upgrade": {
+    "passed": true,
+    "offline_checkpoint": true,
+    "recorder_prefixes_drained": true,
+    "working_config_and_calibration_unchanged": true,
+    "old_raw_prefix_preserved": true,
+    "intake_resumed": true,
+    "processor_caught_up": true,
+    "core_boot_seconds": 39.016,
+    "events_before_upgrade": 1302288,
+    "raw_before_upgrade": 651125,
+    "raw_after_upgrade": 651130,
+    "database_bytes": 3066871808
+  },
+  "live": {
+    "passed": true,
+    "matching_binaries": {
+      "kern-core.exe": true,
+      "kern-shell.exe": true,
+      "plugins/backup/kern-recorder.exe": true,
+      "plugins/charts/kern-charts.exe": true,
+      "plugins/csv/kern-recorder.exe": true
+    },
+    "default_destination_and_compression_preserved": true,
+    "backup_position_durable": true,
+    "intake_advanced": true,
+    "form": {
+      "form": true,
+      "four_profiles": true,
+      "read_only": true
+    }
+  },
+  "limits": [
+    "No weak-machine/J4125/Windows10/macOS/GPU/endurance/power-loss acceptance.",
+    "No recording decimation, CSV periods, full installation backup or common shutdown drain.",
+    "Archive startup verification scans the entire file sequentially; large histories can delay backup readiness.",
+    "The first offline live check preceded only the output-lock filename correction; engine and persisted event format were unchanged.",
+    "Native reports prove functional behavior on this Windows host, not a sandbox or cryptographic integrity."
+  ]
+}

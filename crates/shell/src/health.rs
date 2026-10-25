@@ -8,6 +8,9 @@ pub struct DiskUsage {
     pub primary: Option<u64>,
     pub csv: Option<u64>,
     pub backup: Option<u64>,
+    pub backup_free: Option<u64>,
+    pub backup_external: bool,
+    pub backup_error: bool,
 }
 fn size(path: &Path) -> io::Result<u64> {
     match fs::metadata(path) {
@@ -53,7 +56,14 @@ impl DiskUsage {
             free,
             primary,
             csv: size(&profile.join("exports/parameters.csv")).ok(),
-            backup: size(&profile.join("backup/events.jsonl")).ok(),
+            backup: kern_backup::active_path(profile)
+                .ok()
+                .and_then(|p| size(&p).ok()),
+            backup_external: kern_backup::active_path(profile)
+                .ok()
+                .is_some_and(|p| p.parent() != Some(profile.join("backup").as_path())),
+            backup_free: None,
+            backup_error: kern_backup::status(profile).is_some_and(|s| s.error.is_some()),
         }
     }
     pub fn total(&self) -> Option<u64> {
@@ -63,9 +73,14 @@ impl DiskUsage {
     }
     pub fn summary(&self) -> String {
         format!(
-            "Свободно: {} · Файлы данных: {}",
+            "Свободно: {} · Файлы данных: {}{}",
             bytes(self.free),
-            bytes(self.total())
+            bytes(self.total()),
+            if self.backup_external {
+                format!(" · Резерв: свободно {}", bytes(self.backup_free))
+            } else {
+                String::new()
+            }
         )
     }
 }
@@ -156,6 +171,12 @@ impl Monitor {
         if disk.free.is_some_and(|n| n < 4 * 1024 * 1024 * 1024) {
             return (Tone::Amber, "Мало свободного места", pulse);
         }
+        if disk.backup_error {
+            return (Tone::Amber, "Ошибка восстановительного резерва", pulse);
+        }
+        if disk.backup_external && disk.backup_free.is_none_or(|n| n < 4 * 1024 * 1024 * 1024) {
+            return (Tone::Amber, "Проверьте место для резерва", pulse);
+        }
         if disk.free.is_none() || disk.total().is_none() {
             return (Tone::Amber, "Размеры файлов или места неизвестны", pulse);
         }
@@ -230,6 +251,7 @@ mod tests {
             primary: Some(100),
             csv: Some(20),
             backup: Some(30),
+            ..DiskUsage::default()
         }
     }
     #[test]

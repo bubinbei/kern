@@ -59,3 +59,5 @@ Sequence: redb/maps/replay → stabilize API/permissions/subscriptions → build
 ## Slice validation
 
 Run `cargo test --workspace --locked`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo build --workspace --release --locked`; then `python tools/validate_core.py` and, on Windows, `python tools/validate_desktop.py`. The latter exercises real native controls, durable setting changes, package startup/cooperative stop, crash and UI-thread suspension, restart limits, normal closure and independent journal reading. Only fresh synthetic `target/qa` profiles; no devices. [Desktop report](../validation/desktop-0.1.0.json). Endurance/hardware acceptance, power-loss and general plugin supervision remain incomplete.
+
+The built-in backup plugin form now configures folder and compression profile with revision checks. These are separate profile preferences, not calibrations. Contract: [BACKUP](BACKUP.md).

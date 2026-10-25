@@ -6,6 +6,8 @@ logs/
 backup/
 !plugins/backup/
 !plugins/backup/plugin.json
+!crates/backup/
+!crates/backup/**
 *.redb
 .local/
 .env

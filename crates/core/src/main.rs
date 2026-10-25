@@ -198,10 +198,12 @@ fn restore(profile: &Path, input: &Path) -> io::Result<()> {
     let marker = profile.join("import-incomplete");
     std::fs::write(&marker, b"Restore is not complete")?;
     let store = kern_engine::storage::RedbStore::open(profile, true)?;
-    let mut reader = io::BufReader::new(std::fs::File::open(input)?);
+    let mut input = kern_backup::Input::open(input)?;
+    let mut reader = io::BufReader::new(&mut input);
     let mut line = vec![];
     let mut pending: Option<(HistoryEvent, Vec<u8>)> = None;
     let mut state = State::default();
+    let mut partial_line = false;
     loop {
         line.clear();
         let n = (&mut reader)
@@ -214,6 +216,7 @@ fn restore(profile: &Path, input: &Path) -> io::Result<()> {
             return Err(io::Error::other("Backup record exceeds limit"));
         }
         if !line.ends_with(b"\n") {
+            partial_line = true;
             break;
         }
         let v: serde_json::Value = serde_json::from_slice(&line)?;
@@ -243,10 +246,11 @@ fn restore(profile: &Path, input: &Path) -> io::Result<()> {
     if state.event_sequence == 0 {
         return Err(io::Error::other("Backup contains no committed events"));
     }
+    drop(reader);
     std::fs::remove_file(marker)?;
     println!(
         "{}",
-        serde_json::json!({"restored_events":state.event_sequence,"raw_batches":state.raw_batches,"uncommitted_tail":pending.is_some()})
+        serde_json::json!({"restored_events":state.event_sequence,"raw_batches":state.raw_batches,"uncommitted_tail":pending.is_some() || partial_line || input.incomplete})
     );
     Ok(())
 }

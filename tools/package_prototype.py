@@ -28,8 +28,11 @@ def main():
             if path.is_file() and path.name.upper().startswith(('LICENSE','COPYING','NOTICE','AUTHORS')):
                 folder.mkdir(parents=True,exist_ok=True)
                 target=folder/path.name;target.write_bytes(path.read_bytes().rstrip(b'\r\n')+b'\n');notices.append(target.relative_to(ROOT).as_posix())
+        if package['name']=='zstd-sys':
+            upstream=source/'zstd/LICENSE'
+            target=folder/'LICENSE-ZSTD';target.write_bytes(upstream.read_bytes().rstrip(b'\r\n')+b'\n');notices.append(target.relative_to(ROOT).as_posix())
         if not notices:raise RuntimeError('Missing dependency notices: '+package['name'])
-        inventory.append(dict(name=package['name'],version=package['version'],license=package['license'],selected='MIT + Unicode-3.0' if package['name']=='unicode-ident' else 'MIT',source=f"https://crates.io/crates/{package['name']}/{package['version']}",notices=notices))
+        inventory.append(dict(name=package['name'],version=package['version'],license=package['license'],selected='MIT + Unicode-3.0' if package['name']=='unicode-ident' else ('BSD-3-Clause' if package['name'] in ('zstd-safe','zstd-sys') else 'MIT'),source=f"https://crates.io/crates/{package['name']}/{package['version']}",notices=notices))
     (ROOT/'docs/dependencies.json').write_text(json.dumps(inventory,indent=2)+'\n',encoding='utf8')
     uplot=ROOT/'third_party/uplot-1.6.32'
     pinned=json.loads((uplot/'source.json').read_text())
@@ -61,7 +64,7 @@ def main():
         'Check-Data.cmd':'kern-core.exe check --profile "%~dp0data\\prototype"',
     }.items():
         (bundle/name).write_text('@echo off\ncd /d "%~dp0"\n'+command+'\nif errorlevel 1 pause\n',encoding='ascii')
-    (bundle/'README.txt').write_text('KERN — первый сквозной прототип, не промышленная версия.\n\nStart-Kern.cmd — запуск ядра, IM2480, интерпретатора, графиков, CSV и резерва.\nОкно графиков использует установленный Edge/Chrome в режиме приложения. Интернет не нужен.\nКарты по умолчанию ТЕСТОВЫЕ; изменяйте их на вкладке Калибровки.\nCOM задаётся в plugins/im2480/config.json. Старые профили не используются.\n\nЗакрытие окна не останавливает запись. Stop-Kern.cmd — полная остановка.\nРабочие данные: data/prototype/measurements.redb\nCSV: data/prototype/exports/parameters.csv (служебные строки #commit пропускать).\nРезерв: data/prototype/backup/events.jsonl.\nПроверка Check-Data.cmd выполняется при остановленном ядре.\nПодробности: docs/PROTOTYPE.md. Сеть, реальные датчики, слабые ПК и power-loss ещё не приняты.\n',encoding='utf8')
+    (bundle/'README.txt').write_text('KERN — первый сквозной прототип, не промышленная версия.\n\nStart-Kern.cmd — запуск ядра, IM2480, интерпретатора, графиков, CSV и резерва.\nОкно графиков использует установленный Edge/Chrome в режиме приложения. Интернет не нужен.\nКарты по умолчанию ТЕСТОВЫЕ; изменяйте их на вкладке Калибровки.\nCOM задаётся в plugins/im2480/config.json. Старые профили не используются.\n\nЗакрытие окна не останавливает запись. Stop-Kern.cmd — полная остановка.\nРабочие данные: data/prototype/measurements.redb\nCSV: data/prototype/exports/parameters.csv (служебные строки #commit пропускать).\nРезерв: папка и сжатие задаются в настройках «Восстановительный резерв»; по умолчанию data/prototype/backup/events.jsonl.\nПроверка Check-Data.cmd выполняется при остановленном ядре.\nПодробности: docs/PROTOTYPE.md. Сеть, реальные датчики, слабые ПК и power-loss ещё не приняты.\n',encoding='utf8')
     files={p.relative_to(bundle).as_posix():dict(bytes=p.stat().st_size,sha256=hashlib.sha256(p.read_bytes()).hexdigest()) for p in bundle.rglob('*') if p.is_file() and 'data' not in p.relative_to(bundle).parts and p.name!='manifest.json'}
     (bundle/'manifest.json').write_text(json.dumps(dict(version='0.1.0',files=files),indent=2)+'\n',encoding='utf8')
     print(json.dumps(dict(bundle=str(bundle),files=len(files))))

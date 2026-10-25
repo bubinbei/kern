@@ -49,7 +49,7 @@ The parameter panel cycles between expanded, single-line and hidden modes. The c
 |---|---|
 | `measurements.redb` | Authoritative events, original values, map revisions/activations, results, positions and indexes |
 | `exports/parameters.csv` | Open working CSV: time, input/result, source/session, revision, ID, value and quality |
-| `backup/events.jsonl` | Independent uncompressed ordered/CRC event ledger sufficient to restore this slice |
+| `backup/events.jsonl` or selected `events.kbk` | Independent ordered/CRC event ledger; folder and compression: [BACKUP](BACKUP.md) |
 
 redb uses `Durability::Immediate`, a separate writer and a 16 MiB cache. The prototype stops intake explicitly when the database file reaches 4 GiB; this is a coarse guard, not finished quotas/rotation. Page allocation/reservation may cross the threshold within one transaction. Physically failed storage cannot guarantee recording.
 
@@ -60,7 +60,7 @@ Managed `processor`, `csv`, `backup` have bounded crash restart (up to 3 starts/
 Backup restoration needs no original database but requires a compatible KERN/algorithm version:
 
 ```powershell
-kern-core.exe restore --input PATH_TO_BACKUP_EVENTS_JSONL --profile NEW_PROFILE_PATH
+kern-core.exe restore --input PATH_TO_EVENTS_FILE --profile NEW_PROFILE_PATH
 kern-core.exe check --profile NEW_PROFILE_PATH
 ```
 
@@ -83,3 +83,5 @@ Registered IM2480 analogue A1–A3 channels use a **display convention** of 0–
 In the points dialog, left-button background dragging pans the view; +/− zoom both axes, and Fit shows all points. The viewport survives point editing until the dialog closes or the signal unit changes; these actions do not alter point coordinates or map revisions. Interaction redraws are coalesced per frame, and the canvas buffer is not recreated on every move. Grid lines are anchored to axis-value multiples, so strokes and labels pan with the curve; a 1/2/2.5/5×10ⁿ step follows the zoom level, and label precision follows the step.
 
 The Modules tab belongs to the installed im2480 package: wires change map source/channel/enabled, without routing or dropping raw before the journal. Disconnect keeps points and clears the current value. The COM owner handles line/scanner/statistics control; details/limits: [IM2480](IM2480.md). The interpreter resumes history after its durable position and requests immutable maps by revision using calibration_at instead of rereading all prior events; graph-v1 also receives processing_context reconstructed from committed results, including bounded rate windows.
+
+Folder selection, live compression-profile changes, actual output path and JSONL/KBK recovery: [Recovery Backup](BACKUP.md).

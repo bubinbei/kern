@@ -1,4 +1,5 @@
 //! Local-only, capability-limited web presentation host. Never serves core IPC tokens.
+mod backup_settings;
 mod im2480_web;
 mod parameter_library;
 mod presentation_settings;
@@ -44,6 +45,7 @@ fn handle(
     key: &str,
     host: &str,
     profile: &std::path::Path,
+    stop: &AtomicBool,
 ) -> io::Result<()> {
     // Windows can inherit FIONBIO from the listener. Workers use blocking I/O
     // with timeouts; a partially arrived request must not become WSAEWOULDBLOCK.
@@ -128,6 +130,24 @@ fn handle(
         );
     }
 
+    if (path == "/api/backup-settings" && matches!(method, "GET" | "POST"))
+        || (path == "/api/backup-folder" && method == "POST")
+    {
+        let result = if path.ends_with("folder") {
+            backup_settings::pick(profile, stop)
+        } else if method == "GET" {
+            backup_settings::get(profile)
+        } else {
+            backup_settings::save(profile, &body)
+        };
+        let value=result.unwrap_or_else(|e|serde_json::json!({"result":"error","code":"backup_settings","message":e.to_string()}));
+        return respond(
+            s,
+            "200 OK",
+            "application/json; charset=utf-8",
+            &serde_json::to_vec(&value)?,
+        );
+    }
     if path == "/api/presentation-settings" && matches!(method, "GET" | "POST") {
         let result = if method == "GET" {
             presentation_settings::get(profile)
@@ -284,8 +304,9 @@ fn run() -> io::Result<()> {
                 let key = key.clone();
                 let host = host.clone();
                 let profile = profile.clone();
+                let stopping = stop.clone();
                 workers.push(thread::spawn(move || {
-                    if let Err(error) = handle(&mut stream, &e, &key, &host, &profile) {
+                    if let Err(error) = handle(&mut stream, &e, &key, &host, &profile, &stopping) {
                         let _ = respond(
                             &mut stream,
                             "400 Bad Request",
@@ -356,6 +377,7 @@ mod tests {
                 "test",
                 &address.to_string(),
                 std::path::Path::new("."),
+                &AtomicBool::new(false),
             )
         });
         let mut client = TcpStream::connect(address).unwrap();
@@ -402,6 +424,7 @@ mod tests {
                     "test",
                     &address.to_string(),
                     std::path::Path::new("."),
+                    &AtomicBool::new(false),
                 )
                 .unwrap();
             });
