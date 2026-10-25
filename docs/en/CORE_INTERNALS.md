@@ -65,3 +65,7 @@ recover copies logical intact-prefix events with their positions into a new prof
 A separate Rust `kern-shell` process implements menus, freshness settings, status, catalog and manual package start/stop. See [PLUGINS](PLUGINS.md) for supervision/IPC/bounds/limits. Subscriptions, capabilities and general processing-plugin supervision are not implemented yet.
 
 Receipt retains calendar time and a monotonic offset within the boot. After slow sync, freshness starts at receipt rather than disk completion; a missing historical monotonic field never makes replayed readings fresh.
+
+## Baseline of a recovered interval
+
+Hourly-v2 import writes a CRC-protected validated State into a new redb `archive_baseline_v2` table. META.sequence and processor_position preserve original positions; replay loads baseline before later events. Maps/channels/context bounds are checked, processing_orders rebuilt, and Instant/heartbeat never serialized. Data before baseline is not claimed to exist in history indexes. dump emits a separate baseline row. ArchiveBaseline transfers immutable snapshot bytes in 48 KiB pages with total length/CRC and a 16 MiB cap; this is a read-only storage-worker path, outside the write dispatcher. Frames/result-check contract: [BACKUP](BACKUP.md).

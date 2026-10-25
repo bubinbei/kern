@@ -30,6 +30,8 @@ pub enum Event {
     CalibrationActivated {
         revision: u64,
         session: u64,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        activated_unix_ms: Option<i64>,
     },
     InterpreterOpened {
         generation: u64,
@@ -76,7 +78,8 @@ pub enum Event {
     },
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct Source {
     id: String,
     resource: String,
@@ -89,23 +92,28 @@ struct Source {
     values: BTreeMap<u16, Reading>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct Reading {
     sample: Sample,
     measured_ms: i64,
     received_ms: i64,
     sequence: u64,
+    #[serde(skip)]
     received_at: Option<Instant>,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct State {
     pub maps: BTreeMap<u64, CalibrationMap>,
+    #[serde(skip)]
     processing_orders: BTreeMap<u64, Vec<usize>>,
     pub calibration_revision: u64,
     pub active_revision: u64,
     pub interpreter_generation: u64,
     pub interpreter_online: bool,
+    #[serde(skip)]
     interpreter_pulse: Option<Instant>,
     pub processor_position: u64,
     pub processing_context: ProcessingContext,
@@ -113,6 +121,7 @@ pub struct State {
     last_result: Option<ParameterBatch>,
     parameters: BTreeMap<String, (ParameterSample, Arc<ParameterBatch>)>,
     sources: BTreeMap<String, Source>,
+    #[serde(skip)]
     boot_started_at: Option<Instant>,
     pub settings: Settings,
     pub settings_revision: u64,
@@ -231,7 +240,11 @@ impl State {
                         duplicate: true,
                     });
                 }
-                Event::CalibrationActivated { revision, session }
+                Event::CalibrationActivated {
+                    revision,
+                    session,
+                    activated_unix_ms: Some(unix_ms()),
+                }
             }
             Request::OpenSource {
                 id,
@@ -403,7 +416,9 @@ impl State {
                 self.maps.insert(*revision, map.clone());
                 self.calibration_revision = *revision;
             }
-            Event::CalibrationActivated { revision, session } => {
+            Event::CalibrationActivated {
+                revision, session, ..
+            } => {
                 if !self.maps.contains_key(revision) || *session != self.interpreter_generation {
                     return Err("Invalid map activation".into());
                 }
@@ -581,6 +596,61 @@ impl State {
                 v.received_at = None;
             }
         }
+    }
+    /// Validate an archive baseline before making it authoritative. Runtime clocks
+    /// are never serialized; processing orders are rebuilt from validated maps.
+    pub fn validate_checkpoint(&mut self) -> Result<(), String> {
+        if self.maps.len() > 256
+            || self.maps.len() as u64 != self.calibration_revision
+            || self.active_revision > self.calibration_revision
+            || self.sources.len() > MAX_SOURCES
+            || self.parameters.len() > 128
+            || self.processor_position > self.last_raw_event
+            || self.last_raw_event > self.event_sequence
+            || !(100..=3_600_000).contains(&self.settings.stale_after_ms)
+        {
+            return Err("Invalid recovery checkpoint bounds".into());
+        }
+        self.processing_orders.clear();
+        for revision in 1..=self.calibration_revision {
+            let map = self.maps.get(&revision).ok_or("Checkpoint map gap")?;
+            crate::calibration::validate(map)?;
+            self.processing_orders
+                .insert(revision, crate::processing::order(map)?);
+        }
+        let mut slots = BTreeSet::new();
+        for (id, s) in &self.sources {
+            if !valid_id(id)
+                || id != &s.id
+                || !valid_channels(&s.channels)
+                || s.values.len() > 100
+                || s.slot as usize >= MAX_SOURCES
+                || !slots.insert(s.slot)
+                || s.session == 0
+                || s.last_event > self.event_sequence
+            {
+                return Err("Invalid checkpoint source".into());
+            }
+            for v in s.values.values() {
+                if !valid_samples(&s.channels, std::slice::from_ref(&v.sample)) {
+                    return Err("Invalid checkpoint reading".into());
+                }
+            }
+        }
+        if self.processing_context.values.len() > 128
+            || self.processing_context.history.len() > 8
+            || self.processing_context.source_sessions.len() > MAX_SOURCES
+            || self
+                .processing_context
+                .history
+                .values()
+                .any(|v| v.len() > 302 || v.iter().any(|p| !p.value.is_finite()))
+        {
+            return Err("Invalid processing checkpoint".into());
+        }
+        self.interpreter_online = false;
+        self.mark_recovered();
+        Ok(())
     }
     pub fn calibration(&self) -> Reply {
         Reply::Calibration {

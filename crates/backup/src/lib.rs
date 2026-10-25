@@ -1,5 +1,6 @@
 //! Bounded, independently checksummed recovery blocks and revisioned writer settings.
 #![forbid(unsafe_code)]
+pub mod timed;
 use kern_protocol::{HistoryEvent, token};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -29,13 +30,42 @@ impl Compression {
         }
     }
 }
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Settings {
     pub revision: u64,
     pub profile_id: String,
     pub directory: String,
     pub compression: Compression,
+    #[serde(default = "legacy_layout")]
+    pub layout: Layout,
+    #[serde(default = "default_offset")]
+    pub utc_offset_minutes: i32,
+}
+impl Default for Settings {
+    fn default() -> Self {
+        Self {
+            revision: 0,
+            profile_id: String::new(),
+            directory: String::new(),
+            compression: Compression::Balanced,
+            layout: Layout::HourlyV2,
+            utc_offset_minutes: 240,
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Layout {
+    Legacy,
+    #[default]
+    HourlyV2,
+}
+fn legacy_layout() -> Layout {
+    Layout::Legacy
+}
+fn default_offset() -> i32 {
+    240
 }
 impl Settings {
     pub fn folder(&self, profile: &Path) -> PathBuf {
@@ -46,6 +76,9 @@ impl Settings {
         }
     }
     pub fn path(&self, profile: &Path) -> PathBuf {
+        if self.layout == Layout::HourlyV2 {
+            return self.folder(profile).join("hourly-v2");
+        }
         self.folder(profile)
             .join(if self.compression == Compression::None {
                 "events.jsonl"
@@ -60,6 +93,9 @@ pub fn read_settings(profile: &Path) -> io::Result<Settings> {
         return Ok(Settings::default());
     }
     let value: Settings = read_json(&path)?;
+    if !(-840..=840).contains(&value.utc_offset_minutes) {
+        return Err(io::Error::other("Invalid backup UTC offset"));
+    }
     if value.profile_id.len() != 32 || !value.profile_id.bytes().all(|v| v.is_ascii_hexdigit()) {
         return Err(io::Error::other("Invalid backup profile identity"));
     }
@@ -70,6 +106,9 @@ pub fn ensure_settings(profile: &Path) -> io::Result<Settings> {
     let _lock = lock(profile)?;
     let mut value = read_settings(profile)?;
     if value.profile_id.is_empty() {
+        value.layout = Layout::HourlyV2;
+        value.compression = Compression::Balanced;
+        value.utc_offset_minutes = 240;
         value.profile_id = token()?[..32].to_string();
         atomic_json(&profile.join("backup-settings.json"), &value, true)?;
     }
@@ -80,6 +119,15 @@ pub fn save_settings(
     expected: u64,
     directory: String,
     compression: Compression,
+) -> io::Result<Settings> {
+    save_settings_layout(profile, expected, directory, compression, None)
+}
+pub fn save_settings_layout(
+    profile: &Path,
+    expected: u64,
+    directory: String,
+    compression: Compression,
+    layout: Option<Layout>,
 ) -> io::Result<Settings> {
     validate_directory(&directory)?;
     let _lock = lock(profile)?;
@@ -92,6 +140,9 @@ pub fn save_settings(
     }
     value.directory = directory;
     value.compression = compression;
+    if let Some(layout) = layout {
+        value.layout = layout;
+    }
     fs::create_dir_all(value.folder(profile))?;
     let probe = value
         .folder(profile)
@@ -171,6 +222,12 @@ pub struct WriterStatus {
     pub bytes: u64,
     pub error: Option<String>,
     pub updated_unix_ms: u64,
+    #[serde(default)]
+    pub archive_bytes: Option<u64>,
+    #[serde(default)]
+    pub archive_root: String,
+    #[serde(default)]
+    pub layout: String,
 }
 pub fn status(profile: &Path) -> Option<WriterStatus> {
     read_json(&profile.join("backup-status.json")).ok()
@@ -476,6 +533,7 @@ mod tests {
         ] {
             let root = root();
             let mut settings = ensure_settings(&root).unwrap();
+            settings.layout = Layout::Legacy;
             settings.compression = compression;
             let events = events();
             let mut out = Output::open(&root, &settings).unwrap();
@@ -509,6 +567,7 @@ mod tests {
     fn every_torn_final_block_returns_only_verified_prefix_and_keeps_tail() {
         let root = root();
         let mut s = ensure_settings(&root).unwrap();
+        s.layout = Layout::Legacy;
         s.compression = Compression::Fast;
         let events = events();
         let mut out = Output::open(&root, &s).unwrap();
@@ -542,6 +601,7 @@ mod tests {
     fn complete_corruption_and_decompression_bombs_are_rejected_without_repair() {
         let root = root();
         let mut s = ensure_settings(&root).unwrap();
+        s.layout = Layout::Legacy;
         s.compression = Compression::Compact;
         let mut out = Output::open(&root, &s).unwrap();
         out.append(&events(), s.compression).unwrap();
@@ -598,7 +658,9 @@ mod tests {
     #[test]
     fn two_writers_cannot_own_one_archive() {
         let root = root();
-        let s = ensure_settings(&root).unwrap();
+        let mut s = ensure_settings(&root).unwrap();
+        s.layout = Layout::Legacy;
+        s.compression = Compression::None;
         let _first = Output::open(&root, &s).unwrap();
         assert!(Output::open(&root, &s).is_err());
         let mut compressed = s.clone();

@@ -56,12 +56,17 @@ impl DiskUsage {
             free,
             primary,
             csv: size(&profile.join("exports/parameters.csv")).ok(),
-            backup: kern_backup::active_path(profile)
-                .ok()
-                .and_then(|p| size(&p).ok()),
+            backup: match kern_backup::status(profile) {
+                Some(s) if !s.archive_root.is_empty() => {
+                    kern_backup::timed::size(Path::new(&s.archive_root)).ok()
+                }
+                _ => kern_backup::active_path(profile)
+                    .ok()
+                    .and_then(|p| size(&p).ok()),
+            },
             backup_external: kern_backup::active_path(profile)
                 .ok()
-                .is_some_and(|p| p.parent() != Some(profile.join("backup").as_path())),
+                .is_some_and(|p| !p.starts_with(profile.join("backup"))),
             backup_free: None,
             backup_error: kern_backup::status(profile).is_some_and(|s| s.error.is_some()),
         }
@@ -317,6 +322,7 @@ mod tests {
         fs::write(root.join("journal/segment-000001.kjn"), [0; 10]).unwrap();
         fs::write(root.join("exports/parameters.csv"), [0; 20]).unwrap();
         fs::write(root.join("backup/events.jsonl"), [0; 30]).unwrap();
+        fs::write(root.join("backup-settings.json"),r#"{"revision":0,"profile_id":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","directory":"","compression":"none","layout":"legacy"}"#).unwrap();
         fs::write(root.join("unrelated.bin"), [0; 100]).unwrap();
         assert_eq!(DiskUsage::read(&root, Some(123)).total(), Some(60));
         fs::write(root.join("measurements.redb"), [0; 40]).unwrap();

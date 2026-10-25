@@ -40,6 +40,13 @@ fn verify_prefix(endpoint: &Endpoint, output: &Output) -> io::Result<()> {
     Ok(())
 }
 pub fn run(profile: &Path) -> io::Result<()> {
+    let settings = ensure_settings(profile)?;
+    if settings.layout == kern_backup::Layout::HourlyV2 {
+        return crate::timed_backup::run(profile);
+    }
+    run_legacy(profile)
+}
+fn run_legacy(profile: &Path) -> io::Result<()> {
     let endpoint = load_endpoint(profile)?;
     let mut active = ensure_settings(profile)?;
     let mut output = Output::open(profile, &active)?;
@@ -63,6 +70,10 @@ pub fn run(profile: &Path) -> io::Result<()> {
         while !stop.load(Ordering::Acquire) {
             state.error = None;
             match read_settings(profile) {
+                Ok(next) if next.layout != kern_backup::Layout::Legacy => {
+                    output.append(&[], active.compression)?;
+                    return Ok(());
+                }
                 Ok(next) if next.revision != active.revision => {
                     if next.path(profile) == output.path {
                         active = next;

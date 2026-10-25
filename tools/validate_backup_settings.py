@@ -40,6 +40,7 @@ def main():
                 r=mutate(profile,'ingest',batch=dict(source='test',session=source['session'],sequence=sequence,measured_unix_ms=int(time.time()*1000),samples=[dict(channel=0,value=dict(type='unsigned',value=sequence),quality='good')]))
                 assert r['result']=='durable',r
         ingest(40)
+        (profile/'backup-settings.json').write_text(json.dumps(dict(revision=0,profile_id='a'*32,directory='',compression='none',layout='legacy')))
         backup=spawn('kern-recorder','--profile',profile,'--mode','backup')
         charts=spawn('kern-charts','--profile',profile)
         wait(lambda:(profile/'charts-endpoint.json').exists())

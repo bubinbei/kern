@@ -17,7 +17,12 @@ pub fn get(profile: &Path) -> io::Result<Value> {
 }
 pub fn save(profile: &Path, body: &[u8]) -> io::Result<Value> {
     let v: Value = serde_json::from_slice(body)?;
-    if v.as_object().is_none_or(|v| v.len() != 3) {
+    if v.as_object().is_none_or(|v| {
+        !(3..=4).contains(&v.len())
+            || v.keys().any(|k| {
+                !["expected_revision", "directory", "compression", "layout"].contains(&k.as_str())
+            })
+    }) {
         return Err(io::Error::other("Invalid backup settings"));
     }
     let rev = v["expected_revision"]
@@ -28,7 +33,11 @@ pub fn save(profile: &Path, body: &[u8]) -> io::Result<Value> {
         .ok_or_else(|| io::Error::other("Missing backup folder"))?
         .to_string();
     let compression: Compression = serde_json::from_value(v["compression"].clone())?;
-    save_settings(profile, rev, directory, compression)?;
+    let layout = v
+        .get("layout")
+        .map(|v| serde_json::from_value(v.clone()))
+        .transpose()?;
+    save_settings_layout(profile, rev, directory, compression, layout)?;
     get(profile)
 }
 pub fn pick(profile: &Path, stop: &AtomicBool) -> io::Result<Value> {

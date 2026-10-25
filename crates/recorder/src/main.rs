@@ -1,6 +1,7 @@
 //! Independent CSV/backup consumers with CRC commit markers for recovery.
 use kern_protocol::*;
 mod backup;
+mod timed_backup;
 use std::{
     fs::{self, File, OpenOptions},
     io::{self, BufRead, BufReader, Read, Seek, Write},

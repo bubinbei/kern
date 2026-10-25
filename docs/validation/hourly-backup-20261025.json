@@ -1,0 +1,330 @@
+{
+  "schema": 1,
+  "passed": true,
+  "date": "2026-10-25T20:14:14+04:00",
+  "runtime_source_sha256": "9528a500a6d589f618a7b3453d2c8342c1965e7ede4b082b3d930270e74448ea",
+  "runtime_hash_scope": "Sorted POSIX paths; path UTF-8 + NUL + UTF-8 content normalized to LF. crates/**/*.{rs,toml,js,css,html}, Cargo.toml, Cargo.lock, plugins/calibration.example.json, plugins/*/plugin.json, crates/processor/parameter-library.json.",
+  "binaries": {
+    "kern-core.exe": {
+      "bytes": 4894208,
+      "sha256": "1ac3beead363e88265190ff9d57058c4df134c114217d4f35c48207e5dc41672"
+    },
+    "kern-recorder.exe": {
+      "bytes": 3326464,
+      "sha256": "c3eeab440257310585ef58f68b2fa1466ebe0a5f3246e2ca7465ea9eaf275899"
+    },
+    "kern-shell.exe": {
+      "bytes": 1061376,
+      "sha256": "9dd39a1c38fd7123cbf4c4fb5d83896d8a4698c7b8447eae51762c1b8f800fb2"
+    },
+    "kern-charts.exe": {
+      "bytes": 1837568,
+      "sha256": "1a085255b34878597661653c2fc77f883072640447d168a6a2fb1b24cf62cfde"
+    },
+    "kern-processor.exe": {
+      "bytes": 1360896,
+      "sha256": "c4946bf41beefe6a4f1d32e26769da853437abe66d737bbb93b3c2c0a77f6378"
+    }
+  },
+  "build_checks": {
+    "rust_tests": 60,
+    "python_tool_tests": 13,
+    "fmt": true,
+    "clippy_all_targets_deny_warnings": true,
+    "release_locked": true
+  },
+  "hourly": {
+    "passed": true,
+    "checks": [
+      "Fresh default hourly-v2/balanced; continuous raw, sparse snapshots, hot calibration rotation, forced writer restart and tail catch-up",
+      "Real browser: hourly/legacy selector, balanced default, Cancel keeps format, 1280x720 footer and no page errors",
+      "Header has active map/new revision and named reason; full snapshots limited to 10-second buckets; intermediate result recipes retained",
+      "Whole collection restores every original raw/control/result event exactly; independent core dump equals canonical live history",
+      "Calibration file alone restores from its validated state/map baseline and keeps exact original event numbers",
+      "Restored baseline replays on boot; paged baseline API lets backup resume on the restored interval",
+      "A missing middle file or required active tail fails closed; incomplete import marker remains"
+    ],
+    "files": 3,
+    "snapshots": 3,
+    "recipes": 127,
+    "events": 268,
+    "archive_bytes": 7315,
+    "weak_machine_or_month_size_acceptance": false,
+    "hardware_ports_used": false
+  },
+  "legacy_pipeline": {
+    "schema": 1,
+    "passed": true,
+    "tests": [
+      "raw -> historical map -> independently verified 0/0.5/1; duplicate input",
+      "backlog uses historical revision; activation boundary; stale map/tampered result rejected",
+      "uPlot bridge history; no key/cross-origin rejection; screen stop leaves ingestion",
+      "independent CSV/backup CRC readers; consumer restart without duplicate rows",
+      "forced core termination preserves confirmed prefix; recovered values are not fresh",
+      "restore into empty profile solely from backup; exact independent event comparison"
+    ],
+    "live": null,
+    "events": 23,
+    "csv_rows": 6,
+    "backup_events": 21,
+    "database_bytes": 311296,
+    "not_checked": [
+      "Physical modules",
+      "Windows10",
+      "Low-end hardware",
+      "GPU",
+      "Power loss",
+      "24-72h endurance"
+    ]
+  },
+  "legacy_settings": {
+    "passed": true,
+    "checks": [
+      "Four profiles apply without stopping intake; destinations catch up; previous file unchanged",
+      "Uncompressed/compressed transitions in the same folder catch up without lock contention",
+      "Level change appends same archive; restart no duplicate; stale/bad settings rejected; unavailable target preserves prior writer",
+      "Browser: four profiles, Save/Cancel/reload/stale conflict, picker result/cancel, active path and 1280x720 layout",
+      "Native filesystem folder picker choose/cancel; separate helper process",
+      "Authenticated picker single-instance; intake advances while dialog open; host stop cancels its helper",
+      "Legacy and three compressed destinations restore every event exactly to independent new redb profiles",
+      "Torn final block reports excluded tail; complete CRC damage refuses successful restore"
+    ],
+    "browser": {
+      "checks": [
+        "Browser: four profiles, Save/Cancel/reload/stale conflict, picker result/cancel, active path and 1280x720 layout"
+      ],
+      "page_errors": []
+    },
+    "hardware_ports_used": false,
+    "weak_hardware_benchmark": false
+  },
+  "catalog": {
+    "passed": true,
+    "date": "2026-10-25T16:04:26.859523+00:00",
+    "checks": [
+      "browser preset/catalog/provider workflows on continuously ingesting native pipeline",
+      "independent 100-80=20 t, 60*2*.9/60=1.8 l/s, tank interpolation=10 m3, moving depth approximately 3600 m/h",
+      "interpreter restart restores committed window and catches ongoing raw backlog without new warmup",
+      "invalid map rejected atomically without replacing active revision",
+      "preset/catalog API requires presentation key",
+      "custom preset versions survive presentation-host restart while raw intake continues",
+      "independent CSV CRC reader confirms calculated load, flow and tank-volume rows",
+      "independent backup CRC/event equality and exact graph context/window restored without original database"
+    ],
+    "browser": {
+      "passed": true,
+      "checks": [
+        "inline available/used lists preview dependencies without changing the draft; contextual interpreter settings",
+        "both thematic lists collapse and expand without removing definitions",
+        "full preset content/counts and explicit replacement; 1280x720 controls fit",
+        "used definitions disappear from available; dependency removal blocked; remove and undo restore both lists",
+        "removing and re-adding a configured sensor preserves its calibration; undo restores original order",
+        "add-missing preserves original calibration; operator inputs drive native load calculation and readiness survives omitted enabled=true",
+        "new sensor starts without fabricated calibration; calibration and pump settings produce 1.8 l/s",
+        "individual tank table produces calibrated volume",
+        "rate editor exposes explicit history window",
+        "save-as is portable by default, leaves active map unchanged and creates immutable named versions",
+        "custom presets export/import, validate and explicitly store in selection list",
+        "empty search cannot apply stale selection",
+        "more than 32 parameters activate as one checked version without overwriting existing settings",
+        "compact two-pane workspace: 14px text, rows <=26px and both lists visible at 1280x720",
+        "no browser errors"
+      ],
+      "density": {
+        "row_height": 25,
+        "font": 14,
+        "visible_rows": 16,
+        "header_values_fit": true,
+        "available_visible": true
+      }
+    },
+    "catalog_parameters": 81,
+    "builtin_presets": 7,
+    "rate_observation": 3567.888999008921,
+    "binaries": {
+      "kern-core.exe": "1ac3beead363e88265190ff9d57058c4df134c114217d4f35c48207e5dc41672",
+      "kern-processor.exe": "c4946bf41beefe6a4f1d32e26769da853437abe66d737bbb93b3c2c0a77f6378",
+      "kern-charts.exe": "1a085255b34878597661653c2fc77f883072640447d168a6a2fb1b24cf62cfde",
+      "kern-recorder.exe": "c3eeab440257310585ef58f68b2fa1466ebe0a5f3246e2ca7465ea9eaf275899"
+    },
+    "not_checked": [
+      "Physical depth/load model",
+      "Low-end resources",
+      "Power loss",
+      "24-72h",
+      "macOS",
+      "Windows10"
+    ]
+  },
+  "editor": {
+    "passed": true,
+    "date": "2026-10-25T16:04:39.928826+00:00",
+    "binary_sha256": "1a085255b34878597661653c2fc77f883072640447d168a6a2fb1b24cf62cfde",
+    "browser": {
+      "passed": true,
+      "tile_rendering": {
+        "colors": 7,
+        "overlap": 168,
+        "opaque": true,
+        "hundred_draws_ms": 4.300000011920929,
+        "cached_gradients_during_scroll": 7,
+        "resize_rebuilds_cache": true,
+        "dash_css_pixels": [
+          5,
+          5
+        ],
+        "adjacent_track_pixel_contrasts": [
+          9,
+          14,
+          13,
+          15,
+          10
+        ]
+      },
+      "tests": [
+        "one contextual settings entry opens charts",
+        "three sliders preview and cancel without saving",
+        "profile preferences save and survive page reload",
+        "appearance API authentication and invalid bounds",
+        "concurrent preference update refuses stale overwrite and preserves draft",
+        "1280x720 settings controls fit",
+        "defaults persist without changing core calibration",
+        "stable pseudorandom tile gradients, visible adjacent-track contrast, dashed grid and cached resize/scroll rendering",
+        "reversed wheel direction",
+        "switching tabs during return to live clears history anchor",
+        "multiple intermediate scroll positions; settled target; bounded plot requests",
+        "parameter selection and separate calibration window",
+        "calibration zoom in/out changes both axes reversibly",
+        "calibration background pan preserves points, draft and core map",
+        "grid strokes and equal-valued ticks follow both pan axes",
+        "fit and signal-unit changes reset viewport",
+        "pointer cancellation releases calibration pan",
+        "voltage/raw view roundtrip without changing points",
+        "duplicate signal rejected",
+        "draft then save/activate",
+        "voltage points reopen correctly",
+        "1280x720 modal controls fit",
+        "point export/import with unit validation",
+        "coefficient edits isolated by cancel",
+        "external map revision preserves open editor; cancel reloads it",
+        "counter/frequency units preserved",
+        "parameter metadata edit and undo",
+        "no browser errors"
+      ],
+      "scroll_positions": 8
+    },
+    "previous_chart_interactions": {
+      "passed": true,
+      "columns": 6,
+      "initialPoints": 16,
+      "tests": [
+        "uPlot vertical tracks",
+        "single click inert",
+        "double click flag add/remove",
+        "outline cursor markers",
+        "right click add curve",
+        "30s/5min history",
+        "three parameter-panel modes",
+        "edit/save/activate calibration",
+        "no browser page errors"
+      ]
+    },
+    "independent_checks": [
+      "voltage points persisted as exact raw codes",
+      "interpreter result checked against independent formula",
+      "continuous synthetic ingestion; no COM access"
+    ]
+  },
+  "native": {
+    "schema": 1,
+    "rust_source_sha256": "b0df9439340e928b4790085c2a7fc1107510db5eb72dd83cbe8aaf2ab24e03d3",
+    "ui_confirmation_over_hang_timeout": true,
+    "checks": [
+      "native_shell_connected",
+      "native_tray_registered_and_storage_sizes_visible",
+      "discovery_does_not_execute",
+      "gui_settings_durable",
+      "stale_settings_revision_rejected",
+      "required_shell_cannot_be_disabled",
+      "gui_starts_synthetic_package",
+      "confirmed_raw_changes_cached_icon_frames_without_gdi_growth",
+      "tray_context_menu_shows_components_and_keeps_heartbeat_over_watchdog_timeout",
+      "taskbar_restart_notification_recreates_owned_icon",
+      "cooperative_stop_closes_source",
+      "package_restarts_with_new_source_session",
+      "shell_crash_restarts_without_stopping_raw",
+      "hung_ui_thread_restarts_while_recording_continues",
+      "normal_window_close_hides_to_tray_and_keeps_shell_and_recording_alive",
+      "tray_selection_reopens_same_shell",
+      "restart_budget_enters_safe_mode_without_losing_acquisition",
+      "independent_journal_count_matches_live_after_ui_failures"
+    ],
+    "tray_cached_frames_observed": 3,
+    "gui_resources_before_after": [
+      [
+        44,
+        40
+      ],
+      [
+        44,
+        40
+      ]
+    ],
+    "raw_batches": 308,
+    "raw_samples": 1848,
+    "binaries": {
+      "kern-core.exe": {
+        "bytes": 4894208,
+        "sha256": "1ac3beead363e88265190ff9d57058c4df134c114217d4f35c48207e5dc41672"
+      },
+      "kern-shell.exe": {
+        "bytes": 1061376,
+        "sha256": "9dd39a1c38fd7123cbf4c4fb5d83896d8a4698c7b8447eae51762c1b8f800fb2"
+      }
+    },
+    "platform": "Windows 11; automated native UI, synthetic profile only",
+    "limits": [
+      "No Windows 10/weak-hardware/long-duration acceptance",
+      "Native plugins are trusted local processes, not a sandbox",
+      "Synthetic source only; physical devices, consumer file-fsync telemetry and weak-machine resources not accepted"
+    ]
+  },
+  "live_upgrade": {
+    "passed": true,
+    "offline_checkpoint": true,
+    "recorder_prefixes_drained": true,
+    "working_config_and_calibration_unchanged": true,
+    "old_raw_prefix_preserved": true,
+    "intake_resumed": true,
+    "processor_caught_up": true,
+    "core_boot_seconds": 16.094,
+    "events_before_upgrade": 1472223,
+    "raw_before_upgrade": 736090,
+    "raw_after_upgrade": 736095,
+    "database_bytes": 3066871808
+  },
+  "limits": [
+    "No weak-PC/J4125/Windows10/macOS/month-long-size/power-loss acceptance.",
+    "10-second full snapshots are supplemented with raw references/result checks; restore needs compatible algorithms and validates every regenerated result.",
+    "Selected-interval restore contains a validated baseline, not pre-interval sample history.",
+    "Open .kbk files require the adjacent durable .tail; closed hours are self-contained.",
+    "No common secondary-writer shutdown drain, CSV periods or primary redb rotation.",
+    "Standalone-interval re-export with raw dependencies before its baseline is not guaranteed; prefer the whole collection after a deep cross-boundary interpreter backlog."
+  ],
+  "live_migration": {
+    "passed": true,
+    "old_backup_bytes": 1733897441,
+    "old_backup_preserved": true,
+    "other_process_pids_preserved": true,
+    "intake_advanced": true,
+    "layout": "hourly_v2",
+    "compression": "balanced",
+    "archive_bytes": 31576492,
+    "files": 51,
+    "snapshots": 16165,
+    "recipes": 723140,
+    "historical_catchup_seconds": 548.25,
+    "all_intermediate_result_recipes_reconstructed_and_crc_checked": true,
+    "full_snapshots_crc_protected": true
+  }
+}

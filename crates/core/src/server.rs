@@ -37,6 +37,11 @@ fn client(
         Ok(envelope) if envelope.version == VERSION && envelope.token == key => {
             let through = confirmed.load(Ordering::Acquire);
             let direct = match &envelope.request {
+                Request::ArchiveBaseline { offset } => Some(
+                    store
+                        .ok_or_else(|| io::Error::other("Baseline requires redb"))
+                        .and_then(|s| s.baseline_chunk(*offset)),
+                ),
                 Request::History { after } => Some(
                     store
                         .ok_or_else(|| {

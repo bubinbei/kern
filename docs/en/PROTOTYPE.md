@@ -49,7 +49,7 @@ The parameter panel cycles between expanded, single-line and hidden modes. The c
 |---|---|
 | `measurements.redb` | Authoritative events, original values, map revisions/activations, results, positions and indexes |
 | `exports/parameters.csv` | Open working CSV: time, input/result, source/session, revision, ID, value and quality |
-| `backup/events.jsonl` or selected `events.kbk` | Independent ordered/CRC event ledger; folder and compression: [BACKUP](BACKUP.md) |
+| `backup/hourly-v2/YYYY-MM-DD/*.kbk` and active `.tail` | All inputs, 10s parameters, result checks, maps/context; legacy JSONL/KBK v1 remains readable separately: [BACKUP](BACKUP.md) |
 
 redb uses `Durability::Immediate`, a separate writer and a 16 MiB cache. The prototype stops intake explicitly when the database file reaches 4 GiB; this is a coarse guard, not finished quotas/rotation. Page allocation/reservation may cross the threshold within one transaction. Physically failed storage cannot guarantee recording.
 
@@ -85,3 +85,5 @@ In the points dialog, left-button background dragging pans the view; +/− zoom 
 The Modules tab belongs to the installed im2480 package: wires change map source/channel/enabled, without routing or dropping raw before the journal. Disconnect keeps points and clears the current value. The COM owner handles line/scanner/statistics control; details/limits: [IM2480](IM2480.md). The interpreter resumes history after its durable position and requests immutable maps by revision using calibration_at instead of rereading all prior events; graph-v1 also receives processing_context reconstructed from committed results, including bounded rate windows.
 
 Folder selection, live compression-profile changes, actual output path and JSONL/KBK recovery: [Recovery Backup](BACKUP.md).
+
+Hourly backup is implemented; fresh profiles use hourly-v2/Zstd1. Existing profiles retain compatibility mode until explicitly switched. Writer shutdown seals its pending block; a common drain of other processes remains separate work.

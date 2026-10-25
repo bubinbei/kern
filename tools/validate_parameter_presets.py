@@ -39,6 +39,7 @@ def main():
         for p in original['parameters']:p.update(source='test',points=[dict(raw=0,value=0),dict(raw=100000,value=100000)])
         assert mutate(profile,'save_calibration',expected_revision=0,map=original)['result']=='durable'
         worker=spawn('kern-processor','--profile',profile);wait(lambda:rpc(profile,'calibration')['active_revision']==1)
+        (profile/'backup-settings.json').write_text(json.dumps(dict(revision=0,profile_id='a'*32,directory='',compression='none',layout='legacy')))
         backup=spawn('kern-recorder','--profile',profile,'--mode','backup');csv=spawn('kern-recorder','--profile',profile,'--mode','csv')
         opened=mutate(profile,'open_source',id='test',resource='SYNTHETIC-PRESETS',channels=[dict(id=i,name='Synthetic '+str(i),value_type='float') for i in range(6)],expected_catalog_revision=rpc(profile,'status')['status']['catalog_revision']);session=opened['session']
         start=time.monotonic()

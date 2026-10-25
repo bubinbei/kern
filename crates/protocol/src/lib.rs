@@ -115,6 +115,9 @@ impl Default for Settings {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "command", rename_all = "snake_case", deny_unknown_fields)]
 pub enum Request {
+    ArchiveBaseline {
+        offset: u32,
+    },
     History {
         after: u64,
     },
@@ -195,6 +198,12 @@ pub struct Envelope {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "result", rename_all = "snake_case")]
 pub enum Reply {
+    ArchiveBaseline {
+        offset: u32,
+        total: u32,
+        crc32: u32,
+        data: Vec<u8>,
+    },
     ProcessingContext {
         position: u64,
         context: ProcessingContext,

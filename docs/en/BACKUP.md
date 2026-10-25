@@ -1,51 +1,76 @@
 # Recovery backup
 
-Open the single ⋮ button → Recovery Backup. Use Choose to open the native folder picker or enter an absolute path. Profile Folder restores the default location. Save applies changes; Cancel discards the draft. Reload fetches the saved revision; a stale window cannot overwrite a newer revision.
+**hourly-v2** is implemented: all raw batches and control events are retained; full calculated results use ten-second time buckets. A new file starts each hour containing data and whenever a new calibration is activated, with a reason. Fresh profiles default to hourly-v2 and Zstd 1 (Balanced). Full v1 remains a compatibility mode; old files are retained.
 
-| Mode | Output | Purpose |
-|---|---|---|
-| Uncompressed | `events.jsonl` | Least computation, more disk space |
-| Fast · low-end PC | `events.kbk`, Zstd −3 | Initial candidate for Celeron J4125 |
-| Balanced | `events.kbk`, Zstd 1 | Moderate compression |
-| Compact | `events.kbk`, Zstd 3 | More computation for a smaller file |
+## Contents
 
-Compression uses one thread without a Zstd worker pool. Zstd level 0 is not used for Off: the library treats it as its default level. No specific speed or compression ratio is promised; J4125 acceptance is pending. Algorithm/licensing: [Zstd](https://github.com/facebook/zstd), [dependency inventory](../dependencies.json).
+| Data | Frequency |
+|---|---|
+| Raw values, times, quality, source/session and map revision | Every committed batch, without decimation |
+| Full calculated result | First arriving result in each new ten-second bucket and first after a file starts |
+| Intermediate-result check | Raw-event reference and CRC32 of the exact original result |
+| Maps, activations, manual values, core settings, source open/close and other core events | As received from the ledger |
+| Header: active map, sources/channels, versions and initial calculation state | Each file start |
 
-The default continues existing `profile/backup/events.jsonl` without conversion. An external directory receives `kern-<profile_id>` so profiles do not mix. The form distinguishes the actual output file from the file requested by saved settings and shows committed position / known history boundary, size and last error. Status older than five seconds is labeled last known rather than claimed to be live.
+A result-check record is much smaller than repeating every parameter. Restore recalculates intermediate results from recorded inputs/context and checks CRC. A mismatch aborts import; current calibrations never replace historical maps. References outside the file carry a copy of the required raw event. Existing linear-v1/graph-v1, including rate windows, are supported. Compatible algorithm implementations are required; CRC detects damage/reproducibility errors, not cryptographic authenticity.
 
-The plugin checks settings every 500 ms. Switching among Zstd levels affects subsequent blocks of the same file. Changing folders or JSONL ↔ KBK opens another file and catches up all available core history from its verified position. The final existing event is compared with core history before continuation. Old files are retained without rewriting and consume additional space. An invalid new destination leaves an already running writer on its previous file with a visible warning. An unavailable saved destination at startup causes a startup error; no alternate folder is silently selected. Folder changes do not migrate primary redb. A backup on the same physical medium does not protect against that medium failing.
+Raw recording continues while the interpreter is stopped. New calculated values are not fabricated; missing results are visible from their times. Decimated chart-display points are never the backup source. The custom preset library, line configuration, appearance and backup preferences remain outside the core ledger; this is not a full installation copy.
 
-Every core event is exported without decimation: raw input, map revisions/activations, results and other journal events. This slice adds no recording periods. The custom preset library, line configuration, appearance and backup settings themselves remain outside the core journal/export; this is not a full installation backup. Profile-owned `backup-settings.json` updates atomically with revision checking; `backup-status.json` is expendable telemetry, never measurement authority.
+## Folders, boundaries and reasons
 
-## Format and recovery
+```text
+backup/hourly-v2/
+  2026-10-25/
+    14-00-00_hour-r41-e00000000000000123456.kbk
+    14-25-00_calibration-r42-e00000000000000124001.kbk
+    15-00-00_hour-r42-e00000000000000125001.kbk
+```
 
-KBK v1 begins with eight bytes `KERNBKP1`. Each independent block has a 32-byte little-endian header: `BLK1` (4), codec (1: 0 raw, 1 Zstd), level (i8), reserved (2 zero bytes), plain_len (u32), stored_len (u32), CRC32 of plain payload (u32), last_sequence (u64), CRC32 of the first 28 header bytes (u32). Payload retains the JSONL HistoryEvent + _commit/CRC pairs. Blocks whose compression increases size are stored raw. Levels may differ within one file.
+The e suffix is the original event position, preventing overwrites when time repeats and preserving order after clock corrections. Boundaries use core receipt/activation time, not historical-export execution time. Hours without events create no empty periodic files. Header/settings persist utc_offset_minutes; fresh profiles currently use +240 (UTC+04:00), a fixed offset without automatic DST. There is no timezone editor yet.
 
-Bounds before allocation: plain block ≤1 MiB, stored block ≤2 MiB, decoder window ≤2 MiB. Header, lengths, CRC, ordering and event markers are checked. This detects corruption; it is not a cryptographic signature. Complete damaged blocks fail closed. A torn final block is excluded; the writer first preserves its exact bytes in a separate ASCII-named `events.tail-<id>.bin` file, then resumes the committed prefix. Position is published only after `sync_all`. Memory is bounded by block size rather than total archive length; startup verification reads the entire archive sequentially and may take time on large histories.
+Files rotate on **confirmed map activation**. The header carries the complete new map, old/new revisions, time and a reason such as “At 14:25 calibration changed: Hook weight. Revision 41 → 42.” Changed parameter names are derived automatically; authenticated operator identity/accounts are not added. Old activations lacking their own timestamp use the last known event time. The next wall-clock hour boundary still applies.
 
-One command detects JSONL/KBK automatically:
+Initial state includes maps, current inputs, parameters and window context, allowing one hour to be restored without recalculating all earlier hours. Samples before the selected interval are not recreated: baseline_position reports the starting boundary. For complete history pass the collection root; missing intermediate files or state forks fail closed. Ordering uses event positions rather than filename times. For recovery after a long interpreter backlog, prefer the collection root: re-exporting a restored interval whose results reference raw inputs before its baseline is not guaranteed without earlier files.
+
+## Settings and size
+
+Single ⋮ button → Recovery Backup: contents, directory, compression, actual file and current collection size. Choose opens a separate native dialog; its closure/hang cannot block the core. Save checks revision; Cancel discards the draft. Changing contents ends the writer process so its supervisor restarts it; a standalone CLI writer must be launched again. Folder/level changes apply in the working loop. A new folder catches up available history; an unavailable target retains the running writer's previous path.
+
+| Mode | Block compression |
+|---|---|
+| Uncompressed | Raw blocks |
+| Fast · low-end PC | Zstd −3, one thread; J4125 candidate |
+| Balanced | Zstd 1, one thread; fresh-profile default |
+| Compact | Zstd 3, one thread |
+
+External folders receive kern-<profile_id>/hourly-v2. Old JSONL/KBK v1 and collections in former destinations remain separate and are excluded from the current-collection counter. Tray totals combine immutable closed-file manifest counters with active-file/tail metadata without a recursive scan every five seconds. External-volume free space is measured separately. CSV periods/common secondary-writer shutdown drain are unchanged.
+
+Before implementation, a 3000-event/330.305-second sample retaining 1500 raw batches and selecting 34 ten-second snapshots estimated 16.4–18.2 MB/day with Zstd 1, excluding new headers/state/check records. A provisional 20–30 MB/day (0.6–0.9 GB/30 days) allowance remains an estimate for about 30 channels near 1 Hz and 30 parameters, not monthly acceptance or a guaranteed limit. The implementation additionally stores result checks and state; real size depends on data, map revisions and frequency. Exceeding a budget never authorizes silent input loss. J4125 resource acceptance is pending.
+
+## Writing, tails and interruption
+
+Independent compressed blocks target 256 KiB. While accumulating a block, rows are sync_all-acknowledged in an adjacent .tail file on the selected medium. The .kbk block is synced before clearing the tail. A crash between these steps can leave a duplicate; the reader verifies equality and applies it once. Restart reads the initial checkpoint and current file, not the entire multi-month history.
+
+A closed file receives END2 with its position/state checksum and becomes self-contained; its empty tail need not be copied. **An active file requires both .kbk and .tail.** Missing required tails cause import refusal. Copy closed hours or stop the writer and transfer the whole collection including service files. A primary database and backup on one medium do not protect against that medium failing.
+
+A torn final frame is excluded. Before resuming, the writer preserves its exact bytes in a separate ASCII-named .bin file. Complete frame damage, invalid maps/sequences/checksums are never hidden by truncation. An empty unindexed header left by interrupted creation is preserved separately and recreated; unindexed files containing data require explicit recovery. A common full-KERN shutdown drain remains pending: primary history may lead backup, which catches up on restart.
+
+## Inspection and recovery
 
 ```powershell
-kern-core.exe restore --input PATH_TO_EVENTS_FILE --profile NEW_PROFILE_PATH
+kern-core.exe backup-info --input PATH_TO_HOURLY_ROOT_OR_DAY_OR_FILE
+kern-core.exe restore --input PATH_TO_HOURLY_ROOT_OR_DAY_OR_FILE --profile NEW_PROFILE_PATH
 kern-core.exe check --profile NEW_PROFILE_PATH
 ```
 
-A new directory and compatible KERN/algorithm version are required. The input backup is unchanged. Successful recovery excluding a torn tail explicitly reports `uncommitted_tail: true`; errors leave `import-incomplete`, preventing the partial profile from being opened as complete. A common secondary-writer shutdown drain remains separate work: committed core history may be newer than backup.
+backup-info shows reasons, maps, boundaries, full-snapshot/check counts and integrity. restore also reads legacy JSONL/KBK v1 when given a file. The output directory must be new. Errors leave import-incomplete, preventing partial profiles from being opened. Restored redb retains a validated initial state in a separate table and continues original event numbers; dump emits baseline first, then selected-interval events. Initial events are not fabricated.
 
-Folder selection runs in a separate short-lived native-shell process. Only one picker per profile is allowed; waiting is limited to 120 seconds, and host shutdown terminates only its own helper. Intake and the mandatory shell heartbeat do not wait for the dialog. OS API: [SHBrowseForFolder](https://learn.microsoft.com/en-us/windows/win32/api/shlobj_core/nf-shlobj_core-shbrowseforfolderw).
+Checks: cargo test --workspace --locked and python tools/validate_hourly_backup.py cover hour/day/map changes, exact restored events/stateful rates, torn/duplicate tails, CRC, independent file import, booting restored profiles and backing them up again. v1 compatibility: python tools/validate_prototype.py and python tools/validate_backup_settings.py. [Report](../validation/hourly-backup-20261025.json). Windows10/macOS, weak PCs, month-long capture, full fault injection and power loss remain unaccepted.
 
-Validation: `cargo test --workspace --locked`, `python tools/validate_backup_settings.py`; independent event comparison after recovery of every mode, torn/CRC blocks, live folder/level changes, unavailable destinations, stale revisions, form and native picker. [Report](../validation/backup-settings-20261025.json). Low-end PCs, power loss and endurance remain unaccepted.
+## Technical contract
 
-## Target-size estimate — proposal, not a new setting
+v2 magic is KERNBKP2. HDR2 (initial state), DAT2 (rows), END2 (closure) frames have a 32-byte little-endian header: tag[4], codec u8 (0 raw / 1 Zstd), level i8, reserved[2]=0, plain_len u32, stored_len u32, plain-payload CRC32 u32, last_sequence u64, first-28-header-byte CRC32 u32. DAT2 contains event/result/snapshot JSON lines with original sequence. HDR2 ≤16 MiB, DAT2 ≤1 MiB, stored payload ≤2×limit; decoder windows ≤16/2 MiB respectively. The core additionally validates maps/context. Source/line settings are never obtained through direct references to another plugin's memory.
 
-On 2026-10-25, a local sample of 3000 events spanning 330.305 seconds was examined. At the same flow, a short uncompressed growth measurement extrapolates to about 49 GB per 30 days; interpreter results account for 84% of sample JSON. For 96.6% of successive records of one parameter, value and quality are equal, but time/other fields may differ: whole records cannot simply be removed.
+Directory reading is bounded to 4096 entries per level and 100000 files; manifest paths have two components within the collection. Raw cache holds 64 events; older references embed the required raw event. A restored profile's initial state is transferred to the writer through bounded ArchiveBaseline pages (48 KiB, total ≤16 MiB, CRC) without exposing full state in ordinary snapshot replies. State encoding currently requires a compatible KERN version. [Zstd](https://github.com/facebook/zstd), [licenses](../dependencies.json).
 
-Offline Zstd level 1 on this sample gives approximate projections: short time-grouped blocks ≈3.3 GB/30 days; 256 KiB blocks ≈1.9 GB; input events alone, excluding parameters_stored, with 256 KiB blocks ≈0.44 GB. These extrapolate one current flow, without month-long/resource acceptance. The last case is not a validated recovery format: current restore requires results and a contiguous event sequence.
-
-The recommended next experiment is binary representation, ID/unit dictionaries, lossless field-level differences retaining time, quality and reasons, followed by Zstd 1 in 64–256 KiB blocks. Building a block requires an unfinished tail durably acknowledged on disk; an hour's only copy must not remain in RAM. Hourly/daily rotation simplifies maintenance but does not itself reduce size. Display data may be decimated for drawing and therefore cannot supply a complete backup. Input-only storage with result recomputation is a separate possible mode after validating algorithm versions, historical maps, time, manual actions and calculation state. This discussion enables neither result removal nor frequency limits. A 1 GB/month budget must specify channel count, frequency and event contents; exceeding it should produce a forecast rather than silent data loss.
-
-### Refined design for the next format
-
-Agreed direction: every raw sample plus a full calculated-parameter snapshot every 10 seconds; a new file each hour and a new directory each day. Activating a new calibration revision also closes the current file; the next starts with a full snapshot of active maps and the rotation reason, for example “At 14:25 the operator changed the weight calibration.” Structured fields need the precise time/event boundary and old/new revisions. Names remain ASCII, for example `2026-10-25/14-25-00_calibration-42.kbk`. The next wall-clock hour boundary still applies. Independent recovery of stateful calculations will need an initial state snapshot. This is a plan: current KBK v1 does not implement it.
-
-On the same sample, selecting 34 last-result snapshots in ten-second buckets while retaining all 1500 raw batches gives Zstd 1 estimates of ≈16.4 MB/day with 256 KiB blocks and ≈18.2 MB/day with 64 KiB blocks, or ≈0.49–0.55 GB per 30 days. Conditions: about 30 raw channels at approximately one sample/second/channel and about 30 output parameters. This offline content estimate excludes extra headers/state snapshots/calibration changes and is not a working import. A provisional allowance is 20–30 MB/day (0.6–0.9 GB/30 days), requiring validation of the new writer and a real complete day.
+Working migration on 2026-10-25 retained the previous 1,733,897,441-byte JSONL; the new accumulated-history copy is 31,576,492 bytes in 51 files. 723,140 intermediate results were regenerated/CRC-checked; 16,165 full snapshots have block CRC protection. This measures accumulated history, not one day. Intake continued, the archive caught up, and map/line configuration was preserved.

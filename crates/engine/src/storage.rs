@@ -13,6 +13,7 @@ const RAW: TableDefinition<u64, u64> = TableDefinition::new("raw_index_v1");
 const RESULTS: TableDefinition<(i64, u64), u64> = TableDefinition::new("parameter_time_v1");
 const LATEST: TableDefinition<&str, &[u8]> = TableDefinition::new("latest_v1");
 const META: TableDefinition<&str, u64> = TableDefinition::new("metadata_v1");
+const BASELINE: TableDefinition<u8, &[u8]> = TableDefinition::new("archive_baseline_v2");
 pub const FILE: &str = "measurements.redb";
 pub const FILE_LIMIT: u64 = 4 * 1024 * 1024 * 1024;
 fn err(e: impl std::fmt::Display) -> io::Error {
@@ -65,7 +66,91 @@ impl RedbStore {
         Ok(store)
     }
     pub fn replay(&self, state: &mut State) -> io::Result<()> {
+        if let Some(baseline) = self.baseline()? {
+            *state = baseline;
+        }
         self.walk(|seq, event| state.apply(seq, &event, false).map_err(err))
+    }
+    pub fn baseline(&self) -> io::Result<Option<State>> {
+        let tx = self.db.begin_read().map_err(err)?;
+        let table = match tx.open_table(BASELINE) {
+            Ok(t) => t,
+            Err(redb::TableError::TableDoesNotExist(_)) => return Ok(None),
+            Err(e) => return Err(err(e)),
+        };
+        let Some(bytes) = table.get(0).map_err(err)? else {
+            return Ok(None);
+        };
+        let bytes = bytes.value();
+        if bytes.len() < 4
+            || bytes.len() > 16 * 1024 * 1024 + 4
+            || crc32fast::hash(&bytes[4..]) != u32::from_le_bytes(bytes[..4].try_into().unwrap())
+        {
+            return Err(err("Archive baseline CRC/length mismatch"));
+        }
+        let mut state: State = serde_json::from_slice(&bytes[4..]).map_err(err)?;
+        state.validate_checkpoint().map_err(err)?;
+        Ok(Some(state))
+    }
+    pub fn install_baseline(&self, state: &State) -> io::Result<()> {
+        let json = serde_json::to_vec(state).map_err(err)?;
+        if json.len() > 16 * 1024 * 1024 {
+            return Err(err("Archive checkpoint exceeds 16 MiB"));
+        }
+        let mut validated: State = serde_json::from_slice(&json).map_err(err)?;
+        validated.validate_checkpoint().map_err(err)?;
+        let mut bytes = crc32fast::hash(&json).to_le_bytes().to_vec();
+        bytes.extend(json);
+        let mut tx = self.db.begin_write().map_err(err)?;
+        tx.set_durability(Durability::Immediate).map_err(err)?;
+        {
+            let mut meta = tx.open_table(META).map_err(err)?;
+            if meta.get("sequence").map_err(err)?.is_some() {
+                return Err(err("Baseline requires an empty database"));
+            }
+            meta.insert("sequence", state.event_sequence).map_err(err)?;
+            meta.insert("processor_position", state.processor_position)
+                .map_err(err)?;
+        }
+        tx.open_table(BASELINE)
+            .map_err(err)?
+            .insert(0, bytes.as_slice())
+            .map_err(err)?;
+        tx.commit().map_err(err)
+    }
+    pub fn baseline_chunk(&self, offset: u32) -> io::Result<Reply> {
+        let tx = self.db.begin_read().map_err(err)?;
+        let table = match tx.open_table(BASELINE) {
+            Ok(t) => t,
+            Err(redb::TableError::TableDoesNotExist(_)) => {
+                return Ok(Reply::ArchiveBaseline {
+                    offset: 0,
+                    total: 0,
+                    crc32: 0,
+                    data: vec![],
+                });
+            }
+            Err(e) => return Err(err(e)),
+        };
+        let bytes = table
+            .get(0)
+            .map_err(err)?
+            .ok_or_else(|| err("Baseline missing"))?;
+        let bytes = bytes.value();
+        if bytes.len() < 4
+            || bytes.len() > 16 * 1024 * 1024 + 4
+            || offset as usize > bytes.len() - 4
+        {
+            return Err(err("Baseline offset/length"));
+        }
+        let json = &bytes[4..];
+        let start = offset as usize;
+        Ok(Reply::ArchiveBaseline {
+            offset,
+            total: json.len() as u32,
+            crc32: u32::from_le_bytes(bytes[..4].try_into().unwrap()),
+            data: json[start..json.len().min(start + 48 * 1024)].to_vec(),
+        })
     }
     pub fn walk(&self, mut visit: impl FnMut(u64, Event) -> io::Result<()>) -> io::Result<()> {
         let tx = self.db.begin_read().map_err(err)?;
@@ -332,6 +417,66 @@ fn decode(bytes: &[u8]) -> io::Result<Event> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn archive_baseline_pages_replay_and_crc_damage_refuses() {
+        let profile =
+            std::env::temp_dir().join(format!("kern-baseline-{}", kern_protocol::token().unwrap()));
+        std::fs::create_dir(&profile).unwrap();
+        let store = RedbStore::open(&profile, true).unwrap();
+        let mut state = State::default();
+        let map: CalibrationMap =
+            serde_json::from_str(include_str!("../../../plugins/calibration.example.json"))
+                .unwrap();
+        for revision in 1..=40 {
+            state
+                .apply(
+                    revision,
+                    &Event::CalibrationSaved {
+                        revision,
+                        map: map.clone(),
+                    },
+                    false,
+                )
+                .unwrap();
+        }
+        store.install_baseline(&state).unwrap();
+        let mut restored = State::default();
+        store.replay(&mut restored).unwrap();
+        assert_eq!(
+            serde_json::to_value(&state).unwrap(),
+            serde_json::to_value(&restored).unwrap()
+        );
+        let mut bytes = vec![];
+        let mut pages = 0;
+        loop {
+            let Reply::ArchiveBaseline {
+                offset,
+                total,
+                crc32,
+                data,
+            } = store.baseline_chunk(bytes.len() as u32).unwrap()
+            else {
+                panic!()
+            };
+            assert_eq!(offset as usize, bytes.len());
+            bytes.extend(data);
+            pages += 1;
+            if bytes.len() == total as usize {
+                assert_eq!(crc32fast::hash(&bytes), crc32);
+                break;
+            }
+        }
+        assert!(pages > 1);
+        let tx = store.db.begin_write().unwrap();
+        {
+            let mut table = tx.open_table(BASELINE).unwrap();
+            let mut bad = table.get(0).unwrap().unwrap().value().to_vec();
+            bad[0] ^= 1;
+            table.insert(0, bad.as_slice()).unwrap();
+        }
+        tx.commit().unwrap();
+        assert!(store.baseline().is_err());
+    }
     fn folder() -> PathBuf {
         let p = std::env::temp_dir().join(format!(
             "kern-redb-{}-{}",

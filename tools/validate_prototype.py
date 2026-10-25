@@ -68,6 +68,7 @@ def main():
         processor=spawn('kern-processor','--profile',profile)
         wait(lambda:rpc(profile,'calibration')['active_revision']==1)
         csv_process=spawn('kern-recorder','--profile',profile,'--mode','csv')
+        (profile/'backup-settings.json').write_text(json.dumps(dict(revision=0,profile_id='a'*32,directory='',compression='none',layout='legacy')))
         backup=spawn('kern-recorder','--profile',profile,'--mode','backup')
         s=rpc(profile,'status')['status']
         source=mutate(profile,'open_source',id='test',resource='SYNTHETIC',channels=[dict(id=0,name='Raw',value_type='unsigned')],expected_catalog_revision=s['catalog_revision']);session=source['session']

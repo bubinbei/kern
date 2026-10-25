@@ -67,6 +67,7 @@ name = "kern-backup"
 version = "0.1.0"
 dependencies = [
  "crc32fast",
+ "kern-engine",
  "kern-protocol",
  "serde",
  "serde_json",
@@ -166,6 +167,7 @@ version = "0.1.0"
 dependencies = [
  "crc32fast",
  "kern-backup",
+ "kern-engine",
  "kern-protocol",
  "serde_json",
 ]

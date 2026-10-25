@@ -9,7 +9,7 @@ rust-version = "1.96"
 license = "MIT"
 
 [workspace.dependencies]
-serde = { version = "1.0", features = ["derive"] }
+serde = { version = "1.0", features = ["derive", "rc"] }
 serde_json = { version = "1.0", features = ["float_roundtrip"] }
 crc32fast = "1.5"
 getrandom = "0.4"

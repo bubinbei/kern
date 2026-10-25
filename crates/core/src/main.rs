@@ -38,9 +38,23 @@ fn execute() -> io::Result<()> {
         "close" => vec!["--profile", "--source", "--session"],
         "recover" => vec!["--profile", "--output"],
         "restore" => vec!["--profile", "--input"],
+        "backup-info" => vec!["--input"],
         _ => return Err(io::Error::other("Unknown command; run kern-core help")),
     };
     validate_options(&args[1..], &allowed)?;
+    if command == "backup-info" {
+        let paths = kern_backup::timed::files(Path::new(&argument(&args, "--input")?))?;
+        let mut files = vec![];
+        for path in paths {
+            let r = kern_backup::timed::replay(&path, |_, _| Ok(()))?;
+            files.push(serde_json::json!({"file":path,"schema":r.header.schema,"reason":r.header.reason,"reason_code":r.header.reason_code,"created_unix_ms":r.header.created_unix_ms,"utc_offset_minutes":r.header.utc_offset_minutes,"first_sequence":r.header.first_sequence,"last_sequence":r.state.event_sequence,"old_revision":r.header.old_revision,"new_revision":r.header.new_revision,"active_map":r.header.active_map,"snapshots":r.snapshots,"recipes":r.recipes,"closed":r.closed,"uncommitted_tail":r.incomplete}));
+        }
+        println!(
+            "{}",
+            serde_json::json!({"format":"hourly-v2","files":files})
+        );
+        return Ok(());
+    }
     let profile = PathBuf::from(argument(&args, "--profile")?);
     match command {
         "serve" | "run" => {
@@ -76,6 +90,15 @@ fn execute() -> io::Result<()> {
             let mut state = State::default();
             if profile.join(kern_engine::storage::FILE).is_file() {
                 let store = kern_engine::storage::RedbStore::open(&profile, false)?;
+                if let Some(baseline) = store.baseline()? {
+                    if command == "dump" {
+                        println!(
+                            "{}",
+                            serde_json::json!({"baseline":baseline,"sequence":baseline.event_sequence})
+                        );
+                    }
+                    state = baseline;
+                }
                 store.walk(|seq, event| {
                     state.apply(seq, &event, false).map_err(io::Error::other)?;
                     if command == "dump" {
@@ -198,6 +221,53 @@ fn restore(profile: &Path, input: &Path) -> io::Result<()> {
     let marker = profile.join("import-incomplete");
     std::fs::write(&marker, b"Restore is not complete")?;
     let store = kern_engine::storage::RedbStore::open(profile, true)?;
+    if kern_backup::timed::is_v2(input)? {
+        let files = kern_backup::timed::files(input)?;
+        let mut previous: Option<State> = None;
+        let mut identity = None;
+        let mut incomplete = false;
+        let mut count = 0u64;
+        for file in &files {
+            let header = kern_backup::timed::header(file)?;
+            if let Some(id) = &identity {
+                if id != &header.profile_id {
+                    return Err(io::Error::other("Archive profiles differ"));
+                }
+            } else {
+                identity = Some(header.profile_id.clone());
+            }
+            let mut baseline: State = serde_json::from_value(header.checkpoint.clone())?;
+            baseline.validate_checkpoint().map_err(io::Error::other)?;
+            if let Some(prior) = &previous {
+                if header.first_sequence != prior.event_sequence + 1
+                    || serde_json::to_value(prior)? != serde_json::to_value(&baseline)?
+                {
+                    return Err(io::Error::other("Archive gap/fork/checkpoint mismatch"));
+                }
+            } else {
+                store.install_baseline(&baseline)?;
+            }
+            let r = kern_backup::timed::replay(file, |seq, e| {
+                if store.append(e)? != seq {
+                    return Err(io::Error::other("Archive import sequence mismatch"));
+                }
+                count += 1;
+                Ok(())
+            })?;
+            if r.incomplete && file != files.last().unwrap() {
+                return Err(io::Error::other("Incomplete archive before later files"));
+            }
+            incomplete |= r.incomplete;
+            previous = Some(r.state);
+        }
+        let state = previous.ok_or_else(|| io::Error::other("Empty archive"))?;
+        std::fs::remove_file(marker)?;
+        println!(
+            "{}",
+            serde_json::json!({"format":"hourly-v2","files":files.len(),"restored_events":state.event_sequence,"imported_events":count,"raw_batches":state.raw_batches,"uncommitted_tail":incomplete,"baseline_position":kern_backup::timed::header(&files[0])?.first_sequence-1})
+        );
+        return Ok(());
+    }
     let mut input = kern_backup::Input::open(input)?;
     let mut reader = io::BufReader::new(&mut input);
     let mut line = vec![];
